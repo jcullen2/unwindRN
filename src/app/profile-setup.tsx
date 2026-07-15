@@ -56,7 +56,10 @@ export default function ProfileSetupScreen() {
   const save = async () => {
     if (!session || !canSave) return;
     setSaving(true);
-    const { error } = await supabase.from('profiles').insert({
+    // upsert, not insert: if a profile row already exists (e.g. the fetch
+    // failed transiently at launch and routed an existing user here), saving
+    // must still succeed rather than dead-ending on the primary-key conflict.
+    const { error } = await supabase.from('profiles').upsert({
       id: session.user.id,
       display_name: displayName.trim(),
       specialty: specialty!,

@@ -47,6 +47,15 @@ export default function DebriefScreen() {
   const [ending, setEnding] = useState(false);
   const [crisisVisible, setCrisisVisible] = useState(false);
 
+  // Synchronous mirrors: send() must be re-entrancy-safe before any state
+  // commit, and the header menu reads these without re-registering per message.
+  const sendingRef = useRef(false);
+  const awaitingRef = useRef(false);
+  const messagesRef = useRef<Message[]>([]);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
   const userId = session?.user.id;
 
   const loadActiveDebrief = useCallback(async () => {
@@ -113,11 +122,18 @@ export default function DebriefScreen() {
 
   const fetchReply = async (dId: string, history: ChatMessage[]) => {
     setAwaitingReply(true);
+    awaitingRef.current = true;
     try {
       const { reply, crisis } = await requestDebriefReply(history);
-      const saved = await persistMessage(dId, 'assistant', reply);
-      setMessages((prev) => [...prev, saved]);
+      // Surface the crisis card even if persisting the reply hiccups.
       if (crisis) setCrisisVisible(true);
+      let saved: Message;
+      try {
+        saved = await persistMessage(dId, 'assistant', reply);
+      } catch {
+        saved = await persistMessage(dId, 'assistant', reply); // one retry
+      }
+      setMessages((prev) => [...prev, saved]);
     } catch {
       Alert.alert(REPLY_ERROR, undefined, [
         { text: 'Not now', style: 'cancel' },
@@ -125,12 +141,14 @@ export default function DebriefScreen() {
       ]);
     } finally {
       setAwaitingReply(false);
+      awaitingRef.current = false;
     }
   };
 
   const send = async () => {
     const text = draft.trim();
-    if (!text || !userId || awaitingReply || ending) return;
+    if (!text || !userId || sendingRef.current || awaitingRef.current || ending) return;
+    sendingRef.current = true;
     setDraft('');
     try {
       let dId = debriefId;
@@ -145,20 +163,23 @@ export default function DebriefScreen() {
         setDebriefId(dId);
       }
       const saved = await persistMessage(dId!, 'user', text);
-      const nextMessages = [...messages, saved];
+      const nextMessages = [...messagesRef.current, saved];
       setMessages(nextMessages);
       await fetchReply(dId!, toHistory(nextMessages));
     } catch {
       setDraft(text);
       Alert.alert(REPLY_ERROR);
+    } finally {
+      sendingRef.current = false;
     }
   };
 
   const endDebrief = useCallback(async () => {
-    if (!debriefId || messages.length === 0 || ending) return;
+    const current = messagesRef.current;
+    if (!debriefId || current.length === 0 || ending || awaitingRef.current) return;
     setEnding(true);
     try {
-      const extracted = await requestExtraction(toHistory(messages));
+      const extracted = await requestExtraction(toHistory(current));
       router.push({
         pathname: '/shift-form',
         params: { mode: 'confirm', debriefId, draft: JSON.stringify(extracted) },
@@ -185,12 +206,12 @@ export default function DebriefScreen() {
     } finally {
       setEnding(false);
     }
-  }, [debriefId, messages, ending, router]);
+  }, [debriefId, ending, router]);
 
   const openMenu = useCallback(() => {
     const showResources = () => router.push('/resources');
     if (Platform.OS === 'ios') {
-      const canEnd = !!debriefId && messages.length > 0;
+      const canEnd = !!debriefId && messagesRef.current.length > 0 && !awaitingRef.current;
       const options = canEnd
         ? ['Support resources', 'End debrief', 'Cancel']
         : ['Support resources', 'Cancel'];
@@ -204,7 +225,7 @@ export default function DebriefScreen() {
     } else {
       showResources();
     }
-  }, [debriefId, messages.length, endDebrief, router]);
+  }, [debriefId, endDebrief, router]);
 
   useEffect(() => {
     navigation.setOptions({

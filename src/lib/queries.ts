@@ -6,7 +6,8 @@ import { Shift, supabase } from '@/lib/supabase';
 export function useShifts() {
   const { session } = useAuth();
   return useQuery({
-    queryKey: ['shifts'],
+    // Keyed by user so one account's cache can never render for another
+    queryKey: ['shifts', session?.user.id],
     enabled: !!session,
     staleTime: 30_000, // saves invalidate explicitly; don't refire on tab hops
     queryFn: async (): Promise<Shift[]> => {
@@ -23,7 +24,7 @@ export function useShifts() {
 
 export function useShift(id: string | undefined) {
   return useQuery({
-    queryKey: ['shifts', id],
+    queryKey: ['shift', id],
     enabled: !!id,
     queryFn: async (): Promise<Shift | null> => {
       const { data, error } = await supabase
@@ -43,7 +44,7 @@ export type Totals = { total_shifts: number; total_hours: number };
 export function useTotals() {
   const { session } = useAuth();
   return useQuery({
-    queryKey: ['totals'],
+    queryKey: ['totals', session?.user.id],
     enabled: !!session,
     staleTime: 30_000,
     queryFn: async (): Promise<Totals> => {

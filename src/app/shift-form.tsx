@@ -91,21 +91,28 @@ export default function ShiftFormScreen() {
       if (error) throw error;
 
       if (params.debriefId) {
-        await supabase
-          .from('debriefs')
-          .update({ ended_at: new Date().toISOString() })
-          .eq('id', params.debriefId);
+        // If this fails the debrief stays open and could be saved twice —
+        // retry once before moving on.
+        const end = () =>
+          supabase
+            .from('debriefs')
+            .update({ ended_at: new Date().toISOString() })
+            .eq('id', params.debriefId!);
+        const { error: endError } = await end();
+        if (endError) await end();
       }
 
       await invalidate();
 
-      const { data: totals } = await supabase
+      // Milestone check is best-effort: a failed totals read skips the card,
+      // it never blocks the save.
+      const { data: totals, error: totalsError } = await supabase
         .from('shift_totals')
         .select('total_shifts')
         .maybeSingle();
-      const count = totals?.total_shifts ?? 0;
+      const count = totalsError ? null : (totals?.total_shifts ?? 0);
 
-      if ((MILESTONES as readonly number[]).includes(count)) {
+      if (count !== null && (MILESTONES as readonly number[]).includes(count)) {
         router.replace({ pathname: '/milestone', params: { count: String(count) } });
       } else {
         router.back();
