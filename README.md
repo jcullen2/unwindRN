@@ -1,56 +1,60 @@
-# Welcome to your Expo app 👋
+# unwindRN
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Put the shift down. unwindRN is a consumer iOS app for nurses: **the Debrief**
+(an AI partner, fluent in your specialty, that helps you process the shift) and
+**the Logbook** (a career place of truth — shifts, hours, wins, losses, lessons —
+auto-filled from debriefs).
 
-## Get started
+Read `CLAUDE.md` first — it is the source of truth for scope, architecture,
+security rules, tokens, and copy.
 
-1. Install dependencies
+## Stack
 
-   ```bash
-   npm install
+- **App** — Expo SDK 57 (managed), TypeScript strict, Expo Router, dark-only
+  "Last light" theme (`src/theme`).
+- **Backend** — Supabase: Postgres with RLS on every table, Sign in with Apple,
+  Edge Functions (Deno) as the only place that talks to the Anthropic API.
+- **Models** — `claude-sonnet-4-6` for the debrief conversation;
+  `claude-haiku-4-5-20251001` for the safety classifier and extraction.
+
+## Setup
+
+1. `npm install`
+2. Copy `.env.example` to `.env` and fill in the Supabase project URL and anon
+   key (Project Settings → API). `.env` is gitignored — never commit it.
+3. Set the server-side secrets (the Anthropic key lives ONLY here):
+
+   ```sh
+   supabase secrets set ANTHROPIC_API_KEY=sk-ant-... --project-ref <project-ref>
    ```
 
-2. Start the app
+4. In the Supabase dashboard: Authentication → Providers → Apple, configure
+   Sign in with Apple with the app's bundle id (`com.unwindrn.app`).
+5. `npx expo start` and press `i` for the iOS simulator. Note: Sign in with
+   Apple needs a real device or a simulator signed into an Apple ID.
 
-   ```bash
-   npx expo start
-   ```
+## Backend layout
 
-In the output, you'll find options to open the app in a
+- `supabase/migrations/` — schema: `profiles`, `debriefs`, `messages`,
+  `shifts`, all with RLS (`user_id = auth.uid()`), plus the `shift_totals`
+  view (totals are computed, never stored).
+- `supabase/functions/debrief` — conversation pipeline; returns
+  `{ reply, crisis }` (parallel safety classifier on the latest user message).
+- `supabase/functions/extract` — transcript → draft shift record (strict JSON,
+  hard PHI-exclusion instruction).
+- `supabase/functions/delete-account` — service role; wipes all user rows,
+  then the auth user.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Deploy functions with `supabase functions deploy debrief extract delete-account`.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Ship
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```sh
+eas build --platform ios --profile production
+eas submit --platform ios
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+`assets/images/icon.png` / `splash-icon.png` are generated placeholders
+(indigo field, amber coil) — replace with final art before submission.
 
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+unwindRN is not therapy or medical care. If you're in crisis, call or text 988.

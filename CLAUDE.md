@@ -113,3 +113,20 @@ react-native-safe-area-context, react-native-screens, expo-font, date-fns.
   silently deciding.
 - Security-adjacent files (edge functions, migrations, RLS policies) get extra care —
   summarize what changed and why after touching them.
+
+## Build log — decisions made during the build (2026-07-15)
+- Expo SDK 57 / RN 0.86 / TypeScript strict; classic expo-router `Tabs` (not the
+  unstable NativeTabs). Tab icons drawn with Views — no icon dependency.
+- Supabase project: **unwindRN-v1** (`fucstcfrpxlmqzzpfped`, us-east-1). The old
+  paused `unwindRN` project was past the 90-day restore window. Schema migration
+  applied and edge functions (debrief/extract/delete-account) deployed.
+  `ANTHROPIC_API_KEY` still needs `supabase secrets set` before the debrief works.
+- Totals come from the `shift_totals` view (security_invoker), message_count via
+  trigger on messages insert.
+- Extraction uses structured outputs (`output_config.format` json_schema) so the
+  JSON is guaranteed valid; classifier failures default to `crisis: false` and
+  never block a reply.
+- Mood is a 1–5 numeric picker, not emoji.
+- Date entry in the shift form is a plain YYYY-MM-DD field for v1 (no picker dep).
+- Icon/splash are generated placeholders (indigo field, amber coil) — replace
+  before submission.
