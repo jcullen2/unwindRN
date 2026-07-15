@@ -13,16 +13,18 @@ const json = (body: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   });
 
+// anyOf unions instead of JSON-Schema type arrays — the documented shape for
+// Anthropic structured outputs.
 const EXTRACTION_SCHEMA = {
   type: 'object',
   properties: {
     shift_date: { type: 'string', format: 'date' },
-    hours: { type: ['number', 'null'] },
-    unit: { type: ['string', 'null'] },
+    hours: { anyOf: [{ type: 'number' }, { type: 'null' }] },
+    unit: { anyOf: [{ type: 'string' }, { type: 'null' }] },
     win: { type: 'string' },
     loss: { type: 'string' },
     lesson: { type: 'string' },
-    mood: { type: ['integer', 'null'], enum: [1, 2, 3, 4, 5, null] },
+    mood: { anyOf: [{ type: 'integer', enum: [1, 2, 3, 4, 5] }, { type: 'null' }] },
   },
   required: ['shift_date', 'hours', 'unit', 'win', 'loss', 'lesson', 'mood'],
   additionalProperties: false,
@@ -54,9 +56,11 @@ Deno.serve(async (req: Request) => {
       return json({ error: 'messages_required' }, 400);
     }
 
+    // Bound what we forward: the last 80 turns, each capped at 4k chars.
     const transcript = rawMessages
       .filter((m) => m && typeof m.content === 'string')
-      .map((m) => `${m.role === 'assistant' ? 'Partner' : 'Nurse'}: ${m.content}`)
+      .slice(-80)
+      .map((m) => `${m.role === 'assistant' ? 'Partner' : 'Nurse'}: ${m.content.slice(0, 4000)}`)
       .join('\n\n');
 
     const anthropic = new Anthropic({ apiKey: Deno.env.get('ANTHROPIC_API_KEY')! });

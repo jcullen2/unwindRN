@@ -80,7 +80,8 @@ Deno.serve(async (req: Request) => {
           typeof m.content === 'string' &&
           m.content.length > 0
       )
-      .slice(-40); // bound the context we forward
+      .slice(-40) // bound the context we forward
+      .map((m) => ({ role: m.role, content: m.content.slice(0, 4000) }));
     // First message must be from the user.
     while (messages.length > 0 && messages[0].role !== 'user') messages.shift();
     if (messages.length === 0) return json({ error: 'messages_required' }, 400);

@@ -8,6 +8,7 @@ export function useShifts() {
   return useQuery({
     queryKey: ['shifts'],
     enabled: !!session,
+    staleTime: 30_000, // saves invalidate explicitly; don't refire on tab hops
     queryFn: async (): Promise<Shift[]> => {
       const { data, error } = await supabase
         .from('shifts')
@@ -44,6 +45,7 @@ export function useTotals() {
   return useQuery({
     queryKey: ['totals'],
     enabled: !!session,
+    staleTime: 30_000,
     queryFn: async (): Promise<Totals> => {
       const { data, error } = await supabase
         .from('shift_totals')
