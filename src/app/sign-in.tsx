@@ -1,6 +1,6 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Screen } from '@/components/ui';
@@ -42,14 +42,24 @@ export default function SignInScreen() {
   return (
     <Screen
       style={{
-        paddingTop: insets.top + space(20),
+        paddingTop: insets.top,
         paddingBottom: insets.bottom + space(8),
-        paddingHorizontal: space(6),
+        paddingHorizontal: space(8),
       }}>
-      <View style={{ flex: 1 }}>
+      <View style={styles.hero}>
+        <Image
+          source={require('@/assets/images/splash-icon.png')}
+          style={styles.mark}
+          accessibilityLabel="unwindRN mark"
+        />
         <Text style={styles.brand}>unwindRN</Text>
         <Text style={styles.tagline}>Put the shift down.</Text>
+        <Text style={styles.sub}>
+          Debrief the day with a partner who gets it. Keep the record — shifts, hours,
+          wins, losses, lessons.
+        </Text>
       </View>
+
       <AppleAuthentication.AppleAuthenticationButton
         buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
         buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
@@ -65,19 +75,36 @@ export default function SignInScreen() {
 }
 
 const styles = StyleSheet.create({
+  hero: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  mark: {
+    width: 64,
+    height: 64,
+    marginBottom: space(6),
+  },
   brand: {
-    fontSize: 40,
+    fontSize: 42,
     fontWeight: '700',
     color: colors.text,
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
   },
   tagline: {
-    ...type.heading,
+    fontSize: 21,
+    fontWeight: '600',
+    lineHeight: 28,
     color: colors.amber,
-    marginTop: space(3),
+    marginTop: space(2),
+  },
+  sub: {
+    ...type.secondary,
+    lineHeight: 24,
+    marginTop: space(4),
+    maxWidth: 320,
   },
   appleButton: {
-    height: 50,
+    height: 52,
   },
   footnote: {
     ...type.caption,

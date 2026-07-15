@@ -14,12 +14,12 @@ const MOOD_LABELS: Record<number, string> = {
   5: 'Great',
 };
 
-function Section({ label, value }: { label: string; value: string }) {
+function Section({ label, value, first }: { label: string; value: string; first?: boolean }) {
   if (!value) return null;
   return (
-    <View style={{ marginTop: space(5) }}>
+    <View style={{ marginTop: first ? 0 : space(5) }}>
       <Text style={styles.sectionLabel}>{label}</Text>
-      <Text style={[type.body, { marginTop: space(1.5) }]}>{value}</Text>
+      <Text style={[type.body, { marginTop: space(1.5), lineHeight: 25 }]}>{value}</Text>
     </View>
   );
 }
@@ -53,9 +53,9 @@ export default function ShiftDetailScreen() {
         {meta.length > 0 && <Text style={[type.caption, { marginTop: space(2) }]}>{meta}</Text>}
 
         <Card style={{ marginTop: space(5) }}>
-          <Section label="WIN" value={shift.win} />
-          <Section label="LOSS" value={shift.loss} />
-          <Section label="LESSON" value={shift.lesson} />
+          <Section label="WIN" value={shift.win} first />
+          <Section label="LOSS" value={shift.loss} first={!shift.win} />
+          <Section label="LESSON" value={shift.lesson} first={!shift.win && !shift.loss} />
           {!shift.win && !shift.loss && !shift.lesson && (
             <Text style={type.secondary}>No notes on this one — it still counts.</Text>
           )}

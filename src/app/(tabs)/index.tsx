@@ -23,6 +23,16 @@ import { colors, radius, space, type } from '@/theme';
 
 const REPLY_ERROR = "Couldn't reach your debrief partner. Try again.";
 
+/** Opened exhausted at 8pm and 7:40am — greet accordingly. */
+function greeting(name?: string): string {
+  const h = new Date().getHours();
+  const who = name ? `, ${name}` : '';
+  if (h >= 5 && h < 12) return `Morning${who}.`;
+  if (h >= 12 && h < 17) return `Hey${who}.`;
+  if (h >= 17 && h < 22) return `Evening${who}.`;
+  return `Still up${who}?`;
+}
+
 export default function DebriefScreen() {
   const { session, profile } = useAuth();
   const router = useRouter();
@@ -233,10 +243,13 @@ export default function DebriefScreen() {
         ) : (
           <View style={styles.empty}>
             <Text style={[type.title, { textAlign: 'center' }]}>
-              {profile ? `Hey, ${profile.display_name}.` : 'Hey.'}
+              {greeting(profile?.display_name)}
             </Text>
             <Text style={[type.secondary, { textAlign: 'center', marginTop: space(3) }]}>
               Put the shift down. How was today?
+            </Text>
+            <Text style={[type.caption, { textAlign: 'center', marginTop: space(8) }]}>
+              Whatever you write stays yours — just keep patients unnamed.
             </Text>
           </View>
         )}

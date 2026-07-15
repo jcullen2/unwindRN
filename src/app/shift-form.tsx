@@ -21,20 +21,26 @@ import { colors, space, type } from '@/theme';
 
 function MoodPicker({ value, onChange }: { value: number | null; onChange: (m: number | null) => void }) {
   return (
-    <View style={styles.moodRow}>
-      {[1, 2, 3, 4, 5].map((m) => {
-        const selected = value === m;
-        return (
-          <Pressable
-            key={m}
-            accessibilityRole="button"
-            accessibilityLabel={`Mood ${m} of 5`}
-            onPress={() => onChange(selected ? null : m)}
-            style={[styles.moodDot, selected && styles.moodDotSelected]}>
-            <Text style={[type.body, selected && { color: colors.bg, fontWeight: '700' }]}>{m}</Text>
-          </Pressable>
-        );
-      })}
+    <View>
+      <View style={styles.moodRow}>
+        {[1, 2, 3, 4, 5].map((m) => {
+          const selected = value === m;
+          return (
+            <Pressable
+              key={m}
+              accessibilityRole="button"
+              accessibilityLabel={`Mood ${m} of 5`}
+              onPress={() => onChange(selected ? null : m)}
+              style={[styles.moodDot, selected && styles.moodDotSelected]}>
+              <Text style={[type.body, selected && { color: colors.bg, fontWeight: '700' }]}>{m}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={styles.moodLabels}>
+        <Text style={type.caption}>wrecked</Text>
+        <Text style={type.caption}>great</Text>
+      </View>
     </View>
   );
 }
@@ -164,7 +170,7 @@ export default function ShiftFormScreen() {
           <Label>Lesson</Label>
           <Field value={lesson} onChangeText={setLesson} placeholder="One thing worth remembering" multiline />
 
-          <Label>Mood — 1 wrecked, 5 great</Label>
+          <Label>How was it, 1 to 5?</Label>
           <MoodPicker value={mood} onChange={setMood} />
 
           <Button
@@ -191,7 +197,13 @@ const styles = StyleSheet.create({
   },
   moodRow: {
     flexDirection: 'row',
-    gap: space(3),
+    justifyContent: 'space-between',
+  },
+  moodLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: space(2),
+    paddingHorizontal: space(1),
   },
   moodDot: {
     width: 48,

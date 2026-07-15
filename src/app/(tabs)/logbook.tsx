@@ -1,26 +1,40 @@
 import { format, parseISO } from 'date-fns';
 import { useRouter } from 'expo-router';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
+import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 
 import { Button, Screen } from '@/components/ui';
 import { useShifts, useTotals } from '@/lib/queries';
 import { Shift } from '@/lib/supabase';
-import { colors, radius, space, type } from '@/theme';
+import { colors, radius, serif, space, type } from '@/theme';
 
 function formatHours(h: number): string {
   return Number.isInteger(h) ? String(h) : h.toFixed(1);
 }
 
+/** Mood 1–5 rendered as a small dot fading from muted to amber. */
+const MOOD_DOT: Record<number, string> = {
+  1: '#5B5E85',
+  2: '#8A7A6A',
+  3: '#B08D52',
+  4: '#D09A46',
+  5: '#E9A83F',
+};
+
 function TotalsHeader({ shifts, hours }: { shifts: number; hours: number }) {
   return (
     <View style={styles.totalsRow}>
       <View style={styles.totalCard}>
-        <Text style={styles.totalNumber}>{shifts}</Text>
-        <Text style={type.caption}>{shifts === 1 ? 'shift' : 'shifts'}</Text>
+        <Text style={styles.totalNumber} adjustsFontSizeToFit numberOfLines={1}>
+          {shifts}
+        </Text>
+        <Text style={styles.totalLabel}>{shifts === 1 ? 'SHIFT' : 'SHIFTS'}</Text>
       </View>
       <View style={styles.totalCard}>
-        <Text style={styles.totalNumber}>{formatHours(hours)}</Text>
-        <Text style={type.caption}>hours</Text>
+        <Text style={styles.totalNumber} adjustsFontSizeToFit numberOfLines={1}>
+          {formatHours(hours)}
+        </Text>
+        <Text style={styles.totalLabel}>HOURS</Text>
       </View>
     </View>
   );
@@ -38,13 +52,18 @@ function ShiftRow({ shift, onPress }: { shift: Shift; onPress: () => void }) {
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && { opacity: 0.8 }]}>
+      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.elevated }]}>
       <View style={styles.rowHeader}>
-        <Text style={[type.body, { fontWeight: '600' }]}>{date}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
+          {shift.mood != null && (
+            <View style={[styles.moodDot, { backgroundColor: MOOD_DOT[shift.mood] }]} />
+          )}
+          <Text style={[type.body, { fontWeight: '600' }]}>{date}</Text>
+        </View>
         {meta.length > 0 && <Text style={type.caption}>{meta}</Text>}
       </View>
       {shift.win.length > 0 && (
-        <Text style={[type.secondary, { marginTop: space(1) }]} numberOfLines={2}>
+        <Text style={[type.secondary, { marginTop: space(1.5) }]} numberOfLines={2}>
           {shift.win}
         </Text>
       )}
@@ -57,14 +76,26 @@ export default function LogbookScreen() {
   const { data: shifts, isLoading } = useShifts();
   const { data: totals } = useTotals();
 
+  const sections = useMemo(() => {
+    const byMonth = new Map<string, Shift[]>();
+    for (const s of shifts ?? []) {
+      const key = format(parseISO(s.shift_date), 'MMMM yyyy');
+      const bucket = byMonth.get(key);
+      if (bucket) bucket.push(s);
+      else byMonth.set(key, [s]);
+    }
+    return [...byMonth.entries()].map(([title, data]) => ({ title, data }));
+  }, [shifts]);
+
   const addShift = () =>
     router.push({ pathname: '/shift-form', params: { mode: 'manual' } });
 
   return (
     <Screen>
-      <FlatList
-        data={shifts ?? []}
+      <SectionList
+        sections={sections}
         keyExtractor={(s) => s.id}
+        stickySectionHeadersEnabled={false}
         contentContainerStyle={{ padding: space(4), paddingBottom: space(10), flexGrow: 1 }}
         ListHeaderComponent={
           <>
@@ -76,10 +107,13 @@ export default function LogbookScreen() {
               title="Add shift"
               variant="secondary"
               onPress={addShift}
-              style={{ marginBottom: space(4) }}
+              style={{ marginBottom: space(2) }}
             />
           </>
         }
+        renderSectionHeader={({ section }) => (
+          <Text style={styles.sectionHeader}>{section.title}</Text>
+        )}
         ListEmptyComponent={
           isLoading ? null : (
             <View style={styles.empty}>
@@ -110,15 +144,28 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
-    paddingVertical: space(4),
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.line,
+    paddingVertical: space(5),
+    paddingHorizontal: space(3),
     alignItems: 'center',
   },
   totalNumber: {
-    fontSize: 40,
-    lineHeight: 46,
-    fontWeight: '700',
+    fontFamily: serif,
+    fontSize: 44,
+    lineHeight: 52,
     color: colors.amber,
     fontVariant: ['tabular-nums'],
+  },
+  totalLabel: {
+    ...type.overline,
+    marginTop: space(1),
+  },
+  sectionHeader: {
+    ...type.overline,
+    marginTop: space(5),
+    marginBottom: space(2),
+    marginLeft: space(1),
   },
   row: {
     backgroundColor: colors.surface,
@@ -130,6 +177,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'baseline',
+  },
+  moodDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   empty: {
     flex: 1,

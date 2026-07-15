@@ -86,6 +86,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     backgroundColor: colors.surface,
     borderBottomLeftRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.line,
   },
   typingBubble: {
     flexDirection: 'row',

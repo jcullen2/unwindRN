@@ -20,6 +20,12 @@ export const radius = {
   lg: 16,
 } as const;
 
+/**
+ * Fraunces is reserved for large logbook numerals and the milestone card —
+ * everywhere else is the system font. Loaded in the root layout.
+ */
+export const serif = 'Fraunces-SemiBold';
+
 /** 4pt spacing scale: space(4) = 16 */
 export const space = (n: number) => n * 4;
 
@@ -30,6 +36,15 @@ export const type = {
   secondary: { fontSize: 15, fontWeight: '400' as const, lineHeight: 22, color: colors.secondary },
   caption: { fontSize: 13, fontWeight: '400' as const, lineHeight: 18, color: colors.muted },
   button: { fontSize: 16, fontWeight: '600' as const, lineHeight: 22 },
+  /** Overline labels: small caps feel via letterspacing. */
+  overline: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    lineHeight: 16,
+    letterSpacing: 2,
+    color: colors.muted,
+    textTransform: 'uppercase' as const,
+  },
 } as const;
 
 /** Navigation theme for expo-router / react-navigation */

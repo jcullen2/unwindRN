@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import {
+  Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
@@ -44,13 +45,14 @@ export default function OnboardingScreen() {
   const next = () => {
     if (page < PAGES.length - 1) {
       scrollRef.current?.scrollTo({ x: (page + 1) * width, animated: true });
+      setPage(page + 1);
     } else {
       completeOnboarding();
     }
   };
 
   return (
-    <Screen style={{ paddingTop: insets.top, paddingBottom: insets.bottom + space(8) }}>
+    <Screen style={{ paddingTop: insets.top, paddingBottom: insets.bottom + space(6) }}>
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -58,8 +60,16 @@ export default function OnboardingScreen() {
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={onScroll}
         style={{ flex: 1 }}>
-        {PAGES.map((p) => (
+        {PAGES.map((p, i) => (
           <View key={p.title} style={[styles.page, { width }]}>
+            {i === 0 && (
+              <Image
+                source={require('@/assets/images/splash-icon.png')}
+                style={styles.mark}
+                accessibilityLabel="unwindRN"
+              />
+            )}
+            <Text style={styles.kicker}>{`${i + 1} / ${PAGES.length}`}</Text>
             <Text style={styles.title}>{p.title}</Text>
             <Text style={styles.body}>{p.body}</Text>
           </View>
@@ -84,32 +94,44 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: space(8),
   },
+  mark: {
+    width: 56,
+    height: 56,
+    marginBottom: space(6),
+  },
+  kicker: {
+    ...type.overline,
+    marginBottom: space(3),
+  },
   title: {
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: '700',
-    lineHeight: 40,
+    lineHeight: 41,
+    letterSpacing: -0.4,
     color: colors.amber,
   },
   body: {
     ...type.body,
     fontSize: 18,
-    lineHeight: 28,
+    lineHeight: 29,
     color: colors.secondary,
     marginTop: space(4),
+    maxWidth: 340,
   },
   dots: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: space(2),
-    marginBottom: space(6),
+    marginVertical: space(6),
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: colors.line,
   },
   dotActive: {
     backgroundColor: colors.amber,
+    width: 20,
   },
 });

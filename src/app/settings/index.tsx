@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Screen, Separator } from '@/components/ui';
 import { requestAccountDeletion } from '@/lib/api';
@@ -66,24 +66,28 @@ export default function SettingsScreen() {
   return (
     <Screen>
       <ScrollView contentContainerStyle={{ padding: space(4) }}>
-        <Row label="Profile" onPress={() => router.push('/settings/profile')} />
-        <Separator />
-        <Row label="Support resources" onPress={() => router.push('/resources')} />
-        {privacyUrl ? (
-          <>
-            <Separator />
-            <Row label="Privacy policy" onPress={() => Linking.openURL(privacyUrl)} />
-          </>
-        ) : null}
-        <Separator />
-        <Row label="Sign out" onPress={() => signOut()} />
-        <Separator />
-        <Row
-          label={deleting ? 'Deleting…' : 'Delete account'}
-          onPress={confirmDelete}
-          danger
-          disabled={deleting}
-        />
+        <View style={styles.group}>
+          <Row label="Profile" onPress={() => router.push('/settings/profile')} />
+          <Separator />
+          <Row label="Support resources" onPress={() => router.push('/resources')} />
+          {privacyUrl ? (
+            <>
+              <Separator />
+              <Row label="Privacy policy" onPress={() => Linking.openURL(privacyUrl)} />
+            </>
+          ) : null}
+        </View>
+
+        <View style={[styles.group, { marginTop: space(4) }]}>
+          <Row label="Sign out" onPress={() => signOut()} />
+          <Separator />
+          <Row
+            label={deleting ? 'Deleting…' : 'Delete account'}
+            onPress={confirmDelete}
+            danger
+            disabled={deleting}
+          />
+        </View>
 
         <Text style={[type.caption, { textAlign: 'center', marginTop: space(8) }]}>
           {NOT_THERAPY_COPY}
@@ -91,20 +95,27 @@ export default function SettingsScreen() {
         <Text style={[type.caption, { textAlign: 'center', marginTop: space(1) }]}>
           In crisis? Call or text 988 — free, 24/7, confidential.
         </Text>
+        <Text style={[type.caption, { textAlign: 'center', marginTop: space(6), color: colors.line }]}>
+          unwindRN 1.0.0
+        </Text>
       </ScrollView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  group: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.line,
+    overflow: 'hidden',
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.surface,
     paddingHorizontal: space(4),
     paddingVertical: space(4),
-    borderRadius: radius.md,
-    marginVertical: space(1),
   },
 });

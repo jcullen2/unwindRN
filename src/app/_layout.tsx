@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useFonts } from 'expo-font';
 import { Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -6,7 +7,7 @@ import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 
 import { AuthProvider, useAuth } from '@/lib/auth';
-import { colors, navTheme } from '@/theme';
+import { colors, navTheme, serif } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
 SystemUI.setBackgroundColorAsync(colors.bg);
@@ -14,7 +15,13 @@ SystemUI.setBackgroundColorAsync(colors.bg);
 const queryClient = new QueryClient();
 
 function RootNavigator() {
-  const { ready, session, profile, onboardingSeen } = useAuth();
+  const { ready: authReady, session, profile, onboardingSeen } = useAuth();
+  // Fraunces is only used for large numerals; if it fails to load we fall
+  // back to the system font rather than blocking launch.
+  const [fontsLoaded, fontsError] = useFonts({
+    [serif]: require('@/assets/fonts/Fraunces-SemiBold.ttf'),
+  });
+  const ready = authReady && (fontsLoaded || !!fontsError);
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync();
