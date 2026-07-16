@@ -5,13 +5,13 @@ Put the shift down. unwindRN is a consumer iOS app for nurses: **the Debrief**
 **the Logbook** (a career place of truth — shifts, hours, wins, losses, lessons —
 auto-filled from debriefs).
 
-Read `CLAUDE.md` first — it is the source of truth for scope, architecture,
+Read `CLAUDE.md` and `DESIGN.md` first — they are the law for scope, architecture,
 security rules, tokens, and copy.
 
 ## Stack
 
 - **App** — Expo SDK 57 (managed), TypeScript strict, Expo Router, dark-only
-  "Last light" theme (`src/theme`).
+  v3 "ember sky" system per DESIGN.md (`src/theme/tokens.ts`).
 - **Backend** — Supabase: Postgres with RLS on every table, Sign in with Apple,
   Edge Functions (Deno) as the only place that talks to the Anthropic API.
 - **Models** — `claude-sonnet-4-6` for the debrief conversation;

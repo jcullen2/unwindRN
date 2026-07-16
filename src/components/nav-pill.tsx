@@ -4,7 +4,6 @@
  * the orb (46px, flame, night glyph, breathing glow) opens /debrief.
  * No labels. No fifth slot.
  */
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Canvas, Path, Skia } from '@shopify/react-native-skia';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
@@ -104,7 +103,19 @@ export function FlameOrb({
   );
 }
 
-export function NavPill({ state, navigation }: BottomTabBarProps) {
+// Structural type for the pieces of BottomTabBarProps we use — avoids a
+// direct dependency on @react-navigation/bottom-tabs (bundled by expo-router).
+type TabBarProps = {
+  state: { index: number; routes: { key: string; name: string }[] };
+  navigation: {
+    emit: (e: { type: 'tabPress'; target: string; canPreventDefault: true }) => {
+      defaultPrevented: boolean;
+    };
+    navigate: (name: string) => void;
+  };
+};
+
+export function NavPill({ state, navigation }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
@@ -162,7 +173,11 @@ const styles = StyleSheet.create({
     height: 60,
   },
   pillFill: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: glass.bar,
     borderRadius: radius.pill,
   },

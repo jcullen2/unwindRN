@@ -7,19 +7,36 @@ import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 
 import { AuthProvider, useAuth } from '@/lib/auth';
-import { colors, navTheme, serif } from '@/theme';
+import { fonts, ink, palette } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync();
-SystemUI.setBackgroundColorAsync(colors.bg);
+SystemUI.setBackgroundColorAsync(palette.night);
 
 const queryClient = new QueryClient();
 
+const navTheme = {
+  dark: true,
+  colors: {
+    primary: palette.flame,
+    background: palette.night,
+    card: palette.night,
+    text: ink.text,
+    border: 'transparent',
+    notification: palette.flame,
+  },
+  fonts: {
+    regular: { fontFamily: 'System', fontWeight: '400' as const },
+    medium: { fontFamily: 'System', fontWeight: '500' as const },
+    bold: { fontFamily: 'System', fontWeight: '700' as const },
+    heavy: { fontFamily: 'System', fontWeight: '800' as const },
+  },
+};
+
 function RootNavigator() {
   const { ready: authReady, session, profile, onboardingSeen } = useAuth();
-  // Fraunces is only used for large numerals; if it fails to load we fall
-  // back to the system font rather than blocking launch.
   const [fontsLoaded, fontsError] = useFonts({
-    [serif]: require('@/assets/fonts/Fraunces-SemiBold.ttf'),
+    [fonts.serif500]: require('@/assets/fonts/Fraunces-Medium.ttf'),
+    [fonts.serif600]: require('@/assets/fonts/Fraunces-SemiBold.ttf'),
   });
   const ready = authReady && (fontsLoaded || !!fontsError);
 
@@ -35,36 +52,34 @@ function RootNavigator() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: colors.bg },
-        headerTintColor: colors.text,
-        headerShadowVisible: false,
-        contentStyle: { backgroundColor: colors.bg },
+        headerShown: false,
+        contentStyle: { backgroundColor: palette.night },
       }}>
       <Stack.Protected guard={!signedIn && !onboardingSeen}>
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding" />
       </Stack.Protected>
 
       <Stack.Protected guard={!signedIn && onboardingSeen}>
-        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+        <Stack.Screen name="sign-in" />
       </Stack.Protected>
 
       <Stack.Protected guard={signedIn && !authed}>
-        <Stack.Screen name="profile-setup" options={{ headerShown: false }} />
+        <Stack.Screen name="profile-setup" />
       </Stack.Protected>
 
       <Stack.Protected guard={authed}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="settings/index" options={{ title: 'Settings' }} />
-        <Stack.Screen name="settings/profile" options={{ title: 'Profile' }} />
-        <Stack.Screen name="resources" options={{ title: 'Support resources' }} />
-        <Stack.Screen name="shift/[id]" options={{ title: 'Shift' }} />
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen
-          name="shift-form"
-          options={{ presentation: 'modal', headerShown: false }}
+          name="debrief"
+          options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
         />
+        <Stack.Screen name="record" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="profile" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="resources" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="shift/[id]" />
         <Stack.Screen
           name="milestone"
-          options={{ presentation: 'fullScreenModal', headerShown: false, animation: 'fade' }}
+          options={{ presentation: 'fullScreenModal', animation: 'fade' }}
         />
       </Stack.Protected>
     </Stack>

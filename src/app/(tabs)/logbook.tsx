@@ -1,82 +1,64 @@
 import { format, parseISO } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SectionList, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Screen } from '@/components/ui';
-import { useShifts, useTotals } from '@/lib/queries';
+import { Glass, QuietButton, T } from '@/components/kit';
+import { Sky } from '@/components/sky';
+import { localToday } from '@/lib/api';
+import { LOAD_LABELS } from '@/lib/constants';
+import { useShifts } from '@/lib/queries';
 import { Shift } from '@/lib/supabase';
-import { colors, radius, serif, space, type } from '@/theme';
+import { fonts, heat, heatFlipsText, ink, palette, space } from '@/theme/tokens';
 
-function formatHours(h: number): string {
-  return Number.isInteger(h) ? String(h) : h.toFixed(1);
-}
+type MonthSection = { title: string; stats: string; data: Shift[] };
 
-/** Mood 1–5 rendered as a small dot fading from muted to amber. */
-const MOOD_DOT: Record<number, string> = {
-  1: '#5B5E85',
-  2: '#8A7A6A',
-  3: '#B08D52',
-  4: '#D09A46',
-  5: '#E9A83F',
-};
-
-function TotalsHeader({ shifts, hours }: { shifts: number; hours: number }) {
+function LoadDot({ load }: { load: number | null }) {
+  if (!load) return null;
+  const step = Math.min(4, Math.max(0, load - 1));
   return (
-    <View style={styles.totalsRow}>
-      <View style={styles.totalCard}>
-        <Text style={styles.totalNumber} adjustsFontSizeToFit numberOfLines={1}>
-          {shifts}
-        </Text>
-        <Text style={styles.totalLabel}>{shifts === 1 ? 'SHIFT' : 'SHIFTS'}</Text>
-      </View>
-      <View style={styles.totalCard}>
-        <Text style={styles.totalNumber} adjustsFontSizeToFit numberOfLines={1}>
-          {formatHours(hours)}
-        </Text>
-        <Text style={styles.totalLabel}>HOURS</Text>
-      </View>
+    <View style={[styles.loadDot, { backgroundColor: heat[step] }]}>
+      {heatFlipsText(step) && <View style={styles.loadDotCore} />}
     </View>
   );
 }
 
 function ShiftRow({ shift, onPress }: { shift: Shift; onPress: () => void }) {
-  const date = format(parseISO(shift.shift_date), 'EEE, MMM d');
-  const meta = [
-    shift.hours != null ? `${formatHours(Number(shift.hours))}h` : null,
-    shift.unit,
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  const isToday = shift.shift_date === localToday();
+  const date = format(parseISO(shift.shift_date), 'EEE d');
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.elevated }]}>
-      <View style={styles.rowHeader}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
-          {shift.mood != null && (
-            <View style={[styles.moodDot, { backgroundColor: MOOD_DOT[shift.mood] }]} />
+    <Pressable accessibilityRole="button" onPress={onPress} style={{ marginBottom: space(2.5) }}>
+      {({ pressed }) => (
+        <Glass warm={isToday} style={{ opacity: pressed ? 0.85 : 1, padding: space(3.5) }}>
+          {shift.is_night && <View style={styles.nightTick} />}
+          <View style={styles.rowTop}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
+              <LoadDot load={shift.load} />
+              <T v="body" style={{ fontWeight: '600' }}>
+                {date}
+              </T>
+              {shift.load != null && <T v="caption">{LOAD_LABELS[shift.load - 1]}</T>}
+            </View>
+            <T v="caption">{Number(shift.hours)}h</T>
+          </View>
+          {!!shift.win && (
+            <T v="secondary" numberOfLines={2} style={{ marginTop: space(1.5) }}>
+              {shift.win}
+            </T>
           )}
-          <Text style={[type.body, { fontWeight: '600' }]}>{date}</Text>
-        </View>
-        {meta.length > 0 && <Text style={type.caption}>{meta}</Text>}
-      </View>
-      {shift.win.length > 0 && (
-        <Text style={[type.secondary, { marginTop: space(1.5) }]} numberOfLines={2}>
-          {shift.win}
-        </Text>
+        </Glass>
       )}
     </Pressable>
   );
 }
 
 export default function LogbookScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { data: shifts, isLoading } = useShifts();
-  const { data: totals } = useTotals();
 
-  const sections = useMemo(() => {
+  const sections = useMemo<MonthSection[]>(() => {
     const byMonth = new Map<string, Shift[]>();
     for (const s of shifts ?? []) {
       const key = format(parseISO(s.shift_date), 'MMMM yyyy');
@@ -84,45 +66,53 @@ export default function LogbookScreen() {
       if (bucket) bucket.push(s);
       else byMonth.set(key, [s]);
     }
-    return [...byMonth.entries()].map(([title, data]) => ({ title, data }));
+    return [...byMonth.entries()].map(([title, data]) => {
+      const hrs = data.reduce((sum, s) => sum + Number(s.hours ?? 0), 0);
+      return {
+        title,
+        stats: `${data.length} ${data.length === 1 ? 'shift' : 'shifts'} · ${Math.round(hrs)} hrs`,
+        data,
+      };
+    });
   }, [shifts]);
 
-  const addShift = () =>
-    router.push({ pathname: '/shift-form', params: { mode: 'manual' } });
-
   return (
-    <Screen>
+    <Sky>
       <SectionList
         sections={sections}
         keyExtractor={(s) => s.id}
         stickySectionHeadersEnabled={false}
-        contentContainerStyle={{ padding: space(4), paddingBottom: space(10), flexGrow: 1 }}
+        contentContainerStyle={{
+          paddingTop: insets.top + space(4),
+          paddingHorizontal: space(5),
+          paddingBottom: space(30),
+          flexGrow: 1,
+        }}
         ListHeaderComponent={
-          <>
-            <TotalsHeader
-              shifts={totals?.total_shifts ?? 0}
-              hours={totals?.total_hours ?? 0}
+          <View style={styles.top}>
+            <T v="overline">Logbook</T>
+            <QuietButton
+              title="Add a shift"
+              onPress={() => router.push({ pathname: '/record', params: { mode: 'manual' } })}
+              style={{ minHeight: 40, paddingVertical: space(2) }}
             />
-            <Button
-              title="Add shift"
-              variant="secondary"
-              onPress={addShift}
-              style={{ marginBottom: space(2) }}
-            />
-          </>
+          </View>
         }
         renderSectionHeader={({ section }) => (
-          <Text style={styles.sectionHeader}>{section.title}</Text>
+          <View style={styles.month}>
+            <T style={styles.monthName}>{section.title.split(' ')[0]}</T>
+            <T v="caption">{section.stats}</T>
+          </View>
         )}
         ListEmptyComponent={
           isLoading ? null : (
             <View style={styles.empty}>
-              <Text style={[type.heading, { textAlign: 'center' }]}>
-                Shift #1 starts your record.
-              </Text>
-              <Text style={[type.secondary, { textAlign: 'center', marginTop: space(2) }]}>
-                Debrief a shift or add one by hand — either way, it counts.
-              </Text>
+              <T v="greeting" style={{ textAlign: 'center', fontSize: 24, lineHeight: 32 }}>
+                Shift #1 starts the record.
+              </T>
+              <T v="secondary" style={{ textAlign: 'center', marginTop: space(2) }}>
+                Debrief tonight from the flame, or add one by hand — either way, it counts.
+              </T>
             </View>
           )
         }
@@ -130,58 +120,57 @@ export default function LogbookScreen() {
           <ShiftRow shift={item} onPress={() => router.push(`/shift/${item.id}`)} />
         )}
       />
-    </Screen>
+    </Sky>
   );
 }
 
 const styles = StyleSheet.create({
-  totalsRow: {
+  top: {
     flexDirection: 'row',
-    gap: space(3),
-    marginBottom: space(3),
-  },
-  totalCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.line,
-    paddingVertical: space(5),
-    paddingHorizontal: space(3),
     alignItems: 'center',
-  },
-  totalNumber: {
-    fontFamily: serif,
-    fontSize: 44,
-    lineHeight: 52,
-    color: colors.amber,
-    fontVariant: ['tabular-nums'],
-  },
-  totalLabel: {
-    ...type.overline,
-    marginTop: space(1),
-  },
-  sectionHeader: {
-    ...type.overline,
-    marginTop: space(5),
-    marginBottom: space(2),
-    marginLeft: space(1),
-  },
-  row: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: space(4),
-    marginBottom: space(2.5),
-  },
-  rowHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'baseline',
+    marginBottom: space(2),
   },
-  moodDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  month: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    marginTop: space(5),
+    marginBottom: space(2.5),
+    paddingHorizontal: space(1),
+  },
+  monthName: {
+    fontFamily: fonts.serif500,
+    fontSize: 22,
+    lineHeight: 28,
+    color: ink.text,
+  },
+  loadDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadDotCore: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: palette.night,
+  },
+  nightTick: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 4,
+    height: 4,
+    borderRadius: 1,
+    backgroundColor: palette.violet,
+  },
+  rowTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   empty: {
     flex: 1,

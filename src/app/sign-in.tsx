@@ -1,11 +1,33 @@
+import { Canvas, ImageSVG, Skia } from '@shopify/react-native-skia';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { useState } from 'react';
-import { Alert, Image, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { Alert, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Screen } from '@/components/ui';
+import { LOGO_ASPECT, LOGO_PRIMARY_DARK_SVG } from '@/brand/logo';
+import { T } from '@/components/kit';
+import { Sky } from '@/components/sky';
 import { supabase } from '@/lib/supabase';
-import { colors, space, type } from '@/theme';
+import { ink, space } from '@/theme/tokens';
+
+/** The supplied primary-dark lockup — never rebuilt with live type. */
+function Lockup({ width }: { width: number }) {
+  const w = Math.max(140, width); // brand minimum
+  const h = w / LOGO_ASPECT;
+  const svg = useMemo(() => {
+    const withSize = LOGO_PRIMARY_DARK_SVG.replace(
+      '<svg ',
+      `<svg width="${w}" height="${h}" `
+    );
+    return Skia.SVG.MakeFromString(withSize);
+  }, [w, h]);
+  if (!svg) return null;
+  return (
+    <Canvas style={{ width: w, height: h }} pointerEvents="none">
+      <ImageSVG svg={svg} x={0} y={0} width={w} height={h} />
+    </Canvas>
+  );
+}
 
 export default function SignInScreen() {
   const insets = useSafeAreaInsets();
@@ -21,9 +43,7 @@ export default function SignInScreen() {
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
       });
-      if (!credential.identityToken) {
-        throw new Error('No identity token returned');
-      }
+      if (!credential.identityToken) throw new Error('No identity token');
       const { error } = await supabase.auth.signInWithIdToken({
         provider: 'apple',
         token: credential.identityToken,
@@ -40,37 +60,37 @@ export default function SignInScreen() {
   };
 
   return (
-    <Screen
-      style={{
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom + space(8),
-        paddingHorizontal: space(8),
-      }}>
-      <View style={styles.hero}>
-        <Image
-          source={require('@/assets/images/splash-icon.png')}
-          style={styles.mark}
-          accessibilityLabel="unwindRN mark"
-        />
-        <Text style={styles.brand}>unwindRN</Text>
-        <Text style={styles.tagline}>Put the shift down.</Text>
-        <Text style={styles.sub}>
-          Debrief the day with a partner who gets it. Keep the record — shifts, hours,
-          wins, losses, lessons.
-        </Text>
-      </View>
+    <Sky>
+      <View
+        style={{
+          flex: 1,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom + space(8),
+          paddingHorizontal: space(8),
+        }}>
+        <View style={styles.hero}>
+          <Lockup width={210} />
+          <T v="greeting" style={{ fontSize: 21, lineHeight: 28, marginTop: space(6), color: ink.text }}>
+            Put the shift down.
+          </T>
+          <T v="secondary" style={{ marginTop: space(3), maxWidth: 320, lineHeight: 23 }}>
+            Talk the shift down with a partner who gets it, and watch the record write
+            itself — shifts, hours, wins, the weight, the lessons.
+          </T>
+        </View>
 
-      <AppleAuthentication.AppleAuthenticationButton
-        buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-        buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
-        cornerRadius={12}
-        style={styles.appleButton}
-        onPress={signIn}
-      />
-      <Text style={styles.footnote}>
-        Your debriefs are yours. We never ask for patient details.
-      </Text>
-    </Screen>
+        <AppleAuthentication.AppleAuthenticationButton
+          buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+          buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+          cornerRadius={14}
+          style={{ height: 52 }}
+          onPress={signIn}
+        />
+        <T v="whisper" style={{ textAlign: 'center', marginTop: space(4) }}>
+          Your debriefs are yours. We never ask for patient details.
+        </T>
+      </View>
+    </Sky>
   );
 }
 
@@ -78,37 +98,5 @@ const styles = StyleSheet.create({
   hero: {
     flex: 1,
     justifyContent: 'center',
-  },
-  mark: {
-    width: 64,
-    height: 64,
-    marginBottom: space(6),
-  },
-  brand: {
-    fontSize: 42,
-    fontWeight: '700',
-    color: colors.text,
-    letterSpacing: -0.8,
-  },
-  tagline: {
-    fontSize: 21,
-    fontWeight: '600',
-    lineHeight: 28,
-    color: colors.amber,
-    marginTop: space(2),
-  },
-  sub: {
-    ...type.secondary,
-    lineHeight: 24,
-    marginTop: space(4),
-    maxWidth: 320,
-  },
-  appleButton: {
-    height: 52,
-  },
-  footnote: {
-    ...type.caption,
-    textAlign: 'center',
-    marginTop: space(4),
   },
 });

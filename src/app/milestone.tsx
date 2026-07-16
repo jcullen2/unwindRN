@@ -1,92 +1,82 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { useEffect } from 'react';
+import { View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Screen } from '@/components/ui';
-import { colors, serif, space, type } from '@/theme';
+import { QuietButton, T } from '@/components/kit';
+import { Sky } from '@/components/sky';
+import { space, spring } from '@/theme/tokens';
 
-// One short, true line per milestone. Calm over clever.
 const LINES: Record<number, string> = {
-  1: 'Shift #1 starts your record.',
-  10: 'Ten shifts, on the record. This is a habit now.',
-  25: 'Twenty-five shifts carried, processed, and kept.',
+  1: 'Shift #1. The record starts here.',
+  5: 'Five shifts down. Insights just lit up.',
+  10: 'Ten shifts, written and kept.',
+  25: 'Twenty-five shifts carried, processed, kept.',
   50: 'Fifty shifts. That’s a lot of people who had you.',
   100: 'One hundred shifts. A career is being written here.',
-  250: 'Two hundred fifty shifts. Few people ever see what you’ve seen.',
-  500: 'Five hundred shifts. This logbook is a life’s work.',
+  250: 'Two hundred fifty. Few ever see what you’ve seen.',
+  500: 'Five hundred shifts. This record is a life’s work.',
 };
 
 export default function MilestoneScreen() {
   const { count } = useLocalSearchParams<{ count?: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const reduced = useReducedMotion();
   const n = Number(count) || 1;
 
-  const scale = useRef(new Animated.Value(0.85)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
+  const scale = useSharedValue(reduced ? 1 : 0.88);
+  const opacity = useSharedValue(reduced ? 1 : 0);
   useEffect(() => {
-    Animated.parallel([
-      Animated.spring(scale, { toValue: 1, friction: 7, tension: 40, useNativeDriver: true }),
-      Animated.timing(opacity, { toValue: 1, duration: 450, useNativeDriver: true }),
-    ]).start();
-  }, [scale, opacity]);
+    if (reduced) return;
+    scale.value = withSpring(1, spring);
+    opacity.value = withTiming(1, { duration: 450 });
+  }, [scale, opacity, reduced]);
+
+  const enter = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
-    <Screen
-      style={{
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom + space(8),
-        paddingHorizontal: space(8),
-      }}>
-      <View style={styles.center}>
-        <Animated.View style={{ alignItems: 'center', opacity, transform: [{ scale }] }}>
-          <Text style={styles.kicker}>SHIFT</Text>
-          <Text style={styles.numeral} adjustsFontSizeToFit numberOfLines={1}>
-            #{n}
-          </Text>
-          <View style={styles.rule} />
-          <Text style={styles.subtitle}>
-            {LINES[n] ?? `${n} shifts in your logbook. All yours.`}
-          </Text>
-        </Animated.View>
+    <Sky glowBoost>
+      <View
+        style={{
+          flex: 1,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom + space(8),
+          paddingHorizontal: space(8),
+        }}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Animated.View style={[{ alignItems: 'center' }, enter]}>
+            <T v="overline" style={{ letterSpacing: 8 }}>
+              Shift
+            </T>
+            <T v="milestone" adjustsFontSizeToFit numberOfLines={1} style={{ marginTop: space(1) }}>
+              #{n}
+            </T>
+            <T
+              v="body"
+              style={{
+                fontSize: 19,
+                lineHeight: 29,
+                textAlign: 'center',
+                maxWidth: 300,
+                marginTop: space(6),
+              }}>
+              {LINES[n] ?? `${n.toLocaleString()} shifts in the record. All yours.`}
+            </T>
+          </Animated.View>
+        </View>
+        <QuietButton title="Keep going" onPress={() => router.dismissAll()} />
       </View>
-      <Button title="Keep going" variant="secondary" onPress={() => router.back()} />
-    </Screen>
+    </Sky>
   );
 }
-
-const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  kicker: {
-    ...type.overline,
-    color: colors.secondary,
-    letterSpacing: 8,
-  },
-  numeral: {
-    fontFamily: serif,
-    fontSize: 150,
-    lineHeight: 175,
-    color: colors.amber,
-    marginTop: space(1),
-  },
-  rule: {
-    width: 40,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: colors.line,
-    marginVertical: space(5),
-  },
-  subtitle: {
-    ...type.body,
-    fontSize: 19,
-    lineHeight: 29,
-    color: colors.secondary,
-    textAlign: 'center',
-    maxWidth: 300,
-  },
-});

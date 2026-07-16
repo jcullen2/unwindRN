@@ -6,15 +6,17 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Field, Label, Screen } from '@/components/ui';
+import { FlameButton, GlassField, T } from '@/components/kit';
+import { Sky } from '@/components/sky';
 import { useAuth } from '@/lib/auth';
 import { SPECIALTIES } from '@/lib/constants';
+import { glass, ink, palette, space, type } from '@/theme/tokens';
 import { supabase } from '@/lib/supabase';
-import { colors, radius, space, type } from '@/theme';
 
 export function SpecialtyPicker({
   value,
@@ -24,22 +26,23 @@ export function SpecialtyPicker({
   onChange: (s: string) => void;
 }) {
   return (
-    <>
+    <View style={styles.chips}>
       {SPECIALTIES.map((s) => {
-        const selected = value === s;
+        const on = value === s;
         return (
           <Pressable
             key={s}
             accessibilityRole="button"
+            accessibilityState={{ selected: on }}
             onPress={() => onChange(s)}
-            style={[styles.specialtyRow, selected && styles.specialtyRowSelected]}>
-            <Text style={[type.body, selected && { color: colors.amber, fontWeight: '600' }]}>
+            style={[styles.chip, on && styles.chipOn]}>
+            <T v="secondary" style={{ color: on ? palette.apricot : ink.secondary }}>
               {s}
-            </Text>
+            </T>
           </Pressable>
         );
       })}
-    </>
+    </View>
   );
 }
 
@@ -54,16 +57,14 @@ export default function ProfileSetupScreen() {
   const canSave = displayName.trim().length > 0 && specialty !== null;
 
   const save = async () => {
-    if (!session || !canSave) return;
+    if (!session || !canSave || saving) return;
     setSaving(true);
-    // upsert, not insert: if a profile row already exists (e.g. the fetch
-    // failed transiently at launch and routed an existing user here), saving
-    // must still succeed rather than dead-ending on the primary-key conflict.
+    // upsert so a transient profile-fetch failure can't strand an existing user
     const { error } = await supabase.from('profiles').upsert({
       id: session.user.id,
       display_name: displayName.trim(),
-      specialty: specialty!,
-      years_in: Math.max(0, parseInt(yearsIn, 10) || 0),
+      specialty,
+      years_in: Math.max(0, parseFloat(yearsIn) || 0),
     });
     if (error) {
       setSaving(false);
@@ -74,45 +75,62 @@ export default function ProfileSetupScreen() {
   };
 
   return (
-    <Screen>
+    <Sky>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           contentContainerStyle={{
-            paddingTop: insets.top + space(8),
+            paddingTop: insets.top + space(10),
             paddingBottom: insets.bottom + space(8),
             paddingHorizontal: space(6),
           }}
           keyboardShouldPersistTaps="handled">
-          <Text style={type.title}>Before your first debrief</Text>
-          <Text style={[type.secondary, { marginTop: space(2) }]}>
-            So your debrief partner knows who they're talking to.
-          </Text>
+          <T v="greeting" style={{ fontSize: 28, lineHeight: 35 }}>
+            Before the first debrief.
+          </T>
+          <T v="secondary" style={{ marginTop: space(2) }}>
+            So your partner knows who's talking.
+          </T>
 
-          <Label>What should we call you?</Label>
-          <Field
-            value={displayName}
-            onChangeText={setDisplayName}
-            placeholder="Your name"
-            autoCapitalize="words"
-            autoComplete="name"
-          />
+          <T v="overline" style={styles.label}>
+            What should we call you?
+          </T>
+          <GlassField>
+            <TextInput
+              value={displayName}
+              onChangeText={setDisplayName}
+              placeholder="Your name"
+              placeholderTextColor={ink.faint}
+              keyboardAppearance="dark"
+              autoCapitalize="words"
+              style={styles.input}
+            />
+          </GlassField>
 
-          <Label>Your specialty</Label>
+          <T v="overline" style={styles.label}>
+            Your specialty
+          </T>
           <SpecialtyPicker value={specialty} onChange={setSpecialty} />
 
-          <Label>Years in nursing</Label>
-          <Field
-            value={yearsIn}
-            onChangeText={setYearsIn}
-            placeholder="e.g. 4"
-            keyboardType="number-pad"
-            maxLength={2}
-          />
+          <T v="overline" style={styles.label}>
+            Years in nursing
+          </T>
+          <GlassField>
+            <TextInput
+              value={yearsIn}
+              onChangeText={setYearsIn}
+              placeholder="e.g. 4"
+              placeholderTextColor={ink.faint}
+              keyboardAppearance="dark"
+              keyboardType="decimal-pad"
+              maxLength={4}
+              style={styles.input}
+            />
+          </GlassField>
 
-          <Button
-            title="Start debriefing"
+          <FlameButton
+            title="Light the lamp"
             onPress={save}
             disabled={!canSave}
             loading={saving}
@@ -120,22 +138,36 @@ export default function ProfileSetupScreen() {
           />
         </ScrollView>
       </KeyboardAvoidingView>
-    </Screen>
+    </Sky>
   );
 }
 
 const styles = StyleSheet.create({
-  specialtyRow: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.line,
-    paddingVertical: space(3),
-    paddingHorizontal: space(4),
+  label: {
+    marginTop: space(6),
     marginBottom: space(2),
   },
-  specialtyRowSelected: {
-    borderColor: colors.amber,
-    backgroundColor: colors.elevated,
+  input: {
+    color: ink.text,
+    fontSize: type.body.fontSize,
+    lineHeight: 22,
+    padding: 0,
+    minHeight: 24,
+  },
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: space(2),
+  },
+  chip: {
+    backgroundColor: glass.fill,
+    borderRadius: 18,
+    paddingVertical: space(2.5),
+    paddingHorizontal: space(3.5),
+  },
+  chipOn: {
+    backgroundColor: 'rgba(255,104,70,.13)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,173,114,.35)',
   },
 });

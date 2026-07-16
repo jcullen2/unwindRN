@@ -1,21 +1,25 @@
+/**
+ * Interim onboarding — the v1 three beats restyled onto the Sky. The
+ * conversational 5-beat onboarding (voice + career estimate) is Session 4;
+ * logged in DESIGN-DEBT.md.
+ */
 import { useRef, useState } from 'react';
 import {
-  Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Screen } from '@/components/ui';
+import { Lamp } from '@/brand';
+import { FlameButton, T } from '@/components/kit';
+import { Sky } from '@/components/sky';
 import { useAuth } from '@/lib/auth';
-import { colors, space, type } from '@/theme';
+import { ink, palette, space } from '@/theme/tokens';
 
-// Copy is verbatim from CLAUDE.md — do not edit without updating CLAUDE.md.
 const PAGES = [
   {
     title: 'Put the shift down.',
@@ -52,40 +56,46 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <Screen style={{ paddingTop: insets.top, paddingBottom: insets.bottom + space(6) }}>
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={onScroll}
-        style={{ flex: 1 }}>
-        {PAGES.map((p, i) => (
-          <View key={p.title} style={[styles.page, { width }]}>
-            {i === 0 && (
-              <Image
-                source={require('@/assets/images/splash-icon.png')}
-                style={styles.mark}
-                accessibilityLabel="unwindRN"
-              />
-            )}
-            <Text style={styles.kicker}>{`${i + 1} / ${PAGES.length}`}</Text>
-            <Text style={styles.title}>{p.title}</Text>
-            <Text style={styles.body}>{p.body}</Text>
-          </View>
-        ))}
-      </ScrollView>
+    <Sky>
+      <View style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom + space(6) }}>
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={onScroll}
+          style={{ flex: 1 }}>
+          {PAGES.map((p, i) => (
+            <View key={p.title} style={[styles.page, { width }]}>
+              {i === 0 && (
+                <View style={{ marginBottom: space(7) }}>
+                  <Lamp size={52} />
+                </View>
+              )}
+              <T v="overline" style={{ marginBottom: space(3) }}>
+                {i + 1} / {PAGES.length}
+              </T>
+              <T v="greeting" style={{ fontSize: 32, lineHeight: 40 }}>
+                {p.title}
+              </T>
+              <T v="body" style={styles.body}>
+                {p.body}
+              </T>
+            </View>
+          ))}
+        </ScrollView>
 
-      <View style={styles.dots}>
-        {PAGES.map((_, i) => (
-          <View key={i} style={[styles.dot, i === page && styles.dotActive]} />
-        ))}
-      </View>
+        <View style={styles.dots}>
+          {PAGES.map((_, i) => (
+            <View key={i} style={[styles.dot, i === page && styles.dotActive]} />
+          ))}
+        </View>
 
-      <View style={{ paddingHorizontal: space(6) }}>
-        <Button title={page < PAGES.length - 1 ? 'Next' : 'Get started'} onPress={next} />
+        <View style={{ paddingHorizontal: space(6) }}>
+          <FlameButton title={page < PAGES.length - 1 ? 'Next' : "I'm in"} onPress={next} />
+        </View>
       </View>
-    </Screen>
+    </Sky>
   );
 }
 
@@ -94,29 +104,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: space(8),
   },
-  mark: {
-    width: 56,
-    height: 56,
-    marginBottom: space(6),
-  },
-  kicker: {
-    ...type.overline,
-    marginBottom: space(3),
-  },
-  title: {
-    fontSize: 34,
-    fontWeight: '700',
-    lineHeight: 41,
-    letterSpacing: -0.4,
-    color: colors.amber,
-  },
   body: {
-    ...type.body,
-    fontSize: 18,
-    lineHeight: 29,
-    color: colors.secondary,
+    fontSize: 17,
+    lineHeight: 28,
+    color: ink.secondary,
     marginTop: space(4),
-    maxWidth: 340,
+    maxWidth: 330,
   },
   dots: {
     flexDirection: 'row',
@@ -125,13 +118,13 @@ const styles = StyleSheet.create({
     marginVertical: space(6),
   },
   dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: colors.line,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: ink.faint,
   },
   dotActive: {
-    backgroundColor: colors.amber,
-    width: 20,
+    backgroundColor: palette.apricot,
+    width: 18,
   },
 });
