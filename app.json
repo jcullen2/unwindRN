@@ -21,6 +21,14 @@
       "expo-router",
       "expo-apple-authentication",
       "expo-secure-store",
+      "expo-audio",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "unwindRN listens only while you debrief. Audio never leaves your phone.",
+          "speechRecognitionPermission": "Your words are transcribed on this phone — only the text you approve is saved."
+        }
+      ],
       [
         "expo-splash-screen",
         {

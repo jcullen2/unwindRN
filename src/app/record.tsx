@@ -24,6 +24,7 @@ import { localToday, RecordDraft } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { LOAD_LABELS, TAGS } from '@/lib/constants';
 import { useCareerTotals, useInvalidateShiftData } from '@/lib/queries';
+import { saveShift } from '@/lib/queue';
 import { supabase } from '@/lib/supabase';
 import { glass, heat, heatFlipsText, ink, palette, space, type } from '@/theme/tokens';
 
@@ -145,8 +146,8 @@ export default function RecordScreen() {
   const [shiftDate, setShiftDate] = useState(initial.shift_date ?? localToday());
   const [hours, setHours] = useState(initial.hours != null ? String(initial.hours) : String(usual));
   const [load, setLoad] = useState<number | null>(initial.load ?? null);
-  const [tags, setTags] = useState<string[]>([]);
-  const [isNight, setIsNight] = useState(false);
+  const [tags, setTags] = useState<string[]>(initial.tags ?? []);
+  const [isNight, setIsNight] = useState(initial.is_night ?? false);
   const [win, setWin] = useState(initial.win ?? '');
   const [weight, setWeight] = useState(initial.weight ?? '');
   const [lesson, setLesson] = useState(initial.lesson ?? '');
@@ -159,50 +160,41 @@ export default function RecordScreen() {
   const save = async () => {
     if (!session || !validDate || !validHours || saving) return;
     setSaving(true);
-    try {
-      const { data: shift, error } = await supabase
-        .from('shifts')
-        .insert({
-          user_id: session.user.id,
-          shift_date: shiftDate,
-          hours: parsedHours,
-          load,
-          tags,
-          is_night: isNight,
-          win: win.trim() || null,
-          weight: weight.trim() || null,
-          lesson: lesson.trim() || null,
-          source: fromDebrief ? 'voice' : 'taps',
-        })
-        .select('id')
-        .single();
-      if (error) throw error;
+    // Local-first: the queue keeps the record even in a dead zone.
+    const { synced, shiftId } = await saveShift({
+      user_id: session.user.id,
+      shift_date: shiftDate,
+      hours: parsedHours,
+      load,
+      tags,
+      is_night: isNight,
+      win: win.trim() || null,
+      weight: weight.trim() || null,
+      lesson: lesson.trim() || null,
+      source: initial.source ?? (fromDebrief ? 'voice' : 'taps'),
+    });
 
-      if (params.sessionId) {
-        const end = () =>
-          supabase
-            .from('debrief_sessions')
-            .update({ ended_at: new Date().toISOString(), shift_id: shift.id })
-            .eq('id', params.sessionId!);
-        const { error: endError } = await end();
-        if (endError) await end();
-      }
+    if (synced && params.sessionId && shiftId) {
+      const end = () =>
+        supabase
+          .from('debrief_sessions')
+          .update({ ended_at: new Date().toISOString(), shift_id: shiftId })
+          .eq('id', params.sessionId!);
+      const { error: endError } = await end();
+      if (endError) await end();
+    }
 
-      await invalidate();
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (synced) await invalidate();
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      const newTotal = totals.shifts + 1;
-      if (MILESTONES.includes(newTotal)) {
-        router.replace({ pathname: '/milestone', params: { count: String(newTotal) } });
-      } else if (fromDebrief) {
-        // Leave both the record sheet and the debrief modal.
-        router.dismissAll();
-      } else {
-        router.back();
-      }
-    } catch {
-      setSaving(false);
-      Alert.alert("Couldn't save the shift", 'Give it another try.');
+    const newTotal = totals.shifts + 1;
+    if (synced && MILESTONES.includes(newTotal)) {
+      router.replace({ pathname: '/milestone', params: { count: String(newTotal) } });
+    } else if (fromDebrief) {
+      // Leave both the record sheet and the debrief modal.
+      router.dismissAll();
+    } else {
+      router.back();
     }
   };
 

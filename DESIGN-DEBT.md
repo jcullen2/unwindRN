@@ -2,6 +2,26 @@
 
 Debt logged per CLAUDE.md workflow. Newest first.
 
+## Session 2 (voice debrief)
+- **On-device verification pending** — expo-speech-recognition is a native
+  module: it needs a dev build (not Expo Go) and a real device/simulator to
+  exercise. The flow detects availability and falls back to quiet-mode text
+  automatically, so nothing blocks. Verify on device: mic permission copy,
+  1.2s end-of-turn feel, interim teleprompter, and the P50/P90 latency print
+  (`[debrief] first-token …` in Metro logs; target <1.5s voice-to-voice).
+- **ELEVENLABS_API_KEY not set** — `speak` returns 503 until it's added via
+  `supabase secrets set`; client degrades to captions-only silently. Also
+  optional: ELEVENLABS_VOICE_ID (defaults to the "Sarah" premade voice —
+  audition and choose a final voice).
+- **TTS word-level caption sync not implemented** — the full reply captions on
+  screen while audio plays; per-word highlighting would need timestamps from
+  ElevenLabs (websocket API). Fine for v1.
+- **Old `debrief`/`extract` edge functions are now unused** by the client
+  (debrief-turn replaced both); left deployed and harmless. Delete from the
+  dashboard when convenient.
+- **Session mode is voice|text at creation** — a session that starts typed and
+  switches to voice keeps mode 'text'. Cosmetic.
+
 ## Session 1 (rebrand + skeleton)
 - **§8 verification not run** — no iOS simulator in the build environment and
   `design/reference.html` was not received (the brand zip arrived; the reference
