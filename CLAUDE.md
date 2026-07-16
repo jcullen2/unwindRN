@@ -1,132 +1,120 @@
-# unwindRN — CLAUDE.md
+# CLAUDE.md — unwindRN
 
-## What this is
-unwindRN is a consumer iOS app for nurses. Two screens: **the Debrief** (an AI partner,
-fluent in the nurse's specialty, that helps her process the shift) and **the Logbook**
-(a career place of truth — shifts, hours, wins, losses, lessons — auto-filled from
-debriefs). The nurse is the customer. Never the hospital.
+You are building unwindRN, a consumer iOS app for nurses: a voice-first post-shift
+debrief partner + a career logbook. The user is a nurse who just finished a 12-hour
+shift. Every decision is calm over clever. This file is law; when in doubt, re-read it.
 
-## The mission
-Ship v1 to the App Store **this week**. Definition of done: a nurse can sign in with
-Apple, debrief a real shift in text, confirm the extracted shift record, see her
-logbook totals grow, delete her account, and reach crisis resources — all on TestFlight
-by Thursday night, submitted for App Review by Friday night.
+## v1 scope — build ONLY this
+- Voice-first debrief flow (3 stages: Clock-out taps → voice conversation → record
+  confirm). Launched from the flame orb, presented as a full-screen modal flow.
+- Home ("ember sky"), Logbook (heatfield calendar + list + entry detail),
+  Insights (3 modules + locked state), Profile (sheet from Home avatar).
+- Conversational onboarding (5 beats, voice with tap fallbacks).
+- Sign in with Apple via Supabase Auth. In-app account deletion (full cascade).
+- Shift clock-in/out + Live Activity (timeboxed — see Session 5).
 
-## v1 scope — LOCKED
-
-**Build:**
-- Sign in with Apple (Supabase Auth), minimal profile (name, specialty, years in)
-- 3-screen onboarding (copy below — use verbatim)
-- Debrief: text chat with streaming-or-typing-indicator, "End debrief" flow
-- Extraction: end of debrief → structured shift record → user confirms/edits → saved
-- Logbook: totals header (shifts, hours), reverse-chron shift list, one-tap manual add
-- Milestone detection at shifts #1, 10, 25, 50, 100, 250, 500 (simple in-app card;
-  shareable image export is a stretch goal, not a blocker)
-- Settings: profile edit, crisis resources, privacy policy link, sign out,
-  **in-app account deletion** (Apple requirement — full data wipe)
-- Crisis resource surfacing (see Product non-negotiables)
-
-**Do NOT build (v1.1+, do not start, do not scaffold):**
-- Voice input · Android · push notifications · community/social · monetization or
-  paywalls · light mode · analytics SDKs · streaks/gamification beyond milestones
-- Any field, table, or prompt that stores patient-identifying information
+**Do NOT build:** Jobs/marketplace, social features, streaks, Wrapped UI (capture the
+data; the feature ships at Nurses Week), Android, push campaigns, gamification,
+therapy-style mood journaling, anything not listed above. If tempted, stop and note
+it in IDEAS.md instead.
 
 ## Architecture
-- **App:** Expo (managed workflow, latest stable SDK), TypeScript `strict`, Expo Router,
-  dark theme only.
-- **Backend:** Supabase — Postgres with RLS on every table, Auth (Sign in with Apple),
-  Edge Functions (Deno) as the ONLY place that talks to the Anthropic API.
-- **Models:** `claude-sonnet-4-6` for the debrief conversation;
-  `claude-haiku-4-5-20251001` for the safety classifier and extraction.
-- **Builds/ship:** EAS Build → TestFlight → App Store.
+- Expo (managed) + TypeScript + expo-router. iOS first; keep Android compiling but untested.
+- Supabase: Auth (Sign in with Apple), Postgres with RLS on every table, Edge Functions.
+- **Edge Functions are the ONLY place that calls external AI APIs.** Client never holds
+  AI keys. Keys live in Supabase secrets: ANTHROPIC_API_KEY, ELEVENLABS_API_KEY.
+- Models: claude-sonnet-4-6 for the debrief partner (streaming). claude-haiku-4-5-20251001
+  for the per-turn utility call (safety + fact extraction, structured JSON).
+- Local-first for taps: shifts save to local queue immediately, sync to Supabase.
+  A dead zone in a hospital parking garage must never lose a record.
 
-## Security non-negotiables
-- The Anthropic API key lives ONLY in Supabase secrets (`supabase secrets set`).
-  It never appears in client code, env files committed to git, or logs.
-- Every table has RLS: `user_id = auth.uid()`. Edge functions receive the user's JWT
-  and use it (anon key + auth header), not the service role, except `delete-account`.
-- `.env*` is gitignored. Never print secrets in command output.
+## The voice pipeline (Session 2 builds this)
+1. **STT — on-device.** expo-speech-recognition with `requiresOnDeviceRecognition: true`
+   (iOS). Audio NEVER leaves the phone; only transcript text goes to the server. Show
+   interim results live (teleprompter). End her turn on ~1.2s silence or flame-button tap.
+2. **LLM.** Edge Function `debrief-turn`: receives {session context, taps, new user turn},
+   streams the partner's reply (SSE). System prompt lives at
+   supabase/functions/debrief-turn/system-prompt.md — never inline it elsewhere.
+3. **Utility call (parallel).** Same function fires haiku with a strict JSON schema:
+   {crisis: bool, tags_detected: [], hours_mentioned: number|null, win: string|null,
+   weight: string|null, lesson: string|null}. Drives live chips + record assembly +
+   crisis card. If crisis=true, surface the crisis card immediately, over everything.
+4. **TTS.** Edge Function `speak` proxies ElevenLabs (flash tier, streaming) → client
+   plays via expo-audio while captioning the text on screen. If TTS fails, degrade
+   gracefully to text-only — never block the debrief.
+5. **Budgets.** Max 12 partner turns per debrief; truncate context beyond ~8k tokens;
+   log token counts. Target voice-to-voice < 1.5s; measure and print it in dev.
 
-## Product non-negotiables (the "do good" layer — also the moat)
-1. **PHI guardrail.** The debrief agent never solicits patient-identifying details and
-   never repeats any the user volunteers. Extraction strips them. No patient-identity
-   fields exist anywhere in the schema. Onboarding states this promise plainly.
-2. **Crisis resources.** The debrief pipeline runs a parallel safety classifier on each
-   user message; when flagged, the client surfaces the crisis card (988 call/text,
-   Crisis Text Line). A static "Support resources" page is always reachable from
-   Settings and the debrief screen's overflow menu.
-3. **Not therapy.** The app never claims to be therapy, medical care, or diagnosis —
-   in-app copy, App Store metadata, and agent behavior all hold this line.
-4. **Account deletion** wipes profiles, debriefs, messages, shifts, and the auth user.
+## Product non-negotiables (these protect her license and her life)
+- **PHI guardrail:** never solicit or store patient names, rooms, MRNs, or identifying
+  details. The system prompt deflects; the haiku extractor strips identifying fragments
+  from win/weight/lesson before they render. UI whisper on debrief entry.
+- **Crisis card:** classifier-triggered, dims the screen, "You matter.", Call/Text 988,
+  "Keep talking" keeps the session open. Never gate, never delay it.
+- **Not therapy:** the partner never diagnoses, never gives clinical or medication
+  advice, never uses clinical labels for her ("burnout," "depression," "PTSD").
+  Insights describe patterns; they never diagnose.
+- **Deletion:** in-app account deletion removes auth user + all rows, immediately.
+- **No guilt mechanics:** no streaks, no red badges, no "you missed a debrief."
+  "Save without talking" and "Not tonight" are always one tap and never shamed.
 
-## Data model
-- `profiles` — id (= auth.users.id), display_name, specialty, years_in, created_at
-- `debriefs` — id, user_id, started_at, ended_at, message_count
-- `messages` — id, debrief_id, user_id, role ('user'|'assistant'), content, created_at
-- `shifts` — id, user_id, shift_date, hours numeric null, unit text null, win text,
-  loss text, lesson text, mood int null (1–5), source ('debrief'|'manual'),
-  debrief_id null, created_at
-- Totals (shift count, hours sum) computed by query/view — never stored counters.
+## Data model (migration in supabase/migrations — idempotent)
+```sql
+create table if not exists profiles (
+  id uuid primary key references auth.users on delete cascade,
+  display_name text, specialty text, years_in numeric, shifts_per_week numeric,
+  usual_shift_hours numeric default 12,
+  est_career_shifts int default 0, est_career_hours int default 0, -- onboarding estimate (~)
+  created_at timestamptz default now()
+);
+create table if not exists shifts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete cascade not null,
+  shift_date date not null, hours numeric not null,
+  load smallint check (load between 1 and 5),          -- 1 Light … 5 Brutal
+  tags text[] default '{}',                            -- Code, Short-staffed, …
+  started_at timestamptz, ended_at timestamptz, is_night boolean default false,
+  win text, weight text, lesson text,                  -- weight = the emotional note, NOT load
+  source text default 'taps',                          -- taps | voice | both
+  created_at timestamptz default now()
+);
+create table if not exists debrief_sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete cascade not null,
+  shift_id uuid references shifts on delete cascade,
+  transcript jsonb default '[]', mode text default 'voice',
+  started_at timestamptz default now(), ended_at timestamptz
+);
+-- RLS: enable on all three; policy = user_id = auth.uid() (profiles: id = auth.uid()).
+-- Insights are SQL over shifts only. Career totals = est_* + count/sum of logged rows.
+```
+Canonical tag set v1: Short-staffed, Code, A loss, Good save, Hard family, Float,
+Charge, Precepting, Quiet one. Load labels: Light/Steady/Full/Heavy/Brutal.
 
-## Edge functions
-- `debrief` — receives message history + profile context; injects the system prompt
-  (see `supabase/functions/debrief/prompt.ts`); calls sonnet; in parallel runs the
-  haiku safety classifier on the latest user message; returns `{ reply, crisis: bool }`.
-- `extract` — receives the transcript; calls haiku with the extraction schema; returns
-  the draft shift record for user confirmation. Instruction: exclude anything that
-  could identify a patient from every field.
-- `delete-account` — service role; deletes all user rows, then the auth user.
+## Design
+Visual law: **DESIGN.md**. Visual target: **/design/reference.html** (the v3 review —
+match its phones; ignore its prose). Brand assets: **/design/brand/** (locked identity —
+lamp mark, no handle, never recolor the flame independently; min 24px mark).
+"Done" for any UI work = DESIGN.md §8 verification, not "it renders."
 
-## Design tokens — "Last light" (dark only)
-- bg `#14152B` · surface `#20224A` · elevated `#2A2D5E` · line `#3A3D6B`
-- text `#F4F2EA` · secondary `#C9C7DD` · muted `#8A8CA8`
-- accent amber `#E9A83F` (milestones, primary actions) · danger `#E06C5A`
-- Radii 12/16 · spacing on a 4pt scale · generous line-height; this app is opened
-  exhausted at 8pm and 7:40am — calm over clever.
-- Type: system font (SF) for UI. Optional: Fraunces for large logbook numerals only.
+## Dependency whitelist
+expo core, expo-router, @supabase/supabase-js, expo-apple-authentication,
+expo-linear-gradient, expo-blur, expo-haptics, expo-font, expo-audio,
+expo-speech-recognition, react-native-reanimated, @shopify/react-native-skia,
+expo-secure-store, @react-native-async-storage/async-storage, expo-notifications
+(local only), zod. Live Activity module per Session 5 only. Anything else: ask first
+in a comment and stop.
 
-## Onboarding copy (verbatim)
-1. **Put the shift down.** unwindRN is your post-shift debrief partner and career
-   logbook. Talk it out. Keep the record.
-2. **Your patients stay private.** Talk about your day, not your patients' identities.
-   We never ask for names, rooms, or details that could identify a patient. That
-   protects them — and your license.
-3. **Not therapy. Still yours.** unwindRN isn't medical care or therapy. If you're in
-   crisis, call or text 988. For everything else — we're here after every shift.
+## Copy register
+Warm, floor-literate, zero corporate. She/her for the user in comments. The partner
+speaks like a colleague who gets it: short sentences, one question at a time, no
+exclamation points, no "I'm sorry you're going through this" filler. All numbers from
+her estimate wear the ~. Reminder copy is honest: "one gentle reminder, no nagging."
 
-## Voice & copy rules
-Second person, calm, concrete. Never toxic positivity, never "self-care" lectures,
-never clinical judgment. Buttons say what they do ("End debrief", "Save shift").
-
-## Dependencies — whitelist
-expo, expo-router, react, react-native, @supabase/supabase-js,
-expo-apple-authentication, expo-secure-store, @tanstack/react-query,
-react-native-safe-area-context, react-native-screens, expo-font, date-fns.
-`react-native-view-shot` only if the share-card stretch goal is reached.
-**Anything else: ask first.**
-
-## Workflow expectations
-- For any multi-file change: propose a short plan before writing code.
-- After each feature: run `tsc --noEmit`, boot the iOS simulator, verify, then commit
-  (conventional commits: `feat:`, `fix:`, `chore:`).
-- Small diffs over big rewrites. Flag any deviation from this file instead of
-  silently deciding.
-- Security-adjacent files (edge functions, migrations, RLS policies) get extra care —
-  summarize what changed and why after touching them.
-
-## Build log — decisions made during the build (2026-07-15)
-- Expo SDK 57 / RN 0.86 / TypeScript strict; classic expo-router `Tabs` (not the
-  unstable NativeTabs). Tab icons drawn with Views — no icon dependency.
-- Supabase project: **unwindRN-v1** (`fucstcfrpxlmqzzpfped`, us-east-1). The old
-  paused `unwindRN` project was past the 90-day restore window. Schema migration
-  applied and edge functions (debrief/extract/delete-account) deployed.
-  `ANTHROPIC_API_KEY` still needs `supabase secrets set` before the debrief works.
-- Totals come from the `shift_totals` view (security_invoker), message_count via
-  trigger on messages insert.
-- Extraction uses structured outputs (`output_config.format` json_schema) so the
-  JSON is guaranteed valid; classifier failures default to `crisis: false` and
-  never block a reply.
-- Mood is a 1–5 numeric picker, not emoji.
-- Date entry in the shift form is a plain YYYY-MM-DD field for v1 (no picker dep).
-- Icon/splash are generated placeholders (indigo field, amber coil) — replace
-  before submission.
+## Workflow
+One session = one numbered prompt from unwindrn-v3-build-sessions.md. Start each in a
+fresh context. Plan briefly, then build; commit in small conventional-commit steps
+(feat:, fix:, chore:). Finish every session with its Definition of Done, including the
+DESIGN.md §8 screenshot comparison. Update IDEAS.md with anything cut. Never echo
+secrets. If a native module fights for more than the timebox, ship the fallback and
+write the debt down in DESIGN-DEBT.md.
