@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
 import { AppState } from 'react-native';
 
-import type { Database, Tables } from '@/lib/database.types';
+import type { Database, Json, Tables } from '@/lib/database.types';
 
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
@@ -38,6 +38,6 @@ AppState.addEventListener('change', (state) => {
 });
 
 export type Profile = Tables<'profiles'>;
-export type Debrief = Tables<'debriefs'>;
-export type Message = Tables<'messages'>;
 export type Shift = Tables<'shifts'>;
+export type DebriefSession = Tables<'debrief_sessions'>;
+export type { Json };

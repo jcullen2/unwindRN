@@ -38,34 +38,27 @@ export function useShift(id: string | undefined) {
   });
 }
 
-export type Totals = { total_shifts: number; total_hours: number };
-
-/** Totals are computed by the shift_totals view — never stored counters. */
-export function useTotals() {
-  const { session } = useAuth();
-  return useQuery({
-    queryKey: ['totals', session?.user.id],
-    enabled: !!session,
-    staleTime: 30_000,
-    queryFn: async (): Promise<Totals> => {
-      const { data, error } = await supabase
-        .from('shift_totals')
-        .select('total_shifts, total_hours')
-        .maybeSingle();
-      if (error) throw error;
-      return {
-        total_shifts: data?.total_shifts ?? 0,
-        total_hours: Number(data?.total_hours ?? 0),
-      };
-    },
-  });
+/**
+ * Career totals = onboarding estimate (est_*) + logged rows, computed from
+ * the shifts query — never stored counters. Estimated portions wear the ~.
+ */
+export function useCareerTotals() {
+  const { profile } = useAuth();
+  const { data: shifts } = useShifts();
+  const logged = shifts ?? [];
+  const loggedHours = logged.reduce((sum, s) => sum + Number(s.hours ?? 0), 0);
+  const estShifts = profile?.est_career_shifts ?? 0;
+  const estHours = profile?.est_career_hours ?? 0;
+  return {
+    shifts: estShifts + logged.length,
+    hours: estHours + loggedHours,
+    loggedShifts: logged.length,
+    loggedHours,
+    estimated: estShifts > 0 || estHours > 0,
+  };
 }
 
 export function useInvalidateShiftData() {
   const queryClient = useQueryClient();
-  return () =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['shifts'] }),
-      queryClient.invalidateQueries({ queryKey: ['totals'] }),
-    ]);
+  return () => queryClient.invalidateQueries({ queryKey: ['shifts'] });
 }

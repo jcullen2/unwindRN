@@ -4,14 +4,14 @@ import { supabase } from '@/lib/supabase';
 
 export type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
-export type ShiftDraft = {
+/** The record, forming — v3 shift draft assembled from a debrief. */
+export type RecordDraft = {
   shift_date: string;
   hours: number | null;
-  unit: string | null;
+  load: number | null; // 1 Light … 5 Brutal
   win: string;
-  loss: string;
+  weight: string; // the emotional note
   lesson: string;
-  mood: number | null;
 };
 
 export function localToday(): string {
@@ -30,14 +30,28 @@ export async function requestDebriefReply(
   return { reply: data.reply, crisis: data.crisis === true };
 }
 
-export async function requestExtraction(messages: ChatMessage[]): Promise<ShiftDraft> {
+/**
+ * The extract function still speaks the v1 wire shape
+ * ({win, loss, lesson, mood, unit}); mapped here to the v3 record
+ * (loss→weight, mood→load, unit dropped). The function itself moves to the
+ * per-turn utility schema in Session 2.
+ */
+export async function requestExtraction(messages: ChatMessage[]): Promise<RecordDraft> {
   const { data, error } = await supabase.functions.invoke('extract', {
     body: { messages, today: localToday() },
   });
-  if (error || !data?.draft || typeof data.draft.shift_date !== 'string') {
+  const draft = data?.draft;
+  if (error || !draft || typeof draft.shift_date !== 'string') {
     throw new Error('extract_failed');
   }
-  return data.draft as ShiftDraft;
+  return {
+    shift_date: draft.shift_date,
+    hours: typeof draft.hours === 'number' ? draft.hours : null,
+    load: typeof draft.mood === 'number' ? draft.mood : null,
+    win: typeof draft.win === 'string' ? draft.win : '',
+    weight: typeof draft.loss === 'string' ? draft.loss : '',
+    lesson: typeof draft.lesson === 'string' ? draft.lesson : '',
+  };
 }
 
 export async function requestAccountDeletion(): Promise<void> {
