@@ -2,6 +2,27 @@
 
 Debt logged per CLAUDE.md workflow. Newest first.
 
+## Sessions 3–5 (finish pass)
+- **Live Activity shipped as the in-app fallback** (timeboxed per Session 5):
+  clock-in/out lives on Home — elapsed timer, overtime turns apricot past
+  usual_shift_hours, "Clock out → debrief" hands hours+night into Stage 1.
+  The real lock-screen Live Activity (+ Siri App Intent) needs a native
+  target/dev build; build it with the leading Expo Live Activity module when
+  on a Mac.
+- **Day-cell → entry uses a standard push**, not the matched-geometry
+  expansion from §7 — needs measured-cell overlay work; queued for a motion
+  polish pass.
+- **Onboarding is tap-first**: the partner's preview lines speak via TTS when
+  the key is set, but she answers by tap, not voice — voice answers reuse the
+  Session 2 STT plumbing; wire after on-device STT verification.
+- **month-caption function deploy pending** — source committed at
+  supabase/functions/month-caption; the MCP bridge dropped mid-deploy. Deploy
+  with `supabase functions deploy month-caption` (or ask Claude to retry).
+  Client already degrades to "no caption".
+- **Insights load-trend shows last 14 shifts** (not a strict month window) and
+  reminders are a single next-evening notification rather than a recurring
+  schedule — both honest simplifications, revisit with real user feedback.
+
 ## Session 2 (voice debrief)
 - **On-device verification pending** — expo-speech-recognition is a native
   module: it needs a dev build (not Expo Go) and a real device/simulator to
@@ -19,28 +40,11 @@ Debt logged per CLAUDE.md workflow. Newest first.
 - **Old `debrief`/`extract` edge functions are now unused** by the client
   (debrief-turn replaced both); left deployed and harmless. Delete from the
   dashboard when convenient.
-- **Session mode is voice|text at creation** — a session that starts typed and
-  switches to voice keeps mode 'text'. Cosmetic.
 
 ## Session 1 (rebrand + skeleton)
 - **§8 verification not run** — no iOS simulator in the build environment and
-  `design/reference.html` was not received (the brand zip arrived; the reference
-  HTML upload didn't come through). Run §8 on-device: screenshots at 21:00 vs the
-  reference frames for Home, nav pill, debrief, logbook.
-- **Debrief is quiet-mode only** — the flame orb opens a teleprompter-style text
-  debrief (no bubbles, per §9) wired to the existing `debrief`/`extract` edge
-  functions. Voice pipeline (STT/TTS/live chips/SSE streaming, `debrief-turn` +
-  `speak` functions) is Session 2 as planned.
-- **Heatfield calendar not built** — Logbook is a glass list with month headers
-  and load heat swatches. The heatfield month + ignite replay + scrub is Session 3.
-- **Home presence line is static copy** — the `daily-line` edge function (haiku,
-  cached per day) is Session 3.
-- **Onboarding is the v1 three-pager restyled** onto the Sky — the conversational
-  5-beat onboarding (voice + est_* capture) is Session 4. Until then
-  est_career_* stays 0, so the monument numeral shows logged shifts only.
+  `design/reference.html` was never received. Run §8 on-device: screenshots at
+  21:00 vs the reference frames for Home, nav pill, debrief, logbook.
 - **Whitelist deviation (pre-existing):** @tanstack/react-query and date-fns
-  are in use from v1 and are not on the v3 whitelist. Flagged rather than ripped
-  out mid-rebrand; decide keep-or-replace before Session 2.
-- **extract edge function still speaks the v1 wire shape** (loss/mood); mapped
-  client-side to weight/load. Session 2 replaces it with the per-turn utility
-  schema {crisis, tags_detected, hours_mentioned, win, weight, lesson}.
+  are in use from v1 and are not on the v3 whitelist. Flagged rather than
+  ripped out mid-rebrand; decide keep-or-replace.

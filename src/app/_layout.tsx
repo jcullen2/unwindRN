@@ -33,7 +33,7 @@ const navTheme = {
 };
 
 function RootNavigator() {
-  const { ready: authReady, session, profile, onboardingSeen } = useAuth();
+  const { ready: authReady, session, profile } = useAuth();
   const [fontsLoaded, fontsError] = useFonts({
     [fonts.serif500]: require('@/assets/fonts/Fraunces-Medium.ttf'),
     [fonts.serif600]: require('@/assets/fonts/Fraunces-SemiBold.ttf'),
@@ -55,16 +55,13 @@ function RootNavigator() {
         headerShown: false,
         contentStyle: { backgroundColor: palette.night },
       }}>
-      <Stack.Protected guard={!signedIn && !onboardingSeen}>
-        <Stack.Screen name="onboarding" />
-      </Stack.Protected>
-
-      <Stack.Protected guard={!signedIn && onboardingSeen}>
+      <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="sign-in" />
       </Stack.Protected>
 
+      {/* Sign-in first; the conversational onboarding writes the profile. */}
       <Stack.Protected guard={signedIn && !authed}>
-        <Stack.Screen name="profile-setup" />
+        <Stack.Screen name="onboarding" />
       </Stack.Protected>
 
       <Stack.Protected guard={authed}>

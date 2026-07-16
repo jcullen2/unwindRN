@@ -1,3 +1,5 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -10,9 +12,11 @@ import { Sky } from '@/components/sky';
 import { localToday } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useCareerTotals, useShifts } from '@/lib/queries';
-import { glass, ink, space } from '@/theme/tokens';
+import { supabase } from '@/lib/supabase';
+import { glass, ink, palette, space } from '@/theme/tokens';
 
 const MILESTONES = [1, 5, 10, 25, 50, 100, 250, 500, 750, 1000, 1500, 2000];
+const ACTIVE_SHIFT_KEY = 'unwindrn_active_shift_started_at';
 
 function greeting(name?: string | null): string {
   const h = new Date().getHours();
@@ -48,12 +52,56 @@ function useCountUp(target: number): number {
     }, [target, reduced])
   );
 
-  // If totals refine after the animation (query settles), snap to truth.
   useEffect(() => {
     if (played.current) setValue((v) => (v === target ? v : target));
   }, [target]);
 
   return value;
+}
+
+function useDailyLine(hasLogged: boolean) {
+  return useQuery({
+    queryKey: ['daily-line', localToday()],
+    enabled: hasLogged,
+    staleTime: 6 * 60 * 60 * 1000,
+    queryFn: async (): Promise<string | null> => {
+      const { data, error } = await supabase.functions.invoke('daily-line', {
+        body: { today: localToday() },
+      });
+      if (error) return null;
+      return typeof data?.line === 'string' ? data.line : null;
+    },
+  });
+}
+
+/** In-app stand-in for the Live Activity (timeboxed per Session 5). */
+function useActiveShift() {
+  const [startedAt, setStartedAt] = useState<string | null>(null);
+  const [, forceTick] = useState(0);
+
+  useEffect(() => {
+    AsyncStorage.getItem(ACTIVE_SHIFT_KEY).then(setStartedAt).catch(() => {});
+  }, []);
+  useEffect(() => {
+    if (!startedAt) return;
+    const t = setInterval(() => forceTick((n) => n + 1), 30_000);
+    return () => clearInterval(t);
+  }, [startedAt]);
+
+  const clockIn = useCallback(() => {
+    const now = new Date().toISOString();
+    setStartedAt(now);
+    AsyncStorage.setItem(ACTIVE_SHIFT_KEY, now).catch(() => {});
+  }, []);
+  const clockOut = useCallback(() => {
+    setStartedAt(null);
+    AsyncStorage.removeItem(ACTIVE_SHIFT_KEY).catch(() => {});
+  }, []);
+
+  const elapsedHours = startedAt
+    ? (Date.now() - new Date(startedAt).getTime()) / 3_600_000
+    : 0;
+  return { startedAt, elapsedHours, clockIn, clockOut };
 }
 
 export default function HomeScreen() {
@@ -63,12 +111,33 @@ export default function HomeScreen() {
   const totals = useCareerTotals();
   const { data: shifts } = useShifts();
   const shown = useCountUp(totals.shifts);
+  const { data: dailyLine } = useDailyLine(totals.loggedShifts > 0);
+  const active = useActiveShift();
 
+  const usual = Number(profile?.usual_shift_hours ?? 12);
   const approx = totals.estimated ? '~' : '';
   const nextMilestone = MILESTONES.find((m) => m > totals.shifts);
   const toGo = nextMilestone ? nextMilestone - totals.shifts : null;
   const todayShift = shifts?.find((s) => s.shift_date === localToday());
   const initial = (profile?.display_name ?? '?').trim().charAt(0).toUpperCase();
+  const overtime = active.elapsedHours > usual;
+
+  const clockOutToDebrief = () => {
+    const started = active.startedAt ? new Date(active.startedAt) : null;
+    const hours = Math.max(0.5, Math.round(active.elapsedHours * 2) / 2);
+    const night = started ? started.getHours() >= 17 || started.getHours() < 5 : false;
+    active.clockOut();
+    router.push({
+      pathname: '/debrief',
+      params: { hours: String(hours), night: night ? '1' : '0' },
+    });
+  };
+
+  const fmtElapsed = () => {
+    const h = Math.floor(active.elapsedHours);
+    const m = Math.floor((active.elapsedHours - h) * 60);
+    return `${h}:${String(m).padStart(2, '0')}`;
+  };
 
   return (
     <Sky>
@@ -107,9 +176,10 @@ export default function HomeScreen() {
               <FlameGlyph size={13} />
             </View>
             <T v="partnerCaption" style={{ flex: 1 }}>
-              {totals.loggedShifts === 0
-                ? 'Whenever you clock out, I’m here. Nothing you carry has to stay unwritten.'
-                : 'The record is holding. Every shift you put down stays put.'}
+              {dailyLine ??
+                (totals.loggedShifts === 0
+                  ? 'Whenever you clock out, I’m here. Nothing you carry has to stay unwritten.'
+                  : 'The record is holding. Every shift you put down stays put.')}
             </T>
           </View>
 
@@ -120,18 +190,48 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {todayShift ? (
-          <Glass warm style={{ marginBottom: space(28) }}>
-            <T v="overline">Tonight</T>
-            <T v="body" style={{ marginTop: space(1.5) }}>
-              The shift is in the book. {Number(todayShift.hours)} hours, kept.
-            </T>
-          </Glass>
-        ) : (
-          <View style={{ marginBottom: space(28), alignItems: 'center' }}>
-            <T v="whisper">The flame below starts tonight’s debrief.</T>
-          </View>
-        )}
+        <View style={{ marginBottom: space(28) }}>
+          {active.startedAt ? (
+            <Glass warm>
+              <View style={styles.clockRow}>
+                <View>
+                  <T v="overline">On shift</T>
+                  <T
+                    v="totals"
+                    style={{
+                      fontSize: 30,
+                      lineHeight: 36,
+                      color: overtime ? palette.apricot : ink.text,
+                    }}>
+                    {fmtElapsed()}
+                  </T>
+                  {overtime && <T v="whisper">past your usual {usual}h</T>}
+                </View>
+                <Pressable accessibilityRole="button" onPress={clockOutToDebrief} style={styles.clockBtn}>
+                  <T v="caption" style={{ color: palette.night, fontWeight: '600' }}>
+                    Clock out → debrief
+                  </T>
+                </Pressable>
+              </View>
+            </Glass>
+          ) : todayShift ? (
+            <Glass warm>
+              <T v="overline">Tonight</T>
+              <T v="body" style={{ marginTop: space(1.5) }}>
+                The shift is in the book. {Number(todayShift.hours)} hours, kept.
+              </T>
+            </Glass>
+          ) : (
+            <View style={{ alignItems: 'center', gap: space(3) }}>
+              <Pressable accessibilityRole="button" onPress={active.clockIn} style={styles.clockInBtn}>
+                <T v="caption" style={{ color: ink.secondary }}>
+                  Clock in
+                </T>
+              </Pressable>
+              <T v="whisper">The flame below starts tonight’s debrief.</T>
+            </View>
+          )}
+        </View>
       </View>
     </Sky>
   );
@@ -157,5 +257,22 @@ const styles = StyleSheet.create({
     gap: space(2.5),
     marginTop: space(8),
     paddingRight: space(4),
+  },
+  clockRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  clockBtn: {
+    backgroundColor: palette.apricot,
+    borderRadius: 12,
+    paddingVertical: space(2.5),
+    paddingHorizontal: space(3.5),
+  },
+  clockInBtn: {
+    backgroundColor: glass.fill,
+    borderRadius: 16,
+    paddingVertical: space(2),
+    paddingHorizontal: space(4),
   },
 });

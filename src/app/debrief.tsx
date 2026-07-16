@@ -7,7 +7,7 @@
  *   3. The record, forming → /record (glass fields, editable, save).
  */
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
@@ -118,14 +118,20 @@ export default function DebriefScreen() {
 
   const [stage, setStage] = useState<'taps' | 'talk'>('taps');
 
-  // Stage 1 — clock-out taps
+  // Stage 1 — clock-out taps. A live clock-out hands elapsed hours + night in.
+  const params = useLocalSearchParams<{ hours?: string; night?: string }>();
+  const handedHours = params.hours ? Number(params.hours) : null;
   const nearestChip = HOURS_CHIPS.reduce((a, b) =>
     Math.abs(b - usual) < Math.abs(a - usual) ? b : a
   );
-  const [hours, setHours] = useState<number>(nearestChip);
+  const [hours, setHours] = useState<number>(
+    handedHours && Number.isFinite(handedHours) && handedHours > 0 && handedHours <= 24
+      ? handedHours
+      : nearestChip
+  );
   const [load, setLoad] = useState<number | null>(null);
   const [tags, setTags] = useState<string[]>([]);
-  const [isNight, setIsNight] = useState(false);
+  const [isNight, setIsNight] = useState(params.night === '1');
   const [savingTaps, setSavingTaps] = useState(false);
 
   // Stage 2 — conversation

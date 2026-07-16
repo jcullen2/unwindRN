@@ -1,6 +1,8 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Glass, T } from '@/components/kit';
@@ -44,32 +46,81 @@ export default function ProfileSheet() {
   const { profile, signOut } = useAuth();
   const totals = useCareerTotals();
   const [deleting, setDeleting] = useState(false);
+  const [reminderOn, setReminderOn] = useState(false);
 
   const privacyUrl = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL;
 
-  const confirmDelete = () => {
-    Alert.alert(
-      'Delete account?',
-      'This permanently deletes your debriefs, logbook, and account.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            setDeleting(true);
-            try {
-              await requestAccountDeletion();
-              await signOut();
-            } catch {
-              Alert.alert("Couldn't delete the account", 'Give it another try in a moment.');
-            } finally {
-              setDeleting(false);
-            }
+  useEffect(() => {
+    AsyncStorage.getItem('unwindrn_reminder_on')
+      .then((v) => setReminderOn(v === 'true'))
+      .catch(() => {});
+  }, []);
+
+  const toggleReminder = async (on: boolean) => {
+    setReminderOn(on);
+    AsyncStorage.setItem('unwindrn_reminder_on', String(on)).catch(() => {});
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+      if (on) {
+        const perms = await Notifications.requestPermissionsAsync();
+        if (!perms.granted) {
+          setReminderOn(false);
+          AsyncStorage.setItem('unwindrn_reminder_on', 'false').catch(() => {});
+          return;
+        }
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(19, 30, 0, 0);
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'unwindRN',
+            body: 'When you’re ready — tonight’s shift can go in the book.',
           },
-        },
-      ]
-    );
+          trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: tomorrow },
+        });
+      }
+    } catch {
+      // never block the sheet on notification plumbing
+    }
+  };
+
+  const runDelete = async () => {
+    setDeleting(true);
+    try {
+      await requestAccountDeletion();
+      await signOut();
+    } catch {
+      Alert.alert("Couldn't delete the account", 'Give it another try in a moment.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  // Typed confirmation (Session 4): DELETE, spelled out.
+  const confirmDelete = () => {
+    if (Platform.OS === 'ios') {
+      Alert.prompt(
+        'Delete account?',
+        'This permanently deletes your debriefs, logbook, and account. Type DELETE to confirm.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: (text?: string) => {
+              if ((text ?? '').trim().toUpperCase() === 'DELETE') runDelete();
+              else Alert.alert('Not deleted', 'Type DELETE to confirm — everything is still here.');
+            },
+          },
+        ],
+        'plain-text'
+      );
+    } else {
+      Alert.alert('Delete account?', 'This permanently deletes your debriefs, logbook, and account.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: runDelete },
+      ]);
+    }
   };
 
   const meta = [
@@ -134,6 +185,21 @@ export default function ProfileSheet() {
               <Row label="Privacy policy" onPress={() => Linking.openURL(privacyUrl)} />
             </>
           ) : null}
+          <Hairline />
+          <View style={styles.row}>
+            <View style={{ flex: 1, paddingRight: space(3) }}>
+              <T v="body">Reminder</T>
+              <T v="whisper" style={{ marginTop: 2 }}>
+                One gentle reminder after your next shift. No nagging, ever.
+              </T>
+            </View>
+            <Switch
+              value={reminderOn}
+              onValueChange={toggleReminder}
+              trackColor={{ true: palette.flame, false: glass.fill }}
+              thumbColor={palette.bone}
+            />
+          </View>
         </Glass>
 
         <Glass style={{ marginTop: space(4), padding: 0 }}>

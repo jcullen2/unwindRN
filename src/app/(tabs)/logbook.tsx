@@ -1,32 +1,42 @@
+import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { useRouter } from 'expo-router';
-import { useMemo } from 'react';
-import { Pressable, SectionList, StyleSheet, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { FlameGlyph } from '@/brand';
+import { Heatfield } from '@/components/heatfield';
 import { Glass, QuietButton, T } from '@/components/kit';
 import { Sky } from '@/components/sky';
 import { localToday } from '@/lib/api';
 import { LOAD_LABELS } from '@/lib/constants';
 import { useShifts } from '@/lib/queries';
-import { Shift } from '@/lib/supabase';
-import { fonts, heat, heatFlipsText, ink, palette, space } from '@/theme/tokens';
+import { Shift, supabase } from '@/lib/supabase';
+import { fonts, glass, heat, ink, palette, space } from '@/theme/tokens';
 
-type MonthSection = { title: string; stats: string; data: Shift[] };
+function useMonthCaption(month: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['month-caption', month],
+    enabled,
+    staleTime: 6 * 60 * 60 * 1000,
+    queryFn: async (): Promise<string | null> => {
+      const { data, error } = await supabase.functions.invoke('month-caption', {
+        body: { month },
+      });
+      if (error) return null;
+      return typeof data?.caption === 'string' ? data.caption : null;
+    },
+  });
+}
 
 function LoadDot({ load }: { load: number | null }) {
   if (!load) return null;
-  const step = Math.min(4, Math.max(0, load - 1));
-  return (
-    <View style={[styles.loadDot, { backgroundColor: heat[step] }]}>
-      {heatFlipsText(step) && <View style={styles.loadDotCore} />}
-    </View>
-  );
+  return <View style={[styles.loadDot, { backgroundColor: heat[load - 1] }]} />;
 }
 
 function ShiftRow({ shift, onPress }: { shift: Shift; onPress: () => void }) {
   const isToday = shift.shift_date === localToday();
-  const date = format(parseISO(shift.shift_date), 'EEE d');
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={{ marginBottom: space(2.5) }}>
       {({ pressed }) => (
@@ -36,7 +46,7 @@ function ShiftRow({ shift, onPress }: { shift: Shift; onPress: () => void }) {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
               <LoadDot load={shift.load} />
               <T v="body" style={{ fontWeight: '600' }}>
-                {date}
+                {format(parseISO(shift.shift_date), 'EEE d')}
               </T>
               {shift.load != null && <T v="caption">{LOAD_LABELS[shift.load - 1]}</T>}
             </View>
@@ -58,68 +68,125 @@ export default function LogbookScreen() {
   const router = useRouter();
   const { data: shifts, isLoading } = useShifts();
 
-  const sections = useMemo<MonthSection[]>(() => {
-    const byMonth = new Map<string, Shift[]>();
-    for (const s of shifts ?? []) {
-      const key = format(parseISO(s.shift_date), 'MMMM yyyy');
-      const bucket = byMonth.get(key);
-      if (bucket) bucket.push(s);
-      else byMonth.set(key, [s]);
-    }
-    return [...byMonth.entries()].map(([title, data]) => {
-      const hrs = data.reduce((sum, s) => sum + Number(s.hours ?? 0), 0);
-      return {
-        title,
-        stats: `${data.length} ${data.length === 1 ? 'shift' : 'shifts'} · ${Math.round(hrs)} hrs`,
-        data,
-      };
+  const now = new Date();
+  const [cursor, setCursor] = useState({ y: now.getFullYear(), m: now.getMonth() + 1 });
+  const [view, setView] = useState<'field' | 'list'>('field');
+
+  const monthKey = `${cursor.y}-${String(cursor.m).padStart(2, '0')}`;
+  const monthShifts = useMemo(
+    () => (shifts ?? []).filter((s) => s.shift_date.startsWith(monthKey)),
+    [shifts, monthKey]
+  );
+  const monthHours = monthShifts.reduce((s, r) => s + Number(r.hours ?? 0), 0);
+  const monthName = format(new Date(cursor.y, cursor.m - 1, 1), 'MMMM');
+
+  const { data: caption } = useMonthCaption(monthKey, monthShifts.length >= 3);
+
+  const step = (dir: -1 | 1) => {
+    setCursor((c) => {
+      let m = c.m + dir;
+      let y = c.y;
+      if (m === 0) {
+        m = 12;
+        y--;
+      } else if (m === 13) {
+        m = 1;
+        y++;
+      }
+      return { y, m };
     });
-  }, [shifts]);
+  };
+
+  const openShift = (s: Shift) => router.push(`/shift/${s.id}`);
+  const empty = !isLoading && (shifts?.length ?? 0) === 0;
 
   return (
     <Sky>
-      <SectionList
-        sections={sections}
-        keyExtractor={(s) => s.id}
-        stickySectionHeadersEnabled={false}
+      <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + space(4),
           paddingHorizontal: space(5),
           paddingBottom: space(30),
           flexGrow: 1,
-        }}
-        ListHeaderComponent={
-          <View style={styles.top}>
-            <T v="overline">Logbook</T>
-            <QuietButton
-              title="Add a shift"
+        }}>
+        <View style={styles.top}>
+          <T v="overline">Logbook</T>
+          <View style={{ flexDirection: 'row', gap: space(2) }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={view === 'field' ? 'Switch to list' : 'Switch to calendar'}
+              onPress={() => setView((v) => (v === 'field' ? 'list' : 'field'))}
+              style={styles.toggle}>
+              <T v="caption" style={{ color: ink.secondary }}>
+                {view === 'field' ? 'List' : 'Field'}
+              </T>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Add a shift"
               onPress={() => router.push({ pathname: '/record', params: { mode: 'manual' } })}
-              style={{ minHeight: 40, paddingVertical: space(2) }}
-            />
-          </View>
-        }
-        renderSectionHeader={({ section }) => (
-          <View style={styles.month}>
-            <T style={styles.monthName}>{section.title.split(' ')[0]}</T>
-            <T v="caption">{section.stats}</T>
-          </View>
-        )}
-        ListEmptyComponent={
-          isLoading ? null : (
-            <View style={styles.empty}>
-              <T v="greeting" style={{ textAlign: 'center', fontSize: 24, lineHeight: 32 }}>
-                Shift #1 starts the record.
+              style={styles.toggle}>
+              <T v="caption" style={{ color: ink.secondary }}>
+                Add
               </T>
-              <T v="secondary" style={{ textAlign: 'center', marginTop: space(2) }}>
-                Debrief tonight from the flame, or add one by hand — either way, it counts.
-              </T>
+            </Pressable>
+          </View>
+        </View>
+
+        {empty ? (
+          <View style={styles.empty}>
+            <T v="greeting" style={{ fontSize: 24, lineHeight: 32, textAlign: 'center' }}>
+              Shift #1 starts the record.
+            </T>
+            <T v="secondary" style={{ textAlign: 'center', marginTop: space(2) }}>
+              Debrief tonight from the flame, or add one by hand — either way, it counts.
+            </T>
+          </View>
+        ) : (
+          <>
+            <View style={styles.monthRow}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Previous month" onPress={() => step(-1)} hitSlop={12}>
+                <T style={{ color: ink.dim, fontSize: 20 }}>‹</T>
+              </Pressable>
+              <View style={{ alignItems: 'center' }}>
+                <T style={styles.monthName}>{monthName}</T>
+                <T v="caption">
+                  {cursor.y} · {monthShifts.length} {monthShifts.length === 1 ? 'shift' : 'shifts'} ·{' '}
+                  {Math.round(monthHours)} hrs
+                </T>
+              </View>
+              <Pressable accessibilityRole="button" accessibilityLabel="Next month" onPress={() => step(1)} hitSlop={12}>
+                <T style={{ color: ink.dim, fontSize: 20 }}>›</T>
+              </Pressable>
             </View>
-          )
-        }
-        renderItem={({ item }) => (
-          <ShiftRow shift={item} onPress={() => router.push(`/shift/${item.id}`)} />
+
+            {view === 'field' ? (
+              <Heatfield year={cursor.y} month={cursor.m} shifts={monthShifts} onOpenDay={openShift} />
+            ) : (
+              <View style={{ marginTop: space(2) }}>
+                {monthShifts.length === 0 ? (
+                  <T v="whisper" style={{ textAlign: 'center', marginVertical: space(8) }}>
+                    Nothing logged this month.
+                  </T>
+                ) : (
+                  monthShifts.map((s) => <ShiftRow key={s.id} shift={s} onPress={() => openShift(s)} />)
+                )}
+              </View>
+            )}
+
+            {caption ? (
+              <View style={styles.caption}>
+                <View style={{ marginTop: 4 }}>
+                  <FlameGlyph size={13} />
+                </View>
+                <T v="partnerCaption" style={{ flex: 1, fontSize: 14, lineHeight: 22 }}>
+                  {caption}
+                </T>
+              </View>
+            ) : null}
+          </>
         )}
-      />
+      </ScrollView>
     </Sky>
   );
 }
@@ -129,34 +196,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: space(2),
+    marginBottom: space(3),
   },
-  month: {
+  toggle: {
+    backgroundColor: glass.fill,
+    borderRadius: 14,
+    paddingVertical: space(1.5),
+    paddingHorizontal: space(3),
+  },
+  monthRow: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: space(5),
-    marginBottom: space(2.5),
+    marginBottom: space(3),
     paddingHorizontal: space(1),
   },
   monthName: {
     fontFamily: fonts.serif500,
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: 24,
+    lineHeight: 30,
     color: ink.text,
+  },
+  caption: {
+    flexDirection: 'row',
+    gap: space(2.5),
+    marginTop: space(5),
+    paddingHorizontal: space(1),
   },
   loadDot: {
     width: 10,
     height: 10,
     borderRadius: 3,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadDotCore: {
-    width: 3,
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: palette.night,
   },
   nightTick: {
     position: 'absolute',
@@ -176,6 +246,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: space(6),
-    paddingBottom: space(20),
+    paddingTop: space(20),
   },
 });

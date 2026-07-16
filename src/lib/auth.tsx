@@ -1,6 +1,5 @@
 import type { Session } from '@supabase/supabase-js';
 import { useQueryClient } from '@tanstack/react-query';
-import * as SecureStore from 'expo-secure-store';
 import {
   createContext,
   ReactNode,
@@ -12,15 +11,11 @@ import {
 
 import { Profile, supabase } from '@/lib/supabase';
 
-const ONBOARDING_KEY = 'unwindrn_onboarding_seen';
-
 type AuthState = {
-  /** Session + onboarding flag + first profile fetch have all resolved. */
+  /** Session + first profile fetch have both resolved. */
   ready: boolean;
   session: Session | null;
   profile: Profile | null;
-  onboardingSeen: boolean;
-  completeOnboarding: () => void;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -33,15 +28,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionReady, setSessionReady] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileReady, setProfileReady] = useState(false);
-  const [onboardingSeen, setOnboardingSeen] = useState(false);
-  const [onboardingReady, setOnboardingReady] = useState(false);
 
   useEffect(() => {
-    SecureStore.getItemAsync(ONBOARDING_KEY)
-      .then((v) => setOnboardingSeen(v === 'true'))
-      .catch(() => {})
-      .finally(() => setOnboardingReady(true));
-
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setSessionReady(true);
@@ -76,11 +64,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadProfile(userId);
   }, [sessionReady, userId, loadProfile]);
 
-  const completeOnboarding = useCallback(() => {
-    setOnboardingSeen(true);
-    SecureStore.setItemAsync(ONBOARDING_KEY, 'true').catch(() => {});
-  }, []);
-
   const refreshProfile = useCallback(() => loadProfile(userId), [loadProfile, userId]);
 
   const signOut = useCallback(async () => {
@@ -94,11 +77,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        ready: sessionReady && profileReady && onboardingReady,
+        ready: sessionReady && profileReady,
         session,
         profile,
-        onboardingSeen,
-        completeOnboarding,
         refreshProfile,
         signOut,
       }}>
