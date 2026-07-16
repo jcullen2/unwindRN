@@ -112,9 +112,44 @@ exclamation points, no "I'm sorry you're going through this" filler. All numbers
 her estimate wear the ~. Reminder copy is honest: "one gentle reminder, no nagging."
 
 ## Workflow
-One session = one numbered prompt from unwindrn-v3-build-sessions.md. Start each in a
-fresh context. Plan briefly, then build; commit in small conventional-commit steps
-(feat:, fix:, chore:). Finish every session with its Definition of Done, including the
-DESIGN.md §8 screenshot comparison. Update IDEAS.md with anything cut. Never echo
-secrets. If a native module fights for more than the timebox, ship the fallback and
-write the debt down in DESIGN-DEBT.md.
+Build sessions 1–5 are COMPLETE (docs/unwindrn-v3-build-sessions.md is archival).
+For new work: read §State of the build below first — do not re-derive or rebuild
+what it says exists. Plan briefly, then build; small conventional commits (feat:,
+fix:, chore:). UI work isn't done until DESIGN.md §8 passes on-device. Update
+IDEAS.md with anything cut, DESIGN-DEBT.md with anything shipped as a fallback.
+Never echo secrets. Keep §State of the build current — it exists so future
+sessions never pay to rediscover the codebase.
+
+## State of the build — 2026-07-16 (keep current; the map, not the territory)
+Branch `claude/app-from-scratch-jgngvv` · tsc clean · all committed/pushed.
+
+**Backend — Supabase project `unwindRN-v1` (`fucstcfrpxlmqzzpfped`, us-east-1):**
+- Schema applied + RLS on everything (`(select auth.uid())` form); security advisor: 0 findings.
+  Tables: profiles · shifts · debrief_sessions · daily_lines · month_captions.
+- Edge functions LIVE: `debrief-turn` (SSE sonnet + parallel haiku utility; system
+  prompt ONLY in its system-prompt.md; 12-turn cap; ~8k-token truncation),
+  `speak` (ElevenLabs proxy, 503 → client degrades to text silently),
+  `daily-line` + `month-caption` (haiku, cached per day/month), `delete-account`
+  (service role). Legacy `debrief`/`extract` deployed but UNUSED by the client —
+  safe to delete.
+- Secrets: ANTHROPIC_API_KEY set. **ELEVENLABS_API_KEY not set** (TTS silent until then).
+- Client env in `.env` (untracked; template `.env.example`). Seed: `scripts/seed.sql`.
+
+**Client map (src/):**
+- theme/tokens.ts — every DESIGN.md §1–§5 value; no hex anywhere else.
+- brand/ — supplied lamp/lockup SVGs rendered via Skia (never rebuilt).
+- components/ — sky (time-reactive gradient+afterglow+grain, forceBucket),
+  kit (T/Glass/FlameButton/QuietButton/GlassField), nav-pill (glass pill + breathing
+  orb), heatfield (ignite replay, drag-scrub).
+- lib/ — turn (SSE client via expo/fetch), voice (on-device STT + quiet-mode
+  detection), tts, queue (local-first AsyncStorage shift queue), queries
+  (react-query, user-keyed), auth, supabase, api, constants.
+- app/ — sign-in → onboarding (conversational, writes est_*) → (tabs):
+  index=Home (monument, daily line, clock-in/out fallback), logbook (heatfield+list
+  +month captions), insights (3 modules, locked <5). Modals: debrief (taps → voice
+  teleprompter → record), record, profile (sheet), resources, shift/[id], milestone.
+
+**Read on demand (not by default):** DESIGN.md (visual law), DESIGN-DEBT.md (the
+authoritative gap list — device verification, Live Activity native target, §8 pass),
+docs/store-metadata.md (App Store copy + submission checklist), README.md (setup).
+Whitelist deviation awaiting a decision: @tanstack/react-query + date-fns (v1 carryover).

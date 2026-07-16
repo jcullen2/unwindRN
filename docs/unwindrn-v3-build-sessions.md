@@ -1,3 +1,5 @@
+> STATUS: all five sessions COMPLETE (2026-07-16). Archival reference — see CLAUDE.md §State of the build.
+
 # unwindRN — v3 build sessions for Claude Code
 
 Five sessions, one per fresh Claude Code conversation. CLAUDE.md auto-loads and is law.
