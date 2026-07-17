@@ -356,9 +356,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: space(3),
   },
   chipOn: {
-    backgroundColor: 'rgba(255,104,70,.13)',
+    backgroundColor: 'rgba(255,182,92,.13)',
     borderWidth: 1,
-    borderColor: 'rgba(255,173,114,.35)',
+    borderColor: 'rgba(255,182,92,.45)',
   },
   nightRow: {
     flexDirection: 'row',

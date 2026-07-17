@@ -1,153 +1,169 @@
 /**
- * unwindRN tokens — every value from DESIGN.md §1–§5.
- * No hex codes anywhere else in the app, ever.
+ * unwindRN "Deep Ward" tokens — the v2 brand.
+ * Petrol-green night + amber accent; violet retired (night data = moon-mint).
+ * Bricolage Grotesque is the single display face. No hex outside this file.
  */
 
-// §1 · Palette
+// Palette
 export const palette = {
-  night: '#10100F',
-  bone: '#F3F0E8',
-  flame: '#FF6846',
-  apricot: '#FFAD72',
-  ash: '#AAA69D',
-  violet: '#7670FF',
+  night: '#090F0E', // text-on-amber / darkest
+  ink: '#EAF1EC', // bone-mint, primary text
+  moss: '#93A69C', // secondary text
+  amber: '#FFB65C', // THE accent — one live action per screen
+  amberHi: '#FFC97E', // gradient top for CTAs
+  moon: '#9BC7BD', // night-shift data ONLY, never a button
+  // legacy aliases (old code paths) mapped onto Deep Ward so nothing renders wrong
+  bone: '#EAF1EC',
+  flame: '#FFB65C',
+  apricot: '#FFB65C',
+  ash: '#93A69C',
+  violet: '#9BC7BD',
 } as const;
 
 export const ink = {
-  text: palette.bone,
-  secondary: palette.ash,
-  dim: 'rgba(243,240,232,.45)',
-  faint: 'rgba(243,240,232,.28)',
-  hairline: 'rgba(243,240,232,.07)', // max one per screen
+  text: palette.ink,
+  secondary: palette.moss,
+  dim: 'rgba(234,241,236,.4)',
+  faint: 'rgba(234,241,236,.3)',
+  whisper: 'rgba(234,241,236,.28)',
+  hairline: 'rgba(234,241,236,.06)',
 } as const;
 
 export const glass = {
-  fill: 'rgba(243,240,232,.055)',
-  hi: 'rgba(243,240,232,.09)', // inset top-light 1px
-  bar: 'rgba(20,17,14,.55)', // + blur(18) for nav pill / sheets
+  fill: 'rgba(234,241,236,.055)',
+  hi: 'rgba(234,241,236,.09)',
+  bar: 'rgba(9,15,14,.8)', // nav bar glass + blur(18)
 } as const;
 
 export const glow = {
-  flame: 'rgba(255,104,70,.22)',
-  apricot: 'rgba(255,173,114,.20)',
+  flame: 'rgba(255,182,92,.5)',
+  apricot: 'rgba(255,182,92,.4)',
 } as const;
 
-// §3 · The warm exception (today/milestone rows over glass)
+// The warm exception — memory / on-shift cards
 export const warmRow = {
-  from: 'rgba(255,173,114,.10)',
-  to: 'rgba(255,104,70,.14)',
+  from: 'rgba(255,201,126,.12)',
+  to: 'rgba(255,182,92,.16)',
 } as const;
 
-// §4 · Heat scale (calendar & load) — text flips to night on the top two steps
-export const heat = [
-  'rgba(170,166,157,.03)',
-  'rgba(255,173,114,.16)',
-  'rgba(255,173,114,.34)',
-  'rgba(255,104,70,.55)',
-  palette.flame,
-] as const;
-export const heatFlipsText = (step: number) => step >= 3; // 0-indexed
+// Selected chip fill (gradient)
+export const chipOn = {
+  from: 'rgba(255,201,126,.2)',
+  to: 'rgba(255,182,92,.08)',
+  border: 'rgba(255,182,92,.45)',
+  glow: 'rgba(255,182,92,.18)',
+} as const;
 
-// §2 · Sky buckets by local hour
+// Heat scale (calendar & load) — text flips to night on the top two steps
+export const heat = [
+  'rgba(255,182,92,.08)',
+  'rgba(255,182,92,.16)',
+  'rgba(255,182,92,.34)',
+  'rgba(255,182,92,.60)',
+  palette.amber,
+] as const;
+export const heatFlipsText = (step: number) => step >= 3;
+
+// The sky is one petrol treatment on every screen (no longer time-reactive).
+// The bucket API is kept as a compatibility shim so callers don't break.
 export type SkyBucket = 'ember' | 'deepNight' | 'dawn' | 'day';
 
-type SkySpec = {
-  stops: [string, string, string];
-  positions: [number, number, number];
-  afterglow: [string, string, string];
-  afterglowPositions: [number, number, number];
-};
+export const sky = {
+  stops: ['#152220', '#0D1614', '#090F0E'] as [string, string, string],
+  positions: [0, 0.45, 1] as [number, number, number],
+  // afterglow radial along the bottom of every screen
+  afterglow: ['rgba(255,182,92,.18)', 'rgba(255,140,90,.07)', 'transparent'] as [
+    string,
+    string,
+    string,
+  ],
+  afterglowPositions: [0, 0.46, 0.72] as [number, number, number],
+} as const;
 
-export const sky: Record<SkyBucket, SkySpec> = {
-  ember: {
-    stops: ['#221A14', '#161210', '#0D0C0B'],
-    positions: [0, 0.38, 1],
-    afterglow: [glow.apricot, 'rgba(255,104,70,.07)', 'transparent'],
-    afterglowPositions: [0, 0.46, 0.72],
-  },
-  deepNight: {
-    stops: ['#1A1620', '#121016', '#0C0B0E'],
-    positions: [0, 0.4, 1],
-    afterglow: ['rgba(255,140,90,.18)', 'rgba(118,112,255,.08)', 'transparent'],
-    afterglowPositions: [0, 0.46, 0.72],
-  },
-  dawn: {
-    stops: ['#241C15', '#171310', '#0E0D0B'],
-    positions: [0, 0.38, 1],
-    afterglow: ['rgba(255,173,114,.26)', 'rgba(255,104,70,.08)', 'transparent'],
-    afterglowPositions: [0, 0.46, 0.72],
-  },
-  day: {
-    stops: ['#1F1913', '#151110', '#0D0C0B'], // ember at ~80% saturation
-    positions: [0, 0.38, 1],
-    afterglow: ['rgba(255,173,114,.12)', 'rgba(255,104,70,.05)', 'transparent'],
-    afterglowPositions: [0, 0.46, 0.72],
-  },
-};
-
-export function bucketForHour(h: number): SkyBucket {
-  if (h >= 17 && h < 22) return 'ember';
-  if (h >= 22 || h < 5) return 'deepNight';
-  if (h >= 5 && h < 10) return 'dawn';
-  return 'day';
+export function bucketForHour(_h: number): SkyBucket {
+  return 'deepNight';
 }
 
-// §5 · Type (device points). Fraunces 500/600 ONLY for greetings, monument
-// numerals, month names, milestone numerals (+ teleprompter per §5).
+// Type — Bricolage for display; system sans everywhere else.
 export const fonts = {
-  serif500: 'Fraunces-Medium',
-  serif600: 'Fraunces-SemiBold',
+  display500: 'Bricolage-Medium',
+  display600: 'Bricolage-SemiBold',
+  display700: 'Bricolage-Bold',
+  // legacy names some files still import
+  serif500: 'Bricolage-Medium',
+  serif600: 'Bricolage-SemiBold',
 } as const;
 
 export const type = {
-  monument: {
-    fontFamily: fonts.serif600,
-    fontSize: 100,
-    lineHeight: 104,
-    letterSpacing: -2,
-    color: palette.bone,
-    fontVariant: ['tabular-nums'] as const,
+  // Page title + amber dash is drawn by the screen; this is the text style.
+  title: { fontFamily: fonts.display600, fontSize: 27, lineHeight: 32, letterSpacing: -0.5, color: palette.ink },
+  greeting: { fontFamily: fonts.display500, fontSize: 24, lineHeight: 30, color: palette.ink },
+  ask: { fontFamily: fonts.display500, fontSize: 25, lineHeight: 33, color: palette.ink },
+  // Wrapped hero numeral
+  hero: {
+    fontFamily: fonts.display700,
+    fontSize: 84,
+    lineHeight: 88,
+    letterSpacing: -3,
+    color: palette.amber,
     textShadowColor: glow.apricot,
-    textShadowRadius: 24,
-    textShadowOffset: { width: 0, height: 0 },
-  },
-  greeting: { fontFamily: fonts.serif500, fontSize: 30, lineHeight: 36, color: ink.text },
-  teleprompter: { fontFamily: fonts.serif500, fontSize: 22, lineHeight: 33, color: ink.text },
-  partnerCaption: { fontSize: 16, lineHeight: 26, color: ink.secondary },
-  body: { fontSize: 16, lineHeight: 24, color: ink.text },
-  secondary: { fontSize: 14, lineHeight: 21, color: ink.secondary },
-  caption: { fontSize: 12, lineHeight: 18, color: ink.dim },
-  whisper: { fontSize: 11.5, lineHeight: 17, color: ink.faint },
-  overline: {
-    fontSize: 11,
-    lineHeight: 15,
-    letterSpacing: 11 * 0.16,
-    textTransform: 'uppercase' as const,
-    color: ink.dim,
-  },
-  totals: {
-    fontFamily: fonts.serif600,
-    fontSize: 46,
-    lineHeight: 52,
-    color: palette.apricot,
-    fontVariant: ['tabular-nums'] as const,
-  },
-  milestone: {
-    fontFamily: fonts.serif600,
-    fontSize: 104,
-    lineHeight: 112,
-    color: palette.apricot,
-    textShadowColor: 'rgba(255,173,114,.35)',
     textShadowRadius: 44,
     textShadowOffset: { width: 0, height: 0 },
   },
-  button: { fontSize: 16, lineHeight: 22, fontWeight: '600' as const },
+  // Home career numeral (kept name `monument` for compat)
+  monument: {
+    fontFamily: fonts.display700,
+    fontSize: 42,
+    lineHeight: 48,
+    letterSpacing: -1,
+    color: palette.ink,
+    fontVariant: ['tabular-nums'] as const,
+  },
+  statValue: {
+    fontFamily: fonts.display600,
+    fontSize: 18,
+    lineHeight: 22,
+    color: palette.ink,
+    fontVariant: ['tabular-nums'] as const,
+  },
+  teleprompter: { fontFamily: fonts.display500, fontSize: 22, lineHeight: 33, color: palette.ink },
+  partnerCaption: { fontSize: 14, lineHeight: 22, color: palette.moss },
+  body: { fontSize: 15, lineHeight: 23, color: palette.ink },
+  secondary: { fontSize: 13, lineHeight: 20, color: palette.moss },
+  caption: { fontSize: 12, lineHeight: 17, color: palette.moss },
+  whisper: { fontSize: 10.5, lineHeight: 17, color: ink.whisper },
+  overline: {
+    fontSize: 10,
+    lineHeight: 14,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase' as const,
+    color: ink.dim,
+    fontWeight: '600' as const,
+  },
+  totals: {
+    fontFamily: fonts.display700,
+    fontSize: 42,
+    lineHeight: 48,
+    color: palette.amber,
+    fontVariant: ['tabular-nums'] as const,
+  },
+  milestone: {
+    fontFamily: fonts.display700,
+    fontSize: 88,
+    lineHeight: 92,
+    letterSpacing: -3,
+    color: palette.amber,
+    textShadowColor: glow.apricot,
+    textShadowRadius: 44,
+    textShadowOffset: { width: 0, height: 0 },
+  },
+  button: { fontSize: 15, lineHeight: 21, fontWeight: '600' as const },
 } as const;
 
-export const radius = { md: 12, lg: 16, pill: 30 } as const;
+export const radius = { sm: 12, md: 14, lg: 18, xl: 20, pill: 31 } as const;
 
 /** 4pt spacing scale */
 export const space = (n: number) => n * 4;
 
-/** Springs only (§7) */
+/** Springs only (damping 18, stiffness 180) */
 export const spring = { damping: 18, stiffness: 180 } as const;

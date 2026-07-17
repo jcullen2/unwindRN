@@ -1,31 +1,36 @@
-import { Canvas, ImageSVG, Skia } from '@shopify/react-native-skia';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { useMemo, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { LOGO_ASPECT, LOGO_PRIMARY_DARK_SVG } from '@/brand/logo';
-import { T } from '@/components/kit';
+import { Lantern } from '@/brand';
+import { Glass, T } from '@/components/kit';
 import { Sky } from '@/components/sky';
 import { supabase } from '@/lib/supabase';
-import { ink, space } from '@/theme/tokens';
+import { ink, palette, space } from '@/theme/tokens';
 
-/** The supplied primary-dark lockup — never rebuilt with live type. */
-function Lockup({ width }: { width: number }) {
-  const w = Math.max(140, width); // brand minimum
-  const h = w / LOGO_ASPECT;
-  const svg = useMemo(() => {
-    const withSize = LOGO_PRIMARY_DARK_SVG.replace(
-      '<svg ',
-      `<svg width="${w}" height="${h}" `
-    );
-    return Skia.SVG.MakeFromString(withSize);
-  }, [w, h]);
-  if (!svg) return null;
+/** The lantern glows on a 5s idle pulse (§Motion). */
+export function PulsingLantern({ size = 58 }: { size?: number }) {
+  const reduced = useReducedMotion();
+  const v = useSharedValue(0);
+  useEffect(() => {
+    if (reduced) return;
+    v.value = withRepeat(withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.sin) }), -1, true);
+  }, [v, reduced]);
+  const st = useAnimatedStyle(() => ({ shadowOpacity: 0.5 + v.value * 0.4, shadowRadius: 12 + v.value * 14 }));
   return (
-    <Canvas style={{ width: w, height: h }} pointerEvents="none">
-      <ImageSVG svg={svg} x={0} y={0} width={w} height={h} />
-    </Canvas>
+    <Animated.View
+      style={[{ shadowColor: palette.amber, shadowOffset: { width: 0, height: 0 } }, st]}>
+      <Lantern size={size} />
+    </Animated.View>
   );
 }
 
@@ -61,33 +66,30 @@ export default function SignInScreen() {
 
   return (
     <Sky>
-      <View
-        style={{
-          flex: 1,
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom + space(8),
-          paddingHorizontal: space(8),
-        }}>
-        <View style={styles.hero}>
-          <Lockup width={210} />
-          <T v="greeting" style={{ fontSize: 21, lineHeight: 28, marginTop: space(6), color: ink.text }}>
-            Put the shift down.
-          </T>
-          <T v="secondary" style={{ marginTop: space(3), maxWidth: 320, lineHeight: 23 }}>
-            Talk the shift down with a partner who gets it, and watch the record write
-            itself — shifts, hours, wins, the weight, the lessons.
-          </T>
-        </View>
+      <View style={[styles.wrap, { paddingTop: insets.top, paddingBottom: insets.bottom + space(9) }]}>
+        <PulsingLantern size={62} />
+        <T style={styles.wm}>
+          unwind<T style={styles.rn}>RN</T>
+        </T>
+        <T v="secondary" style={{ marginTop: space(2.5) }}>
+          Put the shift down.
+        </T>
 
         <AppleAuthentication.AppleAuthenticationButton
           buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
           buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
-          cornerRadius={14}
-          style={{ height: 52 }}
+          cornerRadius={20}
+          style={styles.apple}
           onPress={signIn}
         />
-        <T v="whisper" style={{ textAlign: 'center', marginTop: space(4) }}>
-          Your debriefs are yours. We never ask for patient details.
+        <Glass style={styles.already}>
+          <T v="secondary" style={{ color: ink.dim, textAlign: 'center' }}>
+            I already have a record
+          </T>
+        </Glass>
+
+        <T v="whisper" style={styles.footer}>
+          Not therapy or medical care.{'\n'}In crisis, call or text 988.
         </T>
       </View>
     </Sky>
@@ -95,8 +97,10 @@ export default function SignInScreen() {
 }
 
 const styles = StyleSheet.create({
-  hero: {
-    flex: 1,
-    justifyContent: 'center',
-  },
+  wrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space(9) },
+  wm: { fontFamily: 'Bricolage-Medium', fontSize: 30, color: palette.ink, marginTop: space(5.5) },
+  rn: { fontFamily: 'Bricolage-SemiBold', fontSize: 14, color: palette.amber, position: 'relative', top: -12 },
+  apple: { height: 52, width: '100%', marginTop: space(12) },
+  already: { width: '100%', paddingVertical: space(3.25), marginTop: space(2.5) },
+  footer: { position: 'absolute', bottom: space(4), textAlign: 'center' },
 });

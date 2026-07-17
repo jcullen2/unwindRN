@@ -120,8 +120,18 @@ IDEAS.md with anything cut, DESIGN-DEBT.md with anything shipped as a fallback.
 Never echo secrets. Keep §State of the build current — it exists so future
 sessions never pay to rediscover the codebase.
 
-## State of the build — 2026-07-16 (keep current; the map, not the territory)
+## State of the build — 2026-07-17 (keep current; the map, not the territory)
 Branch `claude/app-from-scratch-jgngvv` · tsc clean · all committed/pushed.
+
+**Brand is now "DEEP WARD" — the visual law lives in code, DESIGN.md §1–§5 is
+archival.** Petrol-green night (`#090F0E`) + amber accent (`#FFB65C`/`#FFC97E`);
+moon-mint (`#9BC7BD`) = night-shift data ONLY; violet retired. **Bricolage
+Grotesque** is the single display face (500/600/700 in assets/fonts). The **caged
+lantern** mark (flame never appears without the cage) replaces the lamp. Nav is 4
+icon tabs (Home · Journal · Insights · Profile) — no flame orb; the debrief is
+launched from Home. Sky is one petrol treatment on every screen (not time-reactive;
+bucket API is a no-op shim). Prototype (`Design_optimization_needed.zip` →
+`unwindRN Prototype.dc.html`) is the pixel target.
 
 **Backend — Supabase project `unwindRN-v1` (`fucstcfrpxlmqzzpfped`, us-east-1):**
 - Schema applied + RLS on everything (`(select auth.uid())` form); security advisor: 0 findings.
@@ -136,18 +146,28 @@ Branch `claude/app-from-scratch-jgngvv` · tsc clean · all committed/pushed.
 - Client env in `.env` (untracked; template `.env.example`). Seed: `scripts/seed.sql`.
 
 **Client map (src/):**
-- theme/tokens.ts — every DESIGN.md §1–§5 value; no hex anywhere else.
-- brand/ — supplied lamp/lockup SVGs rendered via Skia (never rebuilt).
-- components/ — sky (time-reactive gradient+afterglow+grain, forceBucket),
-  kit (T/Glass/FlameButton/QuietButton/GlassField), nav-pill (glass pill + breathing
-  orb), heatfield (ignite replay, drag-scrub).
+- theme/tokens.ts — the Deep Ward source of truth (palette/type/space/heat/glow);
+  no hex anywhere else. Keeps legacy aliases (bone/flame/apricot/ash/violet) mapped
+  onto Deep Ward so old call sites still render correct colors.
+- brand/ — caged-lantern mark rendered via Skia from design/brand/lantern_mark_*.svg
+  (geometry verbatim; flame never without the cage). Exports Lantern/LanternGlyph/
+  Lockup + legacy aliases (Lamp/FlameGlyph → small lantern).
+- components/ — sky (single petrol gradient + amber afterglow + grain; glowBoost;
+  bucket props are no-op shims), kit (T Bricolage-aware/Lockup/PageTitle/Glass[warm]/
+  FlameButton amber-gradient/QuietButton/Chip amber-selected/GlassField), nav-pill
+  (4 icon tabs, petrol glass blur, NO orb), heatfield (moon-mint night ticks, amber
+  today ring, ignite replay, drag-scrub).
 - lib/ — turn (SSE client via expo/fetch), voice (on-device STT + quiet-mode
   detection), tts, queue (local-first AsyncStorage shift queue), queries
   (react-query, user-keyed), auth, supabase, api, constants.
-- app/ — sign-in → onboarding (conversational, writes est_*) → (tabs):
-  index=Home (monument, daily line, clock-in/out fallback), logbook (heatfield+list
-  +month captions), insights (3 modules, locked <5). Modals: debrief (taps → voice
-  teleprompter → record), record, profile (sheet), resources, shift/[id], milestone.
+- app/ — sign-in (PulsingLantern) → onboarding (6 beats, writes est_*) → welcome
+  (4-slide wrapped) → (tabs): index=Home (lockup, greeting, on-shift⇄next card, week
+  strip, 3 stat tiles, milestone bar, daily-line), logbook (Lockup + Logbook/Journal
+  views, heatfield + memory card + top entries), insights (hero + month bars +
+  milestone ring + this-month deltas + Career-signals pay/CCRN, locked <5),
+  profile (TAB: amber-ring avatar, "Keeper of N", "From your record", settings,
+  delete-account, 988). Modals: debrief (companion one-question taps → talk voice →
+  record), record, resources, shift/[id], milestone (3-slide wrapped, fullScreen).
 
 **Read on demand (not by default):** DESIGN.md (visual law), DESIGN-DEBT.md (the
 authoritative gap list — device verification, Live Activity native target, §8 pass),

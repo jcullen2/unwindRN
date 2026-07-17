@@ -2,6 +2,30 @@
 
 Debt logged per CLAUDE.md workflow. Newest first.
 
+## Deep Ward re-skin (2026-07-17)
+- **Device §8 verification pending** — the whole Deep Ward re-skin (petrol/amber,
+  Bricolage, caged lantern, 4-tab nav, one-question debrief, wrapped welcome +
+  milestone) is verified `tsc` clean but NOT yet run on-device. Verify §8 on a
+  dev build: Bricolage weights load, lantern renders via Skia at all sizes, amber
+  afterglow + grain, nav pill blur, wrapped auto-advance timing, reduced-motion.
+- **Debrief ratio + flags are display-only** — the companion's ds2 step collects
+  ratio (1:2…1:6) and flags (Floated / No break / Charge) into the growing record
+  line, but the `shifts` schema has no columns for them, so they are NOT persisted
+  (hours/load/tags/is_night/win=note are). Add columns or fold into tags/lesson if
+  they prove worth keeping; today they enrich the on-screen line only.
+- **Insights "Career signals" pay markers are placeholder regional context** — the
+  pay-position band (You ~$52 / +charge ~$56 / travel eq. ~$71 / p25 / p75) is NOT
+  derived from her data and wears the ~ with an explicit whisper. CCRN eligibility
+  IS real (logged hours toward 2,000). Wire a real regional pay source (BLS / market
+  API keyed on specialty + city) before treating the markers as anything but
+  illustration. Gated behind the "your ask" toggle, default on.
+- **Profile "From your record" facts are computed client-side** over the loaded
+  shifts array (longest consecutive stretch, top win-word, top tag, keeping-since).
+  Fine at v1 volumes; move to a SQL/materialized view if the array grows large.
+- **Legacy token aliases retained** — `tokens.ts` still exports bone/flame/apricot/
+  ash/violet mapped onto Deep Ward so old call sites render correct colors. Prune
+  once every screen references the new names directly.
+
 ## Sessions 3–5 (finish pass)
 - **Live Activity shipped as the in-app fallback** (timeboxed per Session 5):
   clock-in/out lives on Home — elapsed timer, overtime turns apricot past

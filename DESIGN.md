@@ -1,8 +1,31 @@
-# unwindRN — DESIGN.md (v3 · locked brand)
+# unwindRN — DESIGN.md
 
-Law for anything visual. Pairs with **/design/reference.html** (the v3 review file —
-its phone frames are the target; ignore the surrounding prose). "Done" = §8, not
-"it renders." Supersedes every earlier indigo/amber document.
+> ## ⚠️ SUPERSEDED BY "DEEP WARD" (2026-07-17) — read this first
+> The visual system below (v3 "ember sky" — Nightingale lamp, Fraunces serif,
+> flame-orb, time-reactive indigo/violet sky) is **retired**. The live brand is
+> **Deep Ward**, and its law lives in code, not prose:
+> - **Tokens:** `src/theme/tokens.ts` is the single source of truth (petrol-green
+>   night `#090F0E`, bone-mint ink `#EAF1EC`, moss `#93A69C`, **amber** accent
+>   `#FFB65C`/`#FFC97E`, **moon-mint** `#9BC7BD` for night-shift data ONLY).
+>   Violet is fully retired; night data is moon-mint. No hex outside this file.
+> - **Type:** **Bricolage Grotesque** is the single display face (500/600/700).
+>   Fraunces is retired. System sans for body.
+> - **Mark:** the caged **lantern** (`src/brand/index.tsx`, geometry verbatim
+>   from `design/brand/lantern_mark_*.svg`). The flame NEVER appears without the
+>   lantern body/cage. The flame-orb nav button is gone; nav is 4 icon tabs.
+> - **Sky:** one petrol gradient + amber afterglow + 5% grain on every screen
+>   (no longer time-reactive; the bucket API is a no-op shim).
+> - **Visual target:** the Deep Ward prototype
+>   (`Design_optimization_needed.zip` → `unwindRN Prototype.dc.html`) is
+>   canonical. The sections below (§1 tokens, §2 sky, palette, serif) describe
+>   the retired look and are kept only for archival diffing.
+> Everything past this banner that conflicts with the above is history.
+
+---
+
+Law for anything visual (Deep Ward mechanics — glass depth, motion springs,
+§8 verification — still apply; only the palette/type/mark are replaced above).
+"Done" = §8, not "it renders."
 
 ## The brand (locked — see /design/brand/README.txt)
 Nightingale lamp, handleless. Never add a handle; never recolor the flame separately

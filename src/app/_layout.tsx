@@ -35,8 +35,9 @@ const navTheme = {
 function RootNavigator() {
   const { ready: authReady, session, profile } = useAuth();
   const [fontsLoaded, fontsError] = useFonts({
-    [fonts.serif500]: require('@/assets/fonts/Fraunces-Medium.ttf'),
-    [fonts.serif600]: require('@/assets/fonts/Fraunces-SemiBold.ttf'),
+    [fonts.display500]: require('@/assets/fonts/Bricolage-Medium.ttf'),
+    [fonts.display600]: require('@/assets/fonts/Bricolage-SemiBold.ttf'),
+    [fonts.display700]: require('@/assets/fonts/Bricolage-Bold.ttf'),
   });
   const ready = authReady && (fontsLoaded || !!fontsError);
 
@@ -66,12 +67,12 @@ function RootNavigator() {
 
       <Stack.Protected guard={authed}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
         <Stack.Screen
           name="debrief"
           options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
         />
         <Stack.Screen name="record" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="profile" options={{ presentation: 'modal' }} />
         <Stack.Screen name="resources" options={{ presentation: 'modal' }} />
         <Stack.Screen name="shift/[id]" />
         <Stack.Screen

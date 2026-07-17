@@ -1,10 +1,12 @@
 /**
- * The debrief flow behind the flame orb — three stages (CLAUDE.md):
- *   1. Clock-out taps (20 seconds, thumb-only; "Save without talking" always)
- *   2. Voice conversation — on-device STT teleprompter, streaming partner,
- *      live chips from the per-turn utility call, TTS captions. Degrades to
- *      quiet-mode text ("Aa") wherever STT is unavailable.
- *   3. The record, forming → /record (glass fields, editable, save).
+ * The debrief — the companion, one question at a time (Deep Ward).
+ *   Stage 1 · Taps: the partner asks five short things; a growing amber record
+ *     line assembles as she answers. "That's the shift — keep it" saves; "or
+ *     talk it down instead" opens voice; "Save without another word" is always
+ *     one tap and never shamed.
+ *   Stage 2 · Talk: on-device STT teleprompter, streaming partner, live chips
+ *     from the per-turn utility call, TTS captions. Degrades to quiet-mode text.
+ *     The record forms → /record. Crisis card surfaces over everything.
  */
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -23,6 +25,7 @@ import {
 } from 'react-native';
 import Animated, {
   Easing,
+  FadeIn,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -33,14 +36,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FlameGlyph } from '@/brand';
-import { FlameButton, Glass, QuietButton, T } from '@/components/kit';
-import { FlameOrb } from '@/components/nav-pill';
+import { LanternGlyph } from '@/brand';
+import { PulsingLantern } from '@/app/sign-in';
+import { Chip, FlameButton, Glass, T } from '@/components/kit';
 import { Sky } from '@/components/sky';
 import { localToday, RecordDraft } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { CRISIS_COPY, LOAD_LABELS, TAGS } from '@/lib/constants';
-import { useInvalidateShiftData } from '@/lib/queries';
+import { useCareerTotals, useInvalidateShiftData } from '@/lib/queries';
 import { saveShift } from '@/lib/queue';
 import { Json, supabase } from '@/lib/supabase';
 import { speak, stopSpeaking } from '@/lib/tts';
@@ -49,8 +52,18 @@ import { useVoiceTurn } from '@/lib/voice';
 import { glass, heat, ink, palette, space, type } from '@/theme/tokens';
 
 const TURN_ERROR = "Couldn't reach your debrief partner. Try again.";
-const HOURS_CHIPS = [8, 10, 12, 12.5, 14, 16];
+const HOUR_CHIPS = [8, 10, 12, 14, 16];
+const RATIOS = ['1:2', '1:3', '1:4', '1:5', '1:6'];
+const FLAGS = ['Floated', 'No break', 'Charge'];
 const MILESTONES = [1, 5, 10, 25, 50, 100, 250, 500, 750, 1000, 1500, 2000];
+// The partner's five asks — one question at a time, floor-literate.
+const ASKS: [string, string][] = [
+  ['How long tonight?', 'Your usual is highlighted.'],
+  ['How heavy did it carry?', 'Tap where it landed.'],
+  ['How many were yours?', 'Ratio, plus anything that made it harder.'],
+  ['What did tonight have?', 'Name it plainly. Skip what doesn’t fit.'],
+  ['One line worth keeping?', 'It becomes the win in your record.'],
+];
 
 type Facts = {
   win: string | null;
@@ -60,31 +73,28 @@ type Facts = {
   tags: string[];
 };
 
-function ThinkingBar({ delay }: { delay: number }) {
+/** Waveform — five amber bars breathing (§Motion `waveb`). */
+function WaveBar({ delay }: { delay: number }) {
   const reduced = useReducedMotion();
-  const v = useSharedValue(0.4);
+  const v = useSharedValue(0.3);
   useEffect(() => {
     if (reduced) return;
-    v.value = withDelay(
-      delay,
-      withRepeat(withTiming(1, { duration: 420, easing: Easing.inOut(Easing.sin) }), -1, true)
-    );
+    v.value = withDelay(delay, withRepeat(withTiming(1, { duration: 500, easing: Easing.inOut(Easing.sin) }), -1, true));
   }, [v, delay, reduced]);
-  const st = useAnimatedStyle(() => ({ transform: [{ scaleY: v.value }] }));
-  return <Animated.View style={[styles.bar, st]} />;
+  const st = useAnimatedStyle(() => ({ height: 6 + v.value * 14 }));
+  return <Animated.View style={[styles.wbar, st]} />;
 }
-
 function Waveform() {
   return (
-    <View style={styles.bars}>
-      <ThinkingBar delay={0} />
-      <ThinkingBar delay={140} />
-      <ThinkingBar delay={280} />
+    <View style={styles.waves}>
+      {[0, 150, 300, 450, 600].map((d) => (
+        <WaveBar key={d} delay={d} />
+      ))}
     </View>
   );
 }
 
-/** Live chips — detected facts ignite beneath the teleprompter (§6). */
+/** Live chips — detected facts ignite beneath the teleprompter. */
 function LiveChips({ facts }: { facts: Facts }) {
   const chips: string[] = [
     ...facts.tags,
@@ -97,10 +107,8 @@ function LiveChips({ facts }: { facts: Facts }) {
   return (
     <View style={styles.chipRow}>
       {chips.map((c) => (
-        <Animated.View key={c} entering={ZoomIn.springify().damping(18).stiffness(180)} style={styles.liveChip}>
-          <T v="caption" style={{ color: palette.apricot }}>
-            {c}
-          </T>
+        <Animated.View key={c} entering={ZoomIn.springify().damping(18).stiffness(180)}>
+          <Chip label={c} selected />
         </Animated.View>
       ))}
     </View>
@@ -111,33 +119,48 @@ export default function DebriefScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { session, profile } = useAuth();
+  const totals = useCareerTotals();
   const invalidate = useInvalidateShiftData();
   const scrollRef = useRef<ScrollView>(null);
   const userId = session?.user.id;
   const usual = Number(profile?.usual_shift_hours ?? 12);
+  const nextShiftNum = (totals.shifts + 1).toLocaleString();
 
   const [stage, setStage] = useState<'taps' | 'talk'>('taps');
 
-  // Stage 1 — clock-out taps. A live clock-out hands elapsed hours + night in.
+  // Stage 1 — the companion's five asks. A live clock-out hands hours + night in.
   const params = useLocalSearchParams<{ hours?: string; night?: string }>();
   const handedHours = params.hours ? Number(params.hours) : null;
-  const nearestChip = HOURS_CHIPS.reduce((a, b) =>
-    Math.abs(b - usual) < Math.abs(a - usual) ? b : a
-  );
-  const [hours, setHours] = useState<number>(
-    handedHours && Number.isFinite(handedHours) && handedHours > 0 && handedHours <= 24
-      ? handedHours
-      : nearestChip
+  const [ds, setDs] = useState(0);
+  const [hours, setHours] = useState<number | null>(
+    handedHours && Number.isFinite(handedHours) && handedHours > 0 && handedHours <= 24 ? handedHours : null
   );
   const [load, setLoad] = useState<number | null>(null);
+  const [ratio, setRatio] = useState<string | null>(null);
+  const [flags, setFlags] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
-  const [isNight, setIsNight] = useState(params.night === '1');
+  const [note, setNote] = useState('');
+  const [isNight] = useState(params.night === '1');
   const [savingTaps, setSavingTaps] = useState(false);
+  const loadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (loadTimer.current) clearTimeout(loadTimer.current); }, []);
+
+  // The growing record line.
+  const parts: string[] = [];
+  if (hours != null) parts.push(`${hours}h`);
+  if (load != null) parts.push(LOAD_LABELS[load - 1].toLowerCase());
+  if (ratio) parts.push(ratio);
+  flags.forEach((f) => parts.push(f.toLowerCase()));
+  tags.forEach((t) => parts.push(t.toLowerCase()));
+  const recordLine = parts.join(' · ');
+
+  const toggle = (arr: string[], set: (v: string[]) => void, v: string) =>
+    set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
 
   // Stage 2 — conversation
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<ChatMessage[]>([]);
-  const [partial, setPartial] = useState(''); // partner reply, streaming in
+  const [partial, setPartial] = useState('');
   const [awaiting, setAwaiting] = useState(false);
   const [quietMode, setQuietMode] = useState(false);
   const [draft, setDraft] = useState('');
@@ -157,7 +180,7 @@ export default function DebriefScreen() {
   }, [facts]);
   useEffect(() => () => stopSpeaking(), []);
 
-  const taps: Taps = { hours, load, tags, is_night: isNight };
+  const taps: Taps = { hours: hours ?? usual, load, tags, is_night: isNight };
 
   const mergeUtility = useCallback((u: Utility) => {
     if (u.crisis) {
@@ -189,7 +212,7 @@ export default function DebriefScreen() {
         .update({ transcript: t as unknown as Json })
         .eq('id', sid);
     } catch {
-      // transcript persistence is best-effort; the turn continues regardless
+      // best-effort; the turn continues regardless
     }
   }, []);
 
@@ -249,7 +272,7 @@ export default function DebriefScreen() {
         if (!quietMode) speak(reply);
       } catch {
         setPartial('');
-        setDraft(turn); // hand her words back
+        setDraft(turn);
         Alert.alert(TURN_ERROR);
       } finally {
         setAwaiting(false);
@@ -261,7 +284,7 @@ export default function DebriefScreen() {
 
   const voice = useVoiceTurn(sendTurn);
 
-  const orbPress = useCallback(() => {
+  const micPress = useCallback(() => {
     if (awaiting) return;
     if (quietMode || !voice.available) {
       sendTurn(draft);
@@ -272,21 +295,27 @@ export default function DebriefScreen() {
     else voice.start();
   }, [awaiting, quietMode, voice, draft, sendTurn]);
 
-  const saveWithoutTalking = async () => {
+  const keepIt = async () => {
     if (!userId || savingTaps) return;
     setSavingTaps(true);
     const { synced } = await saveShift({
       user_id: userId,
       shift_date: localToday(),
-      hours,
+      hours: hours ?? usual,
       load,
       tags,
       is_night: isNight,
+      win: note.trim() || null,
       source: 'taps',
     });
     if (synced) await invalidate();
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    router.back();
+    const newTotal = totals.shifts + 1;
+    if (synced && MILESTONES.includes(newTotal)) {
+      router.replace({ pathname: '/milestone', params: { count: String(newTotal) } });
+    } else {
+      router.back();
+    }
   };
 
   const wrapUp = () => {
@@ -294,9 +323,9 @@ export default function DebriefScreen() {
     const f = factsRef.current;
     const record: RecordDraft = {
       shift_date: localToday(),
-      hours: f.hours ?? hours,
+      hours: f.hours ?? hours ?? usual,
       load,
-      win: f.win ?? '',
+      win: f.win ?? note ?? '',
       weight: f.weight ?? '',
       lesson: f.lesson ?? '',
       tags: [...new Set([...tags, ...f.tags])],
@@ -310,164 +339,215 @@ export default function DebriefScreen() {
     });
   };
 
-  const userTurns = transcript.filter((m) => m.role === 'user');
   const lastUserIdx = transcript.map((m) => m.role).lastIndexOf('user');
 
-  // ---------- STAGE 1 · Clock out ----------
+  const TopBar = ({ tone = 'taps' }: { tone?: 'taps' | 'talk' }) => (
+    <View style={styles.top}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Close"
+        onPress={() => {
+          stopSpeaking();
+          router.back();
+        }}
+        hitSlop={12}>
+        <T style={{ color: ink.dim, fontSize: 20, lineHeight: 22 }}>✕</T>
+      </Pressable>
+      {tone === 'taps' ? (
+        <View style={styles.shiftPill}>
+          <T style={{ fontSize: 10.5, letterSpacing: 0.8, color: palette.amber }}>SHIFT #{nextShiftNum}</T>
+        </View>
+      ) : (
+        <Pressable accessibilityRole="button" accessibilityLabel="Support resources" onPress={() => router.push('/resources')} hitSlop={12}>
+          <T v="caption" style={{ color: ink.dim }}>
+            988
+          </T>
+        </Pressable>
+      )}
+      <View style={{ width: 20 }} />
+    </View>
+  );
+
+  // ---------- STAGE 1 · The companion, one ask at a time ----------
   if (stage === 'taps') {
+    const showStepNext = (ds === 2 && !!ratio) || ds === 3;
     return (
       <Sky>
-        <View style={{ flex: 1, paddingTop: insets.top + space(3), paddingHorizontal: space(6) }}>
-          <View style={styles.top}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={() => router.back()} hitSlop={12}>
-              <T style={{ color: ink.dim, fontSize: 20, lineHeight: 22 }}>✕</T>
-            </Pressable>
-            <T v="whisper">Yours alone. Patients stay unnamed.</T>
-            <View style={{ width: 20 }} />
-          </View>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={{ flex: 1, paddingTop: insets.top + space(3), paddingHorizontal: space(6.5) }}>
+            <TopBar />
 
-          <T v="greeting" style={{ fontSize: 26, lineHeight: 33, marginTop: space(6) }}>
-            Clock out.
-          </T>
+            {recordLine.length > 0 && (
+              <Glass warm style={styles.recordLine}>
+                <LanternGlyph size={10} />
+                <T style={{ fontSize: 12.5, color: palette.amber, lineHeight: 18, flex: 1 }}>{recordLine}</T>
+              </Glass>
+            )}
 
-          <T v="overline" style={{ marginTop: space(6), marginBottom: space(2) }}>
-            Hours
-          </T>
-          <View style={styles.chipWrap}>
-            {HOURS_CHIPS.map((h) => {
-              const on = hours === h;
-              return (
-                <Pressable
-                  key={h}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: on }}
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    setHours(h);
-                  }}
-                  style={[styles.tapChip, on && styles.tapChipOn]}>
-                  <T v="secondary" style={{ color: on ? palette.apricot : ink.secondary }}>
-                    {h}h
+            <View style={styles.askBody}>
+              <Animated.View key={ds} entering={FadeIn.duration(320)}>
+                <T v="ask">{ASKS[ds][0]}</T>
+                <T v="secondary" style={{ marginTop: space(1.5), color: ink.faint }}>
+                  {ASKS[ds][1]}
+                </T>
+              </Animated.View>
+
+              {/* ds0 — hours */}
+              {ds === 0 && (
+                <View style={styles.wrap}>
+                  {HOUR_CHIPS.map((h) => (
+                    <Chip
+                      key={h}
+                      label={`${h}h${h === usual ? ' · usual' : ''}`}
+                      selected={hours === h}
+                      onPress={() => {
+                        Haptics.selectionAsync();
+                        setHours(h);
+                        setDs(1);
+                      }}
+                    />
+                  ))}
+                </View>
+              )}
+
+              {/* ds1 — load segments */}
+              {ds === 1 && (
+                <>
+                  <View style={styles.loadRow}>
+                    {[1, 2, 3, 4, 5].map((l) => {
+                      const on = load != null && l <= load;
+                      return (
+                        <Pressable
+                          key={l}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Load ${LOAD_LABELS[l - 1]}`}
+                          onPress={() => {
+                            Haptics.impactAsync(
+                              [
+                                Haptics.ImpactFeedbackStyle.Light,
+                                Haptics.ImpactFeedbackStyle.Light,
+                                Haptics.ImpactFeedbackStyle.Medium,
+                                Haptics.ImpactFeedbackStyle.Medium,
+                                Haptics.ImpactFeedbackStyle.Heavy,
+                              ][l - 1]
+                            );
+                            setLoad(l);
+                            if (loadTimer.current) clearTimeout(loadTimer.current);
+                            loadTimer.current = setTimeout(() => setDs(2), 520);
+                          }}
+                          style={[styles.loadSeg, { backgroundColor: on ? heat[(load ?? 1) - 1] : glass.fill }]}
+                        />
+                      );
+                    })}
+                  </View>
+                  <View style={styles.loadLabels}>
+                    <T v="whisper">light</T>
+                    <T v="caption" style={{ color: palette.amber }}>
+                      {load ? LOAD_LABELS[load - 1] : ' '}
+                    </T>
+                    <T v="whisper">heavy</T>
+                  </View>
+                </>
+              )}
+
+              {/* ds2 — ratio + flags */}
+              {ds === 2 && (
+                <>
+                  <View style={styles.wrap}>
+                    {RATIOS.map((r) => (
+                      <Chip key={r} label={r} selected={ratio === r} onPress={() => setRatio(r)} />
+                    ))}
+                  </View>
+                  <View style={[styles.wrap, { marginTop: space(3) }]}>
+                    {FLAGS.map((f) => (
+                      <Chip key={f} label={f} selected={flags.includes(f)} onPress={() => toggle(flags, setFlags, f)} />
+                    ))}
+                  </View>
+                </>
+              )}
+
+              {/* ds3 — tags */}
+              {ds === 3 && (
+                <View style={styles.wrap}>
+                  {TAGS.map((t) => (
+                    <Chip key={t} label={t} selected={tags.includes(t)} onPress={() => toggle(tags, setTags, t)} />
+                  ))}
+                </View>
+              )}
+
+              {/* ds4 — one line + keep it */}
+              {ds === 4 && (
+                <>
+                  <View style={styles.noteField}>
+                    <TextInput
+                      value={note}
+                      onChangeText={setNote}
+                      placeholder="Even three words."
+                      placeholderTextColor={ink.faint}
+                      keyboardAppearance="dark"
+                      style={styles.noteInput}
+                    />
+                  </View>
+                  <FlameButton title="That's the shift — keep it" onPress={keepIt} loading={savingTaps} style={{ marginTop: space(5.5) }} />
+                  <Pressable accessibilityRole="button" onPress={() => setStage('talk')} style={{ paddingVertical: space(3), alignItems: 'center' }}>
+                    <T v="secondary" style={{ color: palette.moon }}>
+                      or talk it down instead
+                    </T>
+                  </Pressable>
+                </>
+              )}
+
+              {showStepNext && (
+                <Pressable accessibilityRole="button" onPress={() => setDs((d) => Math.min(4, d + 1))} style={styles.nextBtn}>
+                  <T v="body" style={{ fontWeight: '600' }}>
+                    Next
                   </T>
                 </Pressable>
-              );
-            })}
+              )}
+            </View>
+
+            {ds !== 4 && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={keepIt}
+                disabled={savingTaps}
+                style={{ alignItems: 'center', paddingBottom: Math.max(insets.bottom, space(5)), paddingTop: space(2) }}>
+                <T v="caption" style={{ color: ink.faint }}>
+                  {savingTaps ? 'Saving…' : 'Save without another word'}
+                </T>
+              </Pressable>
+            )}
           </View>
-
-          <T v="overline" style={{ marginTop: space(5), marginBottom: space(2) }}>
-            Load
-          </T>
-          <View style={styles.loadRow}>
-            {[1, 2, 3, 4, 5].map((l) => {
-              const selected = load != null && l <= load;
-              return (
-                <Pressable
-                  key={l}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Load ${LOAD_LABELS[l - 1]}`}
-                  onPress={() => {
-                    Haptics.impactAsync(
-                      [
-                        Haptics.ImpactFeedbackStyle.Light,
-                        Haptics.ImpactFeedbackStyle.Light,
-                        Haptics.ImpactFeedbackStyle.Medium,
-                        Haptics.ImpactFeedbackStyle.Medium,
-                        Haptics.ImpactFeedbackStyle.Heavy,
-                      ][l - 1]
-                    );
-                    setLoad(l);
-                  }}
-                  style={[
-                    styles.loadSeg,
-                    { backgroundColor: selected ? heat[(load ?? 1) - 1] : glass.fill },
-                  ]}
-                />
-              );
-            })}
-          </View>
-          <T v="whisper" style={{ textAlign: 'center', marginTop: space(1.5) }}>
-            {load ? LOAD_LABELS[load - 1] : 'Light … Brutal'}
-          </T>
-
-          <T v="overline" style={{ marginTop: space(5), marginBottom: space(2) }}>
-            Tonight had
-          </T>
-          <View style={styles.chipWrap}>
-            {TAGS.map((t) => {
-              const on = tags.includes(t);
-              return (
-                <Pressable
-                  key={t}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: on }}
-                  onPress={() => {
-                    Haptics.selectionAsync();
-                    setTags((prev) => (on ? prev.filter((x) => x !== t) : [...prev, t]));
-                  }}
-                  style={[styles.tapChip, on && styles.tapChipOn]}>
-                  <T v="caption" style={{ color: on ? palette.apricot : ink.dim }}>
-                    {t}
-                  </T>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <Pressable
-            accessibilityRole="switch"
-            accessibilityState={{ checked: isNight }}
-            onPress={() => setIsNight((v) => !v)}
-            style={styles.nightRow}>
-            <View style={[styles.nightTick, { opacity: isNight ? 1 : 0.25 }]} />
-            <T v="secondary" style={{ color: isNight ? ink.text : ink.dim }}>
-              Night shift
-            </T>
-          </Pressable>
-
-          <View style={{ flex: 1 }} />
-          <FlameButton title="Talk it down" onPress={() => setStage('talk')} />
-          <QuietButton
-            title={savingTaps ? 'Saving…' : 'Save without talking'}
-            onPress={saveWithoutTalking}
-            disabled={savingTaps}
-            tone="dim"
-            style={{ marginTop: space(2), marginBottom: Math.max(insets.bottom, space(4)) }}
-          />
-        </View>
+        </KeyboardAvoidingView>
       </Sky>
     );
   }
 
-  // ---------- STAGE 2 · The conversation ----------
+  // ---------- STAGE 2 · Talk it down ----------
   const voiceLive = !quietMode && voice.available;
+  const idle = transcript.length === 0 && !voice.interim && !awaiting;
   return (
     <Sky>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={[styles.top, { paddingTop: insets.top + space(3), paddingHorizontal: space(5) }]}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Close debrief" onPress={() => { stopSpeaking(); router.back(); }} hitSlop={12}>
-            <T style={{ color: ink.dim, fontSize: 20, lineHeight: 22 }}>✕</T>
-          </Pressable>
-          <T v="whisper">
-            {voiceLive
-              ? 'Transcribed on your phone. Your voice never leaves it.'
-              : 'Yours alone. Patients stay unnamed.'}
-          </T>
-          <Pressable accessibilityRole="button" accessibilityLabel="Support resources" onPress={() => router.push('/resources')} hitSlop={12}>
-            <T v="caption" style={{ color: ink.dim }}>
-              988
-            </T>
-          </Pressable>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={{ paddingTop: insets.top + space(3), paddingHorizontal: space(6) }}>
+          <TopBar tone="talk" />
         </View>
 
-        {transcript.length === 0 && !voice.interim ? (
-          <View style={styles.emptyWrap}>
-            <T v="teleprompter" style={{ textAlign: 'center', color: ink.dim }}>
+        {idle ? (
+          <View style={styles.idleWrap}>
+            <PulsingLantern size={44} />
+            <T v="ask" style={{ textAlign: 'center', color: ink.dim, marginTop: space(6) }}>
               How was today?
             </T>
-            <T v="whisper" style={{ textAlign: 'center', marginTop: space(3) }}>
-              {voiceLive ? 'Tap the flame and just talk.' : 'Type it out — the record writes itself.'}
+            {voiceLive && (
+              <View style={{ marginTop: space(5) }}>
+                <Waveform />
+              </View>
+            )}
+            <T v="whisper" style={{ textAlign: 'center', marginTop: space(5) }}>
+              {voiceLive
+                ? 'Transcribed on your phone. Your voice never leaves it.'
+                : 'Type it out — the record writes itself.'}
             </T>
           </View>
         ) : (
@@ -488,7 +568,7 @@ export default function DebriefScreen() {
               ) : (
                 <View key={i} style={styles.partnerLine}>
                   <View style={{ marginTop: 5 }}>
-                    <FlameGlyph size={13} />
+                    <LanternGlyph size={13} />
                   </View>
                   <T v="partnerCaption" style={{ flex: 1 }}>
                     {m.content}
@@ -505,7 +585,7 @@ export default function DebriefScreen() {
               (partial ? (
                 <View style={styles.partnerLine}>
                   <View style={{ marginTop: 5 }}>
-                    <FlameGlyph size={13} />
+                    <LanternGlyph size={13} />
                   </View>
                   <T v="partnerCaption" style={{ flex: 1 }}>
                     {partial}
@@ -519,37 +599,28 @@ export default function DebriefScreen() {
 
         <LiveChips facts={facts} />
 
-        {(userTurns.length >= 2 || capped) && !awaiting && (
-          <QuietButton
-            title="That's the shift"
-            onPress={wrapUp}
-            tone={capped ? 'bone' : 'dim'}
-            style={{ marginHorizontal: space(10), minHeight: 44, paddingVertical: space(2.5), marginBottom: space(2) }}
-          />
+        {(transcript.filter((m) => m.role === 'user').length >= 1 || capped) && !awaiting && (
+          <View style={{ paddingHorizontal: space(6), marginBottom: space(2), gap: space(2.5) }}>
+            <FlameButton title="That's the shift — keep it" onPress={wrapUp} />
+          </View>
         )}
 
-        <View style={[styles.controls, { paddingBottom: Math.max(insets.bottom, space(3)) }]}>
+        <View style={[styles.controls, { paddingBottom: Math.max(insets.bottom, space(4)) }]}>
           {voiceLive ? (
             <>
-              <View style={{ width: 40 }} />
-              <View style={{ alignItems: 'center' }}>
-                <FlameOrb
-                  size={58}
-                  onPress={orbPress}
-                  label={voice.listening ? 'Listening — tap to finish your turn' : 'Talk'}
-                />
-                {voice.listening && (
-                  <View style={{ marginTop: space(2) }}>
-                    <Waveform />
-                  </View>
-                )}
-              </View>
+              <View style={{ width: 44 }} />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={voice.listening ? 'Listening — tap to finish your turn' : 'Talk'}
+                onPress={micPress}>
+                <PulsingLantern size={52} />
+              </Pressable>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Switch to typing"
                 onPress={() => setQuietMode(true)}
                 hitSlop={10}
-                style={{ width: 40, alignItems: 'center' }}>
+                style={{ width: 44, alignItems: 'center' }}>
                 <T v="secondary" style={{ color: ink.dim }}>
                   Aa
                 </T>
@@ -566,20 +637,21 @@ export default function DebriefScreen() {
                 keyboardAppearance="dark"
                 multiline
               />
-              <View style={{ opacity: !draft.trim() || awaiting ? 0.45 : 1 }}>
-                <FlameOrb
-                  size={46}
-                  onPress={() => {
-                    sendTurn(draft);
-                    setDraft('');
-                  }}
-                  label="Send"
-                />
-              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Send"
+                onPress={() => {
+                  sendTurn(draft);
+                  setDraft('');
+                }}
+                disabled={!draft.trim() || awaiting}
+                style={[styles.sendBtn, { opacity: !draft.trim() || awaiting ? 0.4 : 1 }]}>
+                <T style={{ color: palette.night, fontWeight: '700', fontSize: 18 }}>↑</T>
+              </Pressable>
               {voice.available && (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Switch to voice"
+                  accessibilityLabel="Back to voice"
                   onPress={() => setQuietMode(false)}
                   hitSlop={10}>
                   <T v="secondary" style={{ color: ink.dim }}>
@@ -590,22 +662,25 @@ export default function DebriefScreen() {
             </>
           )}
         </View>
+
+        <Pressable accessibilityRole="button" onPress={() => setStage('taps')} style={{ alignItems: 'center', paddingBottom: Math.max(insets.bottom, space(3)) }}>
+          <T v="caption" style={{ color: ink.faint }}>
+            back to taps
+          </T>
+        </Pressable>
       </KeyboardAvoidingView>
 
       <Modal visible={crisisVisible} transparent animationType="fade" onRequestClose={() => setCrisisVisible(false)}>
         <View style={styles.crisisDim}>
           <Glass style={{ padding: space(6) }}>
-            <T v="greeting" style={{ fontSize: 24, lineHeight: 30, textAlign: 'center' }}>
+            <T v="ask" style={{ textAlign: 'center' }}>
               You matter.
             </T>
             <T v="secondary" style={{ textAlign: 'center', marginTop: space(3) }}>
               {CRISIS_COPY.replace('You matter. ', '')}
             </T>
             <FlameButton title="Call 988" onPress={() => Linking.openURL('tel:988')} style={{ marginTop: space(5) }} />
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setCrisisVisible(false)}
-              style={{ alignItems: 'center', paddingVertical: space(3.5) }}>
+            <Pressable accessibilityRole="button" onPress={() => setCrisisVisible(false)} style={{ alignItems: 'center', paddingVertical: space(3.5) }}>
               <T v="secondary">Keep talking</T>
             </Pressable>
           </Glass>
@@ -616,98 +691,48 @@ export default function DebriefScreen() {
 }
 
 const styles = StyleSheet.create({
-  top: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: space(2),
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: space(1) },
+  shiftPill: {
+    backgroundColor: 'rgba(255,182,92,.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,182,92,.3)',
+    borderRadius: 12,
+    paddingVertical: space(1),
+    paddingHorizontal: space(2.75),
   },
-  chipWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: space(2),
-  },
-  tapChip: {
+  recordLine: { marginTop: space(4), padding: space(3), flexDirection: 'row', alignItems: 'center', gap: space(2.25) },
+  askBody: { flex: 1, justifyContent: 'center', paddingBottom: space(14) },
+  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space(2), marginTop: space(6) },
+  loadRow: { flexDirection: 'row', gap: space(1.5), marginTop: space(6) },
+  loadSeg: { flex: 1, height: 40, borderRadius: 12 },
+  loadLabels: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: space(2) },
+  noteField: {
+    marginTop: space(6),
     backgroundColor: glass.fill,
+    borderRadius: 16,
+    paddingHorizontal: space(4),
+    paddingVertical: space(3.5),
+  },
+  noteInput: { color: palette.ink, fontSize: 15, lineHeight: 22, padding: 0, minHeight: 24 },
+  nextBtn: {
+    marginTop: space(5.5),
     borderRadius: 18,
-    paddingVertical: space(2.5),
-    paddingHorizontal: space(3.5),
-  },
-  tapChipOn: {
-    backgroundColor: 'rgba(255,104,70,.13)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,173,114,.35)',
-  },
-  loadRow: {
-    flexDirection: 'row',
-    gap: space(1.5),
-  },
-  loadSeg: {
-    flex: 1,
-    height: 36,
-    borderRadius: 8,
-  },
-  nightRow: {
-    flexDirection: 'row',
+    paddingVertical: space(3.25),
     alignItems: 'center',
-    gap: space(2),
-    marginTop: space(5),
+    backgroundColor: glass.hi,
   },
-  nightTick: {
-    width: 8,
-    height: 8,
-    borderRadius: 2,
-    backgroundColor: palette.violet,
-  },
-  emptyWrap: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: space(10),
-  },
-  stream: {
-    paddingHorizontal: space(6),
-    paddingTop: space(6),
-    paddingBottom: space(4),
-  },
-  partnerLine: {
-    flexDirection: 'row',
-    gap: space(2.5),
-    marginBottom: space(5),
-    paddingRight: space(4),
-  },
-  bars: {
-    flexDirection: 'row',
-    gap: 4,
-    height: 18,
-    alignItems: 'center',
-  },
-  bar: {
-    width: 3,
-    height: 16,
-    borderRadius: 1.5,
-    backgroundColor: palette.apricot,
-  },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: space(2),
-    paddingHorizontal: space(6),
-    paddingBottom: space(2),
-  },
-  liveChip: {
-    backgroundColor: 'rgba(255,104,70,.13)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,173,114,.35)',
-    borderRadius: 14,
-    paddingVertical: space(1.5),
-    paddingHorizontal: space(3),
-  },
+  idleWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space(10) },
+  stream: { paddingHorizontal: space(6), paddingTop: space(4), paddingBottom: space(4) },
+  partnerLine: { flexDirection: 'row', gap: space(2.5), marginBottom: space(5), paddingRight: space(4) },
+  waves: { flexDirection: 'row', gap: 3, height: 22, alignItems: 'center', justifyContent: 'center' },
+  wbar: { width: 3, borderRadius: 2, backgroundColor: palette.amber },
+  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space(2), paddingHorizontal: space(6), paddingBottom: space(2) },
   controls: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between',
     gap: space(3),
-    paddingHorizontal: space(4),
+    paddingHorizontal: space(5),
     paddingTop: space(2),
   },
   input: {
@@ -718,14 +743,16 @@ const styles = StyleSheet.create({
     fontSize: type.body.fontSize,
     lineHeight: 21,
     paddingHorizontal: space(4),
-    paddingTop: space(3),
-    paddingBottom: space(3),
+    paddingVertical: space(3),
     maxHeight: 120,
   },
-  crisisDim: {
-    flex: 1,
-    backgroundColor: 'rgba(10,10,9,.78)',
+  sendBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: palette.amber,
+    alignItems: 'center',
     justifyContent: 'center',
-    padding: space(6),
   },
+  crisisDim: { flex: 1, backgroundColor: 'rgba(9,15,14,.82)', justifyContent: 'center', padding: space(6) },
 });

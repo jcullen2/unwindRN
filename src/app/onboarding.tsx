@@ -1,12 +1,8 @@
 /**
- * Conversational onboarding — one continuous scene, no pagination (Session 4).
- * Four beats after sign-in: (1) years + shifts/week → her estimated career
- * renders live in apricot and writes est_* to the profile; (2) specialty cards
- * with the partner's preview line (spoken when TTS is live); (3) the two
- * promises; (4) handoff into tonight's debrief or one honest reminder.
- * The lamp's flame grows with each completed beat. Skippable from beat 1.
+ * Onboarding — six beats, dots + Skip (Deep Ward). Opens on Nightingale;
+ * captures practice + pattern; resolves a live career estimate; then "Light it"
+ * writes est_* and enters the welcome-wrapped story.
  */
-import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
@@ -19,71 +15,24 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FlameGlyph } from '@/brand';
-import { FlameButton, Glass, GlassField, QuietButton, T } from '@/components/kit';
+import { Chip, FlameButton, GlassField, T } from '@/components/kit';
 import { Sky } from '@/components/sky';
+import { PulsingLantern } from '@/app/sign-in';
 import { useAuth } from '@/lib/auth';
 import { SPECIALTIES } from '@/lib/constants';
 import { supabase } from '@/lib/supabase';
-import { speak } from '@/lib/tts';
-import { fonts, glass, ink, palette, space, type } from '@/theme/tokens';
+import { fonts, heat, ink, palette, space, type } from '@/theme/tokens';
 
-const PREVIEW_LINES: Record<string, string> = {
-  'Pediatric Oncology': 'Peds onc. The heaviest floor there is, carried lightly enough that the kids never feel it.',
-  Emergency: 'The department. Where every plan survives about four minutes.',
-  ICU: 'The unit. Two patients, twenty drips, and a family at each bed.',
-  'Med-Surg': 'Med-surg. Six patients, no such thing as a routine day.',
-  'L&D': 'L and D. The best day of someone’s life, until the moment it isn’t.',
-  OR: 'The OR. Hours of choreography nobody outside the room ever sees.',
-  'Psych/Behavioral': 'Psych. Where the vitals that matter don’t show on a monitor.',
-  Other: 'Wherever you work — the floor is the floor. I’ll learn yours.',
-};
+const PATTERNS = [
+  { key: 'Days', perYear: 152 },
+  { key: 'Nights', perYear: 144 },
+  { key: 'Rotating', perYear: 148 },
+] as const;
 
-function Stepper({
-  value,
-  onChange,
-  min,
-  max,
-  step = 1,
-  suffix,
-}: {
-  value: number;
-  onChange: (n: number) => void;
-  min: number;
-  max: number;
-  step?: number;
-  suffix?: string;
-}) {
-  return (
-    <View style={styles.stepper}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Less"
-        onPress={() => onChange(Math.max(min, value - step))}
-        style={styles.stepBtn}>
-        <T v="body" style={{ color: ink.secondary }}>
-          −
-        </T>
-      </Pressable>
-      <T v="body" style={{ minWidth: 64, textAlign: 'center', fontVariant: ['tabular-nums'] }}>
-        {value}
-        {suffix ?? ''}
-      </T>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="More"
-        onPress={() => onChange(Math.min(max, value + step))}
-        style={styles.stepBtn}>
-        <T v="body" style={{ color: ink.secondary }}>
-          +
-        </T>
-      </Pressable>
-    </View>
-  );
-}
+const UNITS = ['Peds', 'Float', 'Charge', 'Precept', 'None'];
 
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
@@ -92,23 +41,27 @@ export default function OnboardingScreen() {
 
   const [beat, setBeat] = useState(0);
   const [name, setName] = useState('');
-  const [years, setYears] = useState(3);
-  const [perWeek, setPerWeek] = useState(3);
-  const [usualHours, setUsualHours] = useState(12);
   const [specialty, setSpecialty] = useState<string | null>(null);
+  const [hospital, setHospital] = useState('');
+  const [city, setCity] = useState('');
+  const [years, setYears] = useState<number | null>(null);
+  const [pattern, setPattern] = useState<(typeof PATTERNS)[number]['key']>('Days');
+  const [usualHours, setUsualHours] = useState(12);
   const [saving, setSaving] = useState(false);
 
-  const estShifts = useMemo(() => Math.round(years * 46 * perWeek), [years, perWeek]);
-  const estHours = useMemo(() => Math.round(estShifts * usualHours), [estShifts, usualHours]);
+  const perYear = PATTERNS.find((p) => p.key === pattern)!.perYear;
+  const estShifts = useMemo(() => (years ? years * perYear : 0), [years, perYear]);
+  const estHours = estShifts * usualHours;
 
-  const writeProfile = async (skipped: boolean) => {
+  const next = () => setBeat((b) => Math.min(5, b + 1));
+
+  const write = async (skipped: boolean) => {
     if (!session) return false;
     const { error } = await supabase.from('profiles').upsert({
       id: session.user.id,
       display_name: skipped ? null : name.trim() || null,
       specialty: skipped ? null : specialty,
       years_in: skipped ? null : years,
-      shifts_per_week: skipped ? null : perWeek,
       usual_shift_hours: usualHours,
       est_career_shifts: skipped ? 0 : estShifts,
       est_career_hours: skipped ? 0 : estHours,
@@ -122,275 +75,265 @@ export default function OnboardingScreen() {
 
   const skip = async () => {
     setSaving(true);
-    if (await writeProfile(true)) await refreshProfile();
+    if (await write(true)) await refreshProfile();
     setSaving(false);
   };
 
-  const commitPromises = async () => {
+  const lightIt = async () => {
     setSaving(true);
-    const ok = await writeProfile(false);
+    const ok = await write(false);
     setSaving(false);
-    if (ok) setBeat(3);
+    if (ok)
+      router.replace({
+        pathname: '/welcome',
+        params: { est: String(estShifts), hospital: hospital.trim(), years: String(years ?? 0) },
+      });
   };
 
-  const finishToDebrief = async () => {
-    await refreshProfile();
-    router.push('/debrief');
-  };
-
-  const finishWithReminder = async () => {
-    try {
-      const perms = await Notifications.requestPermissionsAsync();
-      if (perms.granted) {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(19, 30, 0, 0);
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: 'unwindRN',
-            body: 'When you’re ready — tonight’s shift can go in the book.',
-          },
-          trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: tomorrow },
-        });
-      }
-    } catch {
-      // no reminder is fine — never nag
-    }
-    await refreshProfile();
-  };
-
-  const flameSize = 16 + beat * 8; // the flame grows with each beat
+  const Dots = () => (
+    <View style={styles.top}>
+      <View style={{ flexDirection: 'row', gap: space(1.25) }}>
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <View key={i} style={[styles.dot, i === beat && styles.dotOn]} />
+        ))}
+      </View>
+      <Pressable accessibilityRole="button" onPress={skip} disabled={saving} hitSlop={10}>
+        <T style={{ fontSize: 12, color: 'rgba(234,241,236,.35)' }}>Skip</T>
+      </Pressable>
+    </View>
+  );
 
   return (
     <Sky>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView
-          contentContainerStyle={{
-            paddingTop: insets.top + space(8),
-            paddingHorizontal: space(6),
-            paddingBottom: insets.bottom + space(10),
-          }}
-          keyboardShouldPersistTaps="handled">
-          <View style={{ alignItems: 'center', marginBottom: space(6), height: 52, justifyContent: 'flex-end' }}>
-            <FlameGlyph size={flameSize} />
-          </View>
+        <View style={{ flex: 1, paddingTop: insets.top + space(3.5), paddingHorizontal: space(7.5), paddingBottom: insets.bottom + space(6) }}>
+          <Dots />
 
-          {/* Beat 1 — the estimate */}
-          <Animated.View entering={FadeInDown.springify().damping(18)}>
-            <T v="greeting" style={{ fontSize: 26, lineHeight: 33 }}>
-              Before tonight — who's talking?
-            </T>
-
-            <T v="overline" style={styles.label}>
-              What should we call you?
-            </T>
-            <GlassField>
-              <TextInput
-                value={name}
-                onChangeText={setName}
-                placeholder="Your name"
-                placeholderTextColor={ink.faint}
-                keyboardAppearance="dark"
-                autoCapitalize="words"
-                style={styles.input}
-              />
-            </GlassField>
-
-            <View style={styles.stepRow}>
-              <View style={{ flex: 1 }}>
-                <T v="overline" style={styles.label}>
-                  Years in
+          {beat === 0 && (
+            <Pressable style={styles.beat} onPress={next}>
+              <Animated.View entering={FadeIn.duration(400)}>
+                <T style={styles.big1854}>1854.</T>
+                <T v="ask" style={{ fontSize: 23, marginTop: space(4) }}>
+                  A nurse walked the dark wards with a lamp.
                 </T>
-                <Stepper value={years} onChange={setYears} min={0} max={50} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <T v="overline" style={styles.label}>
-                  Shifts a week
+                <T v="secondary" style={{ marginTop: space(3.5), lineHeight: 22 }}>
+                  The light meant one thing —{'\n'}someone is still watching.
                 </T>
-                <Stepper value={perWeek} onChange={setPerWeek} min={1} max={6} />
-              </View>
-            </View>
-            <T v="overline" style={styles.label}>
-              Usual shift
-            </T>
-            <Stepper value={usualHours} onChange={setUsualHours} min={4} max={16} step={2} suffix="h" />
-
-            {years > 0 && (
-              <View style={{ marginTop: space(6) }}>
-                <T style={styles.estimate}>
-                  ~{estShifts.toLocaleString()} shifts · ~{estHours.toLocaleString()} hours
-                </T>
-                <T v="secondary" style={{ marginTop: space(2) }}>
-                  …and nobody wrote a word of it down. That ends tonight.
-                </T>
-              </View>
-            )}
-
-            {beat === 0 && (
-              <>
-                <FlameButton title="That's me" onPress={() => setBeat(1)} style={{ marginTop: space(6) }} />
-                <Pressable accessibilityRole="button" onPress={skip} disabled={saving} style={{ alignItems: 'center', padding: space(3) }}>
-                  <T v="whisper">Skip for now</T>
-                </Pressable>
-              </>
-            )}
-          </Animated.View>
-
-          {/* Beat 2 — specialty */}
-          {beat >= 1 && (
-            <Animated.View entering={FadeInDown.springify().damping(18)} style={{ marginTop: space(8) }}>
-              <T v="greeting" style={{ fontSize: 22, lineHeight: 28 }}>
-                Your floor?
-              </T>
-              <View style={styles.cards}>
-                {SPECIALTIES.map((s) => {
-                  const on = specialty === s;
-                  return (
-                    <Pressable
-                      key={s}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: on }}
-                      onPress={() => {
-                        setSpecialty(s);
-                        speak(PREVIEW_LINES[s]);
-                      }}
-                      style={[styles.card, on && styles.cardOn]}>
-                      <T v="secondary" style={{ color: on ? palette.apricot : ink.secondary }}>
-                        {s}
-                      </T>
-                    </Pressable>
-                  );
-                })}
-              </View>
-              {specialty && (
-                <View style={styles.preview}>
-                  <View style={{ marginTop: 4 }}>
-                    <FlameGlyph size={13} />
-                  </View>
-                  <T v="partnerCaption" style={{ flex: 1 }}>
-                    {PREVIEW_LINES[specialty]}
-                  </T>
+                <View style={{ marginTop: space(10) }}>
+                  <PulsingLantern size={38} />
                 </View>
-              )}
-              {beat === 1 && (
-                <FlameButton
-                  title="Keep going"
-                  onPress={() => setBeat(2)}
-                  disabled={!specialty}
-                  style={{ marginTop: space(5) }}
-                />
-              )}
-            </Animated.View>
+              </Animated.View>
+            </Pressable>
           )}
 
-          {/* Beat 3 — the two promises */}
-          {beat >= 2 && (
-            <Animated.View entering={FadeInDown.springify().damping(18)} style={{ marginTop: space(8), gap: space(3) }}>
-              <Glass>
-                <T v="body" style={{ fontWeight: '600' }}>
-                  Your patients stay private.
+          {beat === 1 && (
+            <Pressable style={styles.beat} onPress={next}>
+              <Animated.View entering={FadeIn.duration(400)}>
+                <T v="ask" style={{ fontSize: 26 }}>
+                  Twelve hours of holding the line —
                 </T>
-                <T v="secondary" style={{ marginTop: space(2) }}>
-                  Talk about your day, not their identities. We never ask for names, rooms, or
-                  details that could identify a patient. That protects them — and your license.
+                <T v="ask" style={{ fontSize: 26, color: ink.dim, marginTop: space(2.5) }}>
+                  and nobody writes a word of it down.
                 </T>
-              </Glass>
-              <Glass>
-                <T v="body" style={{ fontWeight: '600' }}>
-                  Not therapy. Still yours.
-                </T>
-                <T v="secondary" style={{ marginTop: space(2) }}>
-                  unwindRN isn't medical care or therapy. If you're in crisis, call or text 988.
-                  For everything else — the lamp is here after every shift.
-                </T>
-              </Glass>
-              {beat === 2 && (
-                <FlameButton title="I'm in" onPress={commitPromises} loading={saving} style={{ marginTop: space(2) }} />
-              )}
-            </Animated.View>
+                <View style={{ marginTop: space(9), gap: space(2) }}>
+                  {[0, 1, 2].map((i) => (
+                    <View key={i} style={styles.ghostRow} />
+                  ))}
+                  <View style={styles.tonightRow}>
+                    <T v="caption" style={{ color: palette.amber }}>
+                      Tonight gets written.
+                    </T>
+                  </View>
+                </View>
+              </Animated.View>
+            </Pressable>
           )}
 
-          {/* Beat 4 — handoff */}
-          {beat >= 3 && (
-            <Animated.View entering={FadeInDown.springify().damping(18)} style={{ marginTop: space(8) }}>
-              <T v="greeting" style={{ fontSize: 22, lineHeight: 28 }}>
-                Shift #{(estShifts + 1).toLocaleString()} is next.
-              </T>
-              <FlameButton title="Debrief tonight's shift" onPress={finishToDebrief} style={{ marginTop: space(5) }} />
-              <QuietButton
-                title="After my next shift"
-                onPress={finishWithReminder}
-                tone="dim"
-                style={{ marginTop: space(2) }}
-              />
-              <T v="whisper" style={{ textAlign: 'center', marginTop: space(3) }}>
-                One gentle reminder, no nagging.
-              </T>
-            </Animated.View>
+          {beat === 2 && (
+            <Pressable style={styles.beat} onPress={next}>
+              <Animated.View entering={FadeIn.duration(400)}>
+                <T v="title">Our promises</T>
+                <View style={styles.dash} />
+                <View style={{ marginTop: space(7), gap: space(5.5) }}>
+                  {[
+                    ['01', 'Yours alone.', 'Patients stay unnamed. Your voice never leaves the phone.'],
+                    ['02', 'A logbook with a voice.', 'Never therapy. In crisis, we point to 988 — always.'],
+                    ['03', 'No streaks. No guilt.', 'Twenty seconds a night. Saving without a word is always one tap.'],
+                  ].map(([n, h, b]) => (
+                    <View key={n} style={{ flexDirection: 'row', gap: space(3.5) }}>
+                      <T style={styles.promiseNum}>{n}</T>
+                      <View style={{ flex: 1 }}>
+                        <T v="body" style={{ fontWeight: '600' }}>
+                          {h}
+                        </T>
+                        <T v="secondary" style={{ marginTop: 2 }}>
+                          {b}
+                        </T>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              </Animated.View>
+            </Pressable>
           )}
-        </ScrollView>
+
+          {beat === 3 && (
+            <ScrollView contentContainerStyle={styles.beatScroll} keyboardShouldPersistTaps="handled">
+              <T v="title">Where do you practice?</T>
+              <View style={styles.dash} />
+              <T v="overline" style={styles.label}>
+                Specialty
+              </T>
+              <View style={styles.chips}>
+                {SPECIALTIES.map((s) => (
+                  <Chip key={s} label={s} selected={specialty === s} onPress={() => setSpecialty(s)} />
+                ))}
+              </View>
+              <T v="overline" style={styles.label}>
+                Unit
+              </T>
+              <View style={styles.chips}>
+                {UNITS.map((u) => (
+                  <Chip key={u} label={u} />
+                ))}
+              </View>
+              <T v="overline" style={styles.label}>
+                Hospital &amp; city
+              </T>
+              <GlassField>
+                <TextInput value={hospital} onChangeText={setHospital} placeholder="Hospital" placeholderTextColor={ink.faint} keyboardAppearance="dark" style={styles.input} />
+              </GlassField>
+              <GlassField style={{ marginTop: space(2) }}>
+                <TextInput value={city} onChangeText={setCity} placeholder="City" placeholderTextColor={ink.faint} keyboardAppearance="dark" style={styles.input} />
+              </GlassField>
+              <T v="whisper" style={{ marginTop: space(3) }}>
+                Location powers pay context and peer insights — never shared, off by default.
+              </T>
+              <FlameButton title="Continue" onPress={next} disabled={!specialty} style={{ marginTop: space(6) }} />
+            </ScrollView>
+          )}
+
+          {beat === 4 && (
+            <ScrollView contentContainerStyle={styles.beatScroll} keyboardShouldPersistTaps="handled">
+              <T v="title" style={{ lineHeight: 32 }}>
+                Eight years? Twelve?{'\n'}The record wants it exact.
+              </T>
+              <View style={styles.dash} />
+              <T v="overline" style={styles.label}>
+                Years at the bedside
+              </T>
+              <View style={styles.chips}>
+                {[1, 2, 3, 5, 8, 10, 12, 15, 20, 25].map((y) => (
+                  <Chip key={y} label={String(y)} selected={years === y} onPress={() => setYears(y)} />
+                ))}
+              </View>
+              <T v="overline" style={styles.label}>
+                Pattern
+              </T>
+              <View style={styles.chips}>
+                {PATTERNS.map((p) => (
+                  <Chip key={p.key} label={p.key} selected={pattern === p.key} onPress={() => setPattern(p.key)} />
+                ))}
+              </View>
+              <T v="overline" style={styles.label}>
+                Usual shift
+              </T>
+              <View style={styles.chips}>
+                {[8, 10, 12].map((hh) => (
+                  <Chip key={hh} label={`${hh}h`} selected={usualHours === hh} onPress={() => setUsualHours(hh)} />
+                ))}
+              </View>
+
+              {years && (
+                <Animated.View entering={FadeIn} style={styles.estimate}>
+                  <T v="secondary">
+                    You've already carried{' '}
+                    <T style={styles.estInline}>≈ {estShifts.toLocaleString()} shifts</T> · ≈{' '}
+                    {estHours.toLocaleString()} hours. The count starts there.
+                  </T>
+                </Animated.View>
+              )}
+              <FlameButton title="Continue" onPress={next} disabled={!years} style={{ marginTop: space(6) }} />
+            </ScrollView>
+          )}
+
+          {beat === 5 && (
+            <View style={styles.beat}>
+              <Animated.View entering={FadeIn.duration(400)}>
+                <T v="title">Twenty seconds a night.</T>
+                <View style={styles.dash} />
+                <View style={{ marginTop: space(6), gap: space(3) }}>
+                  <View style={styles.previewCard}>
+                    <T v="body" style={{ fontWeight: '600' }}>
+                      Clock out by taps
+                    </T>
+                    <View style={{ flexDirection: 'row', gap: space(1.5), marginTop: space(2.25) }}>
+                      <Chip label="12h" selected />
+                      <Chip label="1:5" />
+                      <Chip label="Short-staffed" />
+                    </View>
+                  </View>
+                  <View style={styles.previewCard}>
+                    <T v="body" style={{ fontWeight: '600' }}>
+                      The month writes itself
+                    </T>
+                    <View style={{ flexDirection: 'row', gap: space(1.25), marginTop: space(2.25) }}>
+                      {[heat[1], heat[2], 'rgba(234,241,236,.05)', palette.amber, heat[3]].map((c, i) => (
+                        <View key={i} style={{ width: 22, height: 16, borderRadius: 5, backgroundColor: c }} />
+                      ))}
+                    </View>
+                  </View>
+                  <View style={styles.previewCard}>
+                    <T v="body" style={{ fontWeight: '600' }}>
+                      Talk only when you want to
+                    </T>
+                    <T v="secondary" style={{ marginTop: space(1) }}>
+                      A partner fluent in {specialty ?? 'your floor'} listens, and the record assembles itself.
+                    </T>
+                  </View>
+                </View>
+                <FlameButton title="Light it" onPress={lightIt} loading={saving} style={{ marginTop: space(6) }} />
+              </Animated.View>
+            </View>
+          )}
+        </View>
       </KeyboardAvoidingView>
     </Sky>
   );
 }
 
 const styles = StyleSheet.create({
-  label: {
-    marginTop: space(5),
-    marginBottom: space(2),
-  },
-  input: {
-    color: ink.text,
-    fontSize: type.body.fontSize,
-    lineHeight: 22,
-    padding: 0,
-    minHeight: 24,
-  },
-  stepRow: {
-    flexDirection: 'row',
-    gap: space(4),
-  },
-  stepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: glass.fill,
-    borderRadius: 14,
-    alignSelf: 'flex-start',
-  },
-  stepBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: 'rgba(234,241,236,.2)' },
+  dotOn: { width: 16, backgroundColor: palette.amber },
+  beat: { flex: 1, justifyContent: 'center' },
+  beatScroll: { paddingTop: space(8), paddingBottom: space(10) },
+  big1854: { fontFamily: fonts.display700, fontSize: 60, letterSpacing: -2, color: palette.amber },
+  ghostRow: { height: 34, borderRadius: 10, backgroundColor: 'rgba(234,241,236,.04)' },
+  tonightRow: {
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255,182,92,.14)',
     justifyContent: 'center',
+    paddingHorizontal: space(3),
   },
+  dash: { width: 26, height: 3, borderRadius: 2, backgroundColor: palette.amber, marginTop: space(2) },
+  promiseNum: { fontFamily: fonts.display600, fontSize: 15, color: palette.amber, width: 20 },
+  label: { marginTop: space(5), marginBottom: space(2) },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space(1.5) },
+  input: { color: palette.ink, fontSize: type.body.fontSize, lineHeight: 22, padding: 0, minHeight: 24 },
   estimate: {
-    fontFamily: fonts.serif600,
-    fontSize: 30,
-    lineHeight: 38,
-    color: palette.apricot,
-    fontVariant: ['tabular-nums'],
+    marginTop: space(6),
+    padding: space(4),
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255,182,92,.10)',
   },
-  cards: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: space(2),
-    marginTop: space(4),
-  },
-  card: {
-    backgroundColor: glass.fill,
-    borderRadius: 14,
-    paddingVertical: space(3),
-    paddingHorizontal: space(3.5),
-  },
-  cardOn: {
-    backgroundColor: 'rgba(255,104,70,.13)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,173,114,.35)',
-  },
-  preview: {
-    flexDirection: 'row',
-    gap: space(2.5),
-    marginTop: space(4),
-    paddingRight: space(2),
+  estInline: { fontFamily: fonts.display600, fontSize: 15, color: palette.amber },
+  previewCard: {
+    backgroundColor: 'rgba(234,241,236,.055)',
+    borderRadius: 16,
+    padding: space(3.5),
+    overflow: 'hidden',
   },
 });

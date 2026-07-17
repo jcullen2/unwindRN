@@ -1,33 +1,24 @@
 /**
- * <Sky/> — DESIGN.md §2. Every screen renders inside it: time-reactive
- * vertical gradient + low afterglow radial + 5% fractal grain. Never flat.
+ * <Sky/> — the Deep Ward petrol night. One treatment on every screen:
+ * a top→bottom petrol gradient + an amber afterglow radial anchored at the
+ * bottom + 5% grain. `glowBoost` raises the afterglow for wrapped/milestone.
+ * The bucket props are kept as no-ops for backward compatibility.
  */
-import {
-  Canvas,
-  FractalNoise,
-  Group,
-  Rect,
-  RadialGradient,
-  vec,
-} from '@shopify/react-native-skia';
+import { Canvas, FractalNoise, Rect } from '@shopify/react-native-skia';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ReactNode, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
 
-import { bucketForHour, sky, SkyBucket } from '@/theme/tokens';
+import { sky, SkyBucket } from '@/theme/tokens';
 
 type Props = {
   children?: ReactNode;
-  /** Testing hook — pins the bucket regardless of clock. */
-  forceBucket?: SkyBucket;
-  /** Milestone/Wrapped screens may raise the afterglow (§2). */
+  forceBucket?: SkyBucket; // ignored — the sky is a single petrol treatment now
   glowBoost?: boolean;
 };
 
-export function Sky({ children, forceBucket, glowBoost }: Props) {
+export function Sky({ children, glowBoost }: Props) {
   const [dims, setDims] = useState({ w: 0, h: 0 });
-  const bucket = forceBucket ?? bucketForHour(new Date().getHours());
-  const spec = sky[bucket];
 
   const onLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
@@ -35,33 +26,22 @@ export function Sky({ children, forceBucket, glowBoost }: Props) {
   };
 
   const { w, h } = dims;
-  // ellipse 130% × 42% at 50% 112% — drawn as a radial in y-squashed space
-  const rx = w * 0.65;
-  const squash = (h * 0.21) / (w * 0.65 || 1);
-  const cy = h * 1.12;
 
   return (
     <View style={styles.root} onLayout={onLayout}>
-      <LinearGradient
-        colors={spec.stops}
-        locations={spec.positions}
-        style={StyleSheet.absoluteFill}
-      />
+      <LinearGradient colors={sky.stops} locations={sky.positions} style={StyleSheet.absoluteFill} />
+      {/* Afterglow: ellipse 65% × 100% at 50% 100%. Approximated with a wide,
+          soft radial via a positioned gradient block along the bottom. */}
+      <View style={styles.afterglowWrap} pointerEvents="none">
+        <LinearGradient
+          colors={['transparent', 'rgba(255,140,90,.07)', glowBoost ? 'rgba(255,182,92,.30)' : 'rgba(255,182,92,.18)']}
+          locations={[0.28, 0.6, 1]}
+          style={styles.afterglow}
+        />
+      </View>
       {w > 0 && h > 0 && (
         <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
-          <Group
-            transform={[{ translateY: cy }, { scaleY: squash }, { translateY: -cy }]}
-            opacity={glowBoost ? 1.4 : 1}>
-            <Rect x={0} y={0} width={w} height={h * 2}>
-              <RadialGradient
-                c={vec(w / 2, cy)}
-                r={rx}
-                colors={[...spec.afterglow]}
-                positions={[...spec.afterglowPositions]}
-              />
-            </Rect>
-          </Group>
-          <Rect x={0} y={0} width={w} height={h} opacity={0.05} blendMode="overlay">
+          <Rect x={0} y={0} width={w} height={h} opacity={0.045} blendMode="overlay">
             <FractalNoise freqX={0.9} freqY={0.9} octaves={3} />
           </Rect>
         </Canvas>
@@ -72,6 +52,19 @@ export function Sky({ children, forceBucket, glowBoost }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0D0C0B' },
+  root: { flex: 1, backgroundColor: '#090F0E' },
+  afterglowWrap: {
+    position: 'absolute',
+    left: '-20%',
+    right: '-20%',
+    bottom: '-24%',
+    height: '52%',
+    alignItems: 'center',
+  },
+  afterglow: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 9999,
+  },
   content: { flex: 1 },
 });

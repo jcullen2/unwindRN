@@ -1,22 +1,45 @@
+/**
+ * A single day in the record (Deep Ward) — date + amber dash, amber pills for
+ * hours & load, a moon-mint night pill, then the win and the weight as glass
+ * cards. weight = the emotional note, never the load.
+ */
 import { format, parseISO } from 'date-fns';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Glass, T } from '@/components/kit';
+import { PageTitle, T } from '@/components/kit';
 import { Sky } from '@/components/sky';
 import { LOAD_LABELS } from '@/lib/constants';
 import { useShift } from '@/lib/queries';
-import { fonts, glass, heat, ink, palette, space } from '@/theme/tokens';
+import { glass, ink, palette, space } from '@/theme/tokens';
 
-function Section({ label, value }: { label: string; value: string | null }) {
+function Pill({ children, tone = 'amber' }: { children: string; tone?: 'amber' | 'moon' }) {
+  const amber = tone === 'amber';
+  return (
+    <View
+      style={[
+        styles.pill,
+        {
+          backgroundColor: amber ? 'rgba(255,182,92,.13)' : 'rgba(155,199,189,.12)',
+          borderColor: amber ? 'rgba(255,182,92,.35)' : 'transparent',
+          borderWidth: amber ? 1 : 0,
+        },
+      ]}>
+      <T v="caption" style={{ color: amber ? palette.amber : palette.moon }}>
+        {children}
+      </T>
+    </View>
+  );
+}
+
+function Note({ label, value, dim }: { label: string; value: string | null; dim?: boolean }) {
   if (!value) return null;
   return (
-    <View style={{ marginTop: space(5) }}>
-      <T v="overline" style={{ color: palette.apricot }}>
-        {label}
-      </T>
-      <T v="body" style={{ marginTop: space(1.5), lineHeight: 25 }}>
+    <View style={styles.card}>
+      <View style={styles.topLight} />
+      <T v="overline">{label}</T>
+      <T v="body" style={{ marginTop: space(1.5), lineHeight: 24, color: dim ? palette.moss : palette.ink }}>
         {value}
       </T>
     </View>
@@ -33,58 +56,36 @@ export default function ShiftDetailScreen() {
     return (
       <Sky>
         <View style={{ flex: 1, justifyContent: 'center', padding: space(8) }}>
-          {!isLoading && <T v="secondary">This shift isn't in the record.</T>}
+          {!isLoading && <T v="secondary">This shift isn’t in the record.</T>}
         </View>
       </Sky>
     );
   }
 
   const d = parseISO(shift.shift_date);
-  const loadStep = shift.load != null ? shift.load - 1 : null;
 
   return (
     <Sky>
-      <ScrollView
-        contentContainerStyle={{
-          paddingTop: insets.top + space(3),
-          paddingHorizontal: space(6),
-          paddingBottom: space(30),
-        }}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-          onPress={() => router.back()}
-          hitSlop={12}
-          style={{ alignSelf: 'flex-start', paddingVertical: space(2) }}>
-          <T style={{ color: ink.dim, fontSize: 22, lineHeight: 24 }}>‹</T>
+      <ScrollView contentContainerStyle={{ paddingTop: insets.top + space(3), paddingHorizontal: space(6), paddingBottom: space(20) }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} hitSlop={12} style={styles.back}>
+          <T v="caption" style={{ color: palette.moss }}>
+            ‹ Back
+          </T>
         </Pressable>
 
-        <T style={styles.month}>{format(d, 'MMMM')}</T>
-        <T v="greeting" style={{ fontSize: 26, lineHeight: 32, marginTop: 2 }}>
-          {format(d, 'EEEE d')}
-        </T>
+        <PageTitle style={{ marginTop: space(2) }}>{format(d, 'EEEE, MMM d')}</PageTitle>
 
-        <View style={styles.metaRow}>
-          <T v="secondary">{Number(shift.hours)} hours</T>
-          {loadStep != null && (
-            <View style={styles.loadWrap}>
-              <View style={[styles.loadDot, { backgroundColor: heat[loadStep] }]} />
-              <T v="secondary">{LOAD_LABELS[loadStep]}</T>
-            </View>
-          )}
-          {shift.is_night && (
-            <View style={styles.loadWrap}>
-              <View style={[styles.loadDot, { backgroundColor: palette.violet, borderRadius: 1 }]} />
-              <T v="secondary">Night</T>
-            </View>
-          )}
+        <View style={styles.pills}>
+          <Pill>{`${Number(shift.hours)} hours`}</Pill>
+          {shift.load != null && <Pill>{LOAD_LABELS[shift.load - 1]}</Pill>}
+          {shift.is_night && <Pill tone="moon">night</Pill>}
         </View>
 
         {(shift.tags?.length ?? 0) > 0 && (
           <View style={styles.tags}>
             {shift.tags!.map((t) => (
               <View key={t} style={styles.tag}>
-                <T v="caption" style={{ color: palette.apricot }}>
+                <T v="caption" style={{ color: palette.moss }}>
                   {t}
                 </T>
               </View>
@@ -92,17 +93,20 @@ export default function ShiftDetailScreen() {
           </View>
         )}
 
-        <Glass style={{ marginTop: space(5) }}>
-          <Section label="Win" value={shift.win} />
-          <Section label="The weight" value={shift.weight} />
-          <Section label="Lesson" value={shift.lesson} />
+        <View style={{ gap: space(2.5), marginTop: space(5.5) }}>
+          <Note label="The win" value={shift.win} />
+          <Note label="The weight" value={shift.weight} dim />
+          <Note label="Lesson" value={shift.lesson} dim />
           {!shift.win && !shift.weight && !shift.lesson && (
-            <T v="secondary">No notes on this one — it still counts.</T>
+            <View style={styles.card}>
+              <View style={styles.topLight} />
+              <T v="secondary">No notes on this one — it still counts.</T>
+            </View>
           )}
-        </Glass>
+        </View>
 
         <T v="whisper" style={{ marginTop: space(4) }}>
-          {shift.source === 'taps' ? 'Saved without talking' : 'Saved from a debrief'}
+          {shift.source === 'taps' ? 'Saved without another word' : 'Saved from a debrief'}
         </T>
       </ScrollView>
     </Sky>
@@ -110,39 +114,11 @@ export default function ShiftDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  month: {
-    fontFamily: fonts.serif500,
-    fontSize: 15,
-    lineHeight: 20,
-    color: palette.apricot,
-    marginTop: space(2),
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space(5),
-    marginTop: space(3),
-  },
-  loadWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space(1.5),
-  },
-  loadDot: {
-    width: 9,
-    height: 9,
-    borderRadius: 3,
-  },
-  tags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: space(2),
-    marginTop: space(4),
-  },
-  tag: {
-    backgroundColor: glass.fill,
-    borderRadius: 14,
-    paddingVertical: space(1.5),
-    paddingHorizontal: space(3),
-  },
+  back: { alignSelf: 'flex-start', backgroundColor: glass.fill, borderRadius: 14, paddingVertical: space(1.5), paddingHorizontal: space(3) },
+  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: space(1.75), marginTop: space(4.5) },
+  pill: { borderRadius: 12, paddingVertical: space(1.5), paddingHorizontal: space(3) },
+  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: space(2), marginTop: space(3) },
+  tag: { backgroundColor: glass.fill, borderRadius: 12, paddingVertical: space(1.5), paddingHorizontal: space(3) },
+  card: { backgroundColor: glass.fill, borderRadius: 16, padding: space(4), overflow: 'hidden' },
+  topLight: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: glass.hi },
 });

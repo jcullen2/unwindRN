@@ -10,6 +10,7 @@ export default function TabLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="logbook" />
       <Tabs.Screen name="insights" />
+      <Tabs.Screen name="profile" />
     </Tabs>
   );
 }
