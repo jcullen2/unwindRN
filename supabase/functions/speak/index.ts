@@ -24,6 +24,11 @@ Deno.serve(async (req: Request) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return json({ error: 'unauthorized' }, 401);
 
+    // Per-user daily budget — 200 spoken replies/day is far above real use.
+    // Fail-open on RPC hiccups; the client already degrades to text on any error.
+    const { data: allowed } = await supabase.rpc('bump_usage', { p_fn: 'speak', p_cap: 200 });
+    if (allowed === false) return json({ error: 'rate_limited' }, 429);
+
     let text = '';
     if (req.method === 'POST') {
       const body = await req.json().catch(() => null);

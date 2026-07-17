@@ -24,10 +24,14 @@ Deno.serve(async (req: Request) => {
     if (!user) return json({ error: 'unauthorized' }, 401);
 
     const body = await req.json().catch(() => null);
-    const today: string =
-      typeof body?.today === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.today)
-        ? body.today
-        : new Date().toISOString().slice(0, 10);
+    // Accept the client's local day, but clamp to ±1 day of server time —
+    // otherwise arbitrary dates could iterate past the cache and burn tokens.
+    const serverMs = Date.now();
+    let today = new Date(serverMs).toISOString().slice(0, 10);
+    if (typeof body?.today === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.today)) {
+      const drift = Math.abs(new Date(body.today + 'T00:00:00Z').getTime() - serverMs);
+      if (drift <= 2 * 86_400_000) today = body.today;
+    }
 
     const { data: cached } = await supabase
       .from('daily_lines')
@@ -35,6 +39,10 @@ Deno.serve(async (req: Request) => {
       .eq('day', today)
       .maybeSingle();
     if (cached?.line) return json({ line: cached.line, cached: true });
+
+    // Per-user daily budget on generation (cache hits above are free).
+    const { data: allowed } = await supabase.rpc('bump_usage', { p_fn: 'daily-line', p_cap: 10 });
+    if (allowed === false) return json({ line: null, error: 'rate_limited' }, 200);
 
     const since = new Date(new Date(today).getTime() - 7 * 86_400_000)
       .toISOString()

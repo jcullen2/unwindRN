@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "unwindrn",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#10100F",
+    "backgroundColor": "#090F0E",
     "ios": {
       "bundleIdentifier": "com.unwindrn.app",
       "buildNumber": "1",
@@ -32,7 +32,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#10100F",
+          "backgroundColor": "#090F0E",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 96
         }

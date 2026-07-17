@@ -26,6 +26,10 @@ Deno.serve(async (req: Request) => {
     const month: string =
       typeof body?.month === 'string' && /^\d{4}-\d{2}$/.test(body.month) ? body.month : '';
     if (!month) return json({ error: 'month_required' }, 400);
+    // Clamp: no future months, nothing before a plausible career-logbook past —
+    // otherwise arbitrary months could iterate past the cache and burn tokens.
+    const nowMonth = new Date().toISOString().slice(0, 7);
+    if (month > nowMonth || month < '2000-01') return json({ caption: null });
 
     const { data: cached } = await supabase
       .from('month_captions')
@@ -33,6 +37,10 @@ Deno.serve(async (req: Request) => {
       .eq('month', month)
       .maybeSingle();
     if (cached?.caption) return json({ caption: cached.caption, cached: true });
+
+    // Per-user daily budget on generation (cache hits above are free).
+    const { data: allowed } = await supabase.rpc('bump_usage', { p_fn: 'month-caption', p_cap: 15 });
+    if (allowed === false) return json({ caption: null }, 200);
 
     const first = `${month}-01`;
     const [y, m] = month.split('-').map(Number);

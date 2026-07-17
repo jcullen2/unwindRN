@@ -12,6 +12,10 @@ const CONVERSATION_MODEL = 'claude-sonnet-4-6';
 const UTILITY_MODEL = 'claude-haiku-4-5-20251001';
 const MAX_PARTNER_TURNS = 12;
 const MAX_CONTEXT_CHARS = 32_000; // ~8k tokens
+// Per-user daily budget (bump_usage RPC). 80 turns ≈ six full debriefs — far
+// above real use, a hard ceiling on abuse. Fail-open on RPC hiccups: a nurse
+// post-shift is never blocked by our rate-limit plumbing failing.
+const DAILY_TURN_CAP = 80;
 
 const CANONICAL_TAGS = [
   'Short-staffed', 'Code', 'A loss', 'Good save', 'Hard family',
@@ -125,6 +129,9 @@ Deno.serve(async (req: Request) => {
     );
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return json({ error: 'unauthorized' }, 401);
+
+    const { data: allowed } = await supabase.rpc('bump_usage', { p_fn: 'debrief-turn', p_cap: DAILY_TURN_CAP });
+    if (allowed === false) return json({ error: 'rate_limited' }, 429);
 
     const body = await req.json().catch(() => null);
     const userTurn: string = typeof body?.userTurn === 'string' ? body.userTurn.slice(0, 4000) : '';
