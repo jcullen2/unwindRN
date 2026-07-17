@@ -15,9 +15,25 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
 
 import { Lantern } from '@/brand';
 import { chipOn, glass, ink, palette, radius, space, type } from '@/theme/tokens';
+
+/**
+ * A gentle one-time entrance — content settles up 8px and fades in. Honors
+ * reduced-motion (renders static). Use sparingly, on a screen's hero surfaces;
+ * never stack it on every row.
+ */
+export function Rise({ children, delay = 0, style }: { children: ReactNode; delay?: number; style?: ViewStyle }) {
+  const reduced = useReducedMotion();
+  if (reduced) return <View style={style}>{children}</View>;
+  return (
+    <Animated.View entering={FadeInDown.springify().damping(18).stiffness(180).delay(delay)} style={style}>
+      {children}
+    </Animated.View>
+  );
+}
 
 type Variant = keyof typeof type;
 
@@ -102,7 +118,11 @@ export function FlameButton({
       accessibilityRole="button"
       onPress={onPress}
       disabled={disabled || loading}
-      style={({ pressed }) => [styles.amberWrap, { opacity: disabled ? 0.5 : pressed ? 0.9 : 1 }, style]}>
+      style={({ pressed }) => [
+        styles.amberWrap,
+        { opacity: disabled ? 0.5 : pressed ? 0.92 : 1, transform: [{ scale: pressed && !disabled ? 0.98 : 1 }] },
+        style,
+      ]}>
       <LinearGradient
         colors={[palette.amberHi, palette.amber]}
         start={{ x: 0, y: 0 }}
@@ -158,7 +178,7 @@ export function Chip({
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
-      style={[styles.chip, selected && styles.chipOn]}>
+      style={({ pressed }) => [styles.chip, selected && styles.chipOn, pressed && { transform: [{ scale: 0.96 }] }]}>
       {selected && (
         <LinearGradient
           colors={[chipOn.from, chipOn.to]}

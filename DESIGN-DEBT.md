@@ -2,6 +2,66 @@
 
 Debt logged per CLAUDE.md workflow. Newest first.
 
+## QA sweep — real-build hardening (2026-07-17)
+Full architecture/security/scalability audit (two parallel review agents). Fixed
+in code; deploy state noted. The AI integration was verified REAL and correct —
+`claude-sonnet-4-6` (partner) + `claude-haiku-4-5-20251001` (utility) are valid
+active models and `output_config.format` is the correct structured-output shape;
+daily-line/month-caption/debrief-turn/speak all call real models with honest
+fallbacks. No mocks in the AI path.
+
+**Fixed + applied to live DB:**
+- **PHI: raw transcript no longer persisted.** `debrief.tsx` stopped writing the
+  verbatim spoken transcript to `debrief_sessions.transcript`; the column was
+  DROPPED (migration `20260717000000`). Transcripts live only in memory on the
+  phone; only the identifier-stripped win/weight/lesson is stored. (Was: full
+  spoken turns written to DB every turn, retained forever — a direct violation of
+  the "patients stay unnamed" law.)
+- **Tag integrity:** `shifts.tags` now has a DB check constraint pinning it to the
+  canonical v1 set (migration `20260717000000`).
+
+**Fixed in code — DEPLOY PENDING (MCP deploy was declined mid-session):**
+- **`delete-account` was broken for every user** — it deleted the dropped v1
+  tables (`messages`/`debriefs`), so the first delete threw and the function 500'd
+  before ever calling `deleteUser`. In-app deletion (an Apple requirement) never
+  worked. Fixed to the v3 schema + auth-user cascade. **Redeploy `delete-account`.**
+- **PHI backstop in `debrief-turn`** — added a deterministic `scrubPHI` pass that
+  strips structured identifiers (room/bed/MRN/unit numbers, 4+ digit runs) from
+  win/weight/lesson before they're returned, so guardrail no longer depends on the
+  model alone. **Redeploy `debrief-turn`.**
+- Deploy both: `supabase functions deploy delete-account debrief-turn` (or via the
+  Supabase MCP). Until then, live `delete-account` is still the broken version.
+
+**Live data — added:**
+- Supabase Realtime subscription on the user's own `shifts` + offline-queue sync
+  emitter (`lib/live.ts`, `lib/queue.ts::onShiftsSynced`), mounted in the tab
+  shell. Home/Logbook/Insights now update live across devices and when a
+  dead-zone-queued shift finally syncs (previously one-shot fetches only).
+
+**Cleanup:**
+- Deleted dead edge functions `supabase/functions/debrief` + `extract` (v1 schema,
+  never called by the client). They are still DEPLOYED on the project — remove them
+  from the Supabase dashboard (no MCP delete tool).
+
+**Still open (documented, not yet built):**
+- **No per-user rate limiting / daily budget on the AI + TTS edge functions**
+  (`debrief-turn`, `daily-line`, `month-caption`, `speak`). A single authed account
+  can run up unbounded Anthropic/ElevenLabs spend. Plan: a `usage_counters` table
+  keyed (user_id, day) incremented per call, with a soft daily cap returning 429;
+  the 12-turn-per-debrief cap already bounds one session. Build before public launch.
+- **`ELEVENLABS_API_KEY` still unset** → TTS returns 503, client degrades to
+  captions silently. Set the secret to enable voice-out; nothing else to build.
+- **Insights pay-position band is regional market context, not her data** (markers
+  wear `~` + a disclaimer; CCRN hours ARE real). Needs a real pay dataset
+  (BLS/market API keyed on specialty+city) before the numbers mean anything.
+- **Self prompt-injection (low):** profile `display_name`/`specialty` and client
+  `taps.tags` are interpolated into edge-function system prompts. User-scoped only
+  (can't affect another user), but lets a user steer their own partner's guardrails.
+  Pass as message content or delimit before splicing.
+- **`speak` takes the caption via GET `?text=`** (log-prone). The text is the
+  partner's reply (not PHI); low. Function already supports POST — switch when the
+  audio player can POST a streamed source.
+
 ## Deep Ward re-skin (2026-07-17)
 - **Device §8 verification pending** — the whole Deep Ward re-skin (petrol/amber,
   Bricolage, caged lantern, 4-tab nav, one-question debrief, wrapped welcome +

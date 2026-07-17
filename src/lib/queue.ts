@@ -13,6 +13,23 @@ const KEY = 'unwindrn_shift_queue_v1';
 
 type QueuedShift = { clientId: string; payload: TablesInsert<'shifts'> };
 
+// Subscribers (the query layer) are told when stranded rows finally reach
+// Supabase, so a shift saved in a dead zone shows up the moment it syncs.
+const flushListeners = new Set<() => void>();
+export function onShiftsSynced(cb: () => void): () => void {
+  flushListeners.add(cb);
+  return () => flushListeners.delete(cb);
+}
+function emitSynced() {
+  for (const cb of flushListeners) {
+    try {
+      cb();
+    } catch {
+      // a bad listener must never break the flush
+    }
+  }
+}
+
 async function readQueue(): Promise<QueuedShift[]> {
   try {
     const raw = await AsyncStorage.getItem(KEY);
@@ -71,6 +88,7 @@ export async function flushShiftQueue(): Promise<number> {
     }
   }
   await writeQueue(remaining);
+  if (flushed > 0) emitSynced();
   return flushed;
 }
 

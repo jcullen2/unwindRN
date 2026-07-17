@@ -12,6 +12,8 @@ export type RecordDraft = {
   lesson: string;
   tags?: string[];
   is_night?: boolean;
+  started_at?: string | null;
+  ended_at?: string | null;
   source?: 'taps' | 'voice' | 'both';
 };
 

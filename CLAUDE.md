@@ -137,11 +137,22 @@ bucket API is a no-op shim). Prototype (`Design_optimization_needed.zip` →
 - Schema applied + RLS on everything (`(select auth.uid())` form); security advisor: 0 findings.
   Tables: profiles · shifts · debrief_sessions · daily_lines · month_captions.
 - Edge functions LIVE: `debrief-turn` (SSE sonnet + parallel haiku utility; system
-  prompt ONLY in its system-prompt.md; 12-turn cap; ~8k-token truncation),
-  `speak` (ElevenLabs proxy, 503 → client degrades to text silently),
+  prompt ONLY in its system-prompt.md; 12-turn cap; ~8k-token truncation; now with
+  a deterministic PHI `scrubPHI` backstop on win/weight/lesson — **local fix awaiting
+  redeploy**), `speak` (ElevenLabs proxy, 503 → client degrades to text silently),
   `daily-line` + `month-caption` (haiku, cached per day/month), `delete-account`
-  (service role). Legacy `debrief`/`extract` deployed but UNUSED by the client —
-  safe to delete.
+  (service role — **FIXED locally, awaiting redeploy**: the live version deletes
+  dropped v1 tables and 500s, so in-app deletion is broken until deployed). Legacy
+  `debrief`/`extract` deleted from the repo; still deployed — remove from dashboard.
+  Redeploy: `supabase functions deploy delete-account debrief-turn`.
+- Security (audit 2026-07-17): RLS on every table; no client-side AI keys; `.env`
+  gitignored. Migration `20260717000000` DROPPED `debrief_sessions.transcript`
+  (verbatim spoken PHI is never stored — transcripts stay in memory on device) and
+  added a canonical-tag check on `shifts.tags`. Open: no per-user rate limiting on
+  AI/TTS functions (DESIGN-DEBT).
+- Live data: Realtime subscription on the user's `shifts` + offline-queue sync
+  emitter (`lib/live.ts` mounted in the tab shell) keep Home/Logbook/Insights fresh
+  across devices and after a dead-zone sync.
 - Secrets: ANTHROPIC_API_KEY set. **ELEVENLABS_API_KEY not set** (TTS silent until then).
 - Client env in `.env` (untracked; template `.env.example`). Seed: `scripts/seed.sql`.
 

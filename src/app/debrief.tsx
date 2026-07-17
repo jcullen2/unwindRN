@@ -45,7 +45,7 @@ import { useAuth } from '@/lib/auth';
 import { CRISIS_COPY, LOAD_LABELS, TAGS } from '@/lib/constants';
 import { useCareerTotals, useInvalidateShiftData } from '@/lib/queries';
 import { saveShift } from '@/lib/queue';
-import { Json, supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { speak, stopSpeaking } from '@/lib/tts';
 import { ChatMessage, streamDebriefTurn, Taps, Utility } from '@/lib/turn';
 import { useVoiceTurn } from '@/lib/voice';
@@ -129,8 +129,10 @@ export default function DebriefScreen() {
   const [stage, setStage] = useState<'taps' | 'talk'>('taps');
 
   // Stage 1 — the companion's five asks. A live clock-out hands hours + night in.
-  const params = useLocalSearchParams<{ hours?: string; night?: string }>();
+  const params = useLocalSearchParams<{ hours?: string; night?: string; startedAt?: string; endedAt?: string }>();
   const handedHours = params.hours ? Number(params.hours) : null;
+  const startedAt = params.startedAt || null;
+  const endedAt = params.endedAt || null;
   const [ds, setDs] = useState(0);
   const [hours, setHours] = useState<number | null>(
     handedHours && Number.isFinite(handedHours) && handedHours > 0 && handedHours <= 24 ? handedHours : null
@@ -205,17 +207,6 @@ export default function DebriefScreen() {
     });
   }, []);
 
-  const persistTranscript = useCallback(async (sid: string, t: ChatMessage[]) => {
-    try {
-      await supabase
-        .from('debrief_sessions')
-        .update({ transcript: t as unknown as Json })
-        .eq('id', sid);
-    } catch {
-      // best-effort; the turn continues regardless
-    }
-  }, []);
-
   const sendTurn = useCallback(
     async (text: string) => {
       const turn = text.trim();
@@ -239,7 +230,10 @@ export default function DebriefScreen() {
         setTranscript(withUser);
         setAwaiting(true);
         setPartial('');
-        persistTranscript(sid!, withUser);
+        // PHI guardrail: the raw spoken transcript (which could contain a
+        // patient name/room/MRN) is NEVER written to the database. It lives
+        // only in memory for the length of this debrief. Only the haiku-
+        // extracted, identifier-stripped win/weight/lesson is persisted.
 
         const t0 = Date.now();
         let first = 0;
@@ -268,7 +262,6 @@ export default function DebriefScreen() {
         setTranscript(withReply);
         setPartial('');
         if (hitCap) setCapped(true);
-        persistTranscript(sid!, withReply);
         if (!quietMode) speak(reply);
       } catch {
         setPartial('');
@@ -279,7 +272,7 @@ export default function DebriefScreen() {
         sendingRef.current = false;
       }
     },
-    [userId, sessionId, quietMode, taps, mergeUtility, persistTranscript]
+    [userId, sessionId, quietMode, taps, mergeUtility]
   );
 
   const voice = useVoiceTurn(sendTurn);
@@ -306,6 +299,8 @@ export default function DebriefScreen() {
       tags,
       is_night: isNight,
       win: note.trim() || null,
+      started_at: startedAt,
+      ended_at: endedAt,
       source: 'taps',
     });
     if (synced) await invalidate();
@@ -330,6 +325,8 @@ export default function DebriefScreen() {
       lesson: f.lesson ?? '',
       tags: [...new Set([...tags, ...f.tags])],
       is_night: isNight,
+      started_at: startedAt,
+      ended_at: endedAt,
       source: 'both',
     };
     stopSpeaking();

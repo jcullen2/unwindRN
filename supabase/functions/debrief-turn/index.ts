@@ -33,6 +33,31 @@ const EMPTY_UTILITY: Utility = {
   win: null, weight: null, lesson: null,
 };
 
+/**
+ * Deterministic PHI backstop (CLAUDE.md law). The haiku prompt is instructed to
+ * strip identifiers, but the model is not trusted as the only line of defense:
+ * this strips structured identifiers (room/bed/MRN/unit numbers, long digit
+ * runs) from the extracted fields before they can be persisted. Names are left
+ * to the prompt — a name regex can't run without unacceptable false positives —
+ * but structured identifiers are exactly what a regex catches reliably.
+ */
+function scrubPHI(text: string | null): string | null {
+  if (!text) return text;
+  let out = text
+    // room 12 / rm 4B / bed 3 / MRN 00482 / med record 12345 / unit 7
+    .replace(/\b(?:room|rm|bed|mrn|medical\s+record(?:\s+number)?|unit)\s*#?\s*[\w-]+/gi, '')
+    // bare 4+ digit runs (MRNs, account numbers)
+    .replace(/\b\d{4,}\b/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([.,;:])/g, '$1')
+    .trim();
+  return out.length ? out : null;
+}
+
+function scrubUtility(u: Utility): Utility {
+  return { ...u, win: scrubPHI(u.win), weight: scrubPHI(u.weight), lesson: scrubPHI(u.lesson) };
+}
+
 const UTILITY_JSON_SCHEMA = {
   type: 'object',
   properties: {
@@ -82,7 +107,7 @@ async function runUtility(anthropic: Anthropic, userTurn: string, priorPartnerLi
     });
     const block = response.content.find((b) => b.type === 'text');
     if (!block || block.type !== 'text') return EMPTY_UTILITY;
-    return utilitySchema.parse(JSON.parse(block.text));
+    return scrubUtility(utilitySchema.parse(JSON.parse(block.text)));
   } catch (err) {
     console.error('utility call failed', err);
     return EMPTY_UTILITY;

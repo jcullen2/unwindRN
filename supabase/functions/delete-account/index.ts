@@ -24,21 +24,29 @@ Deno.serve(async (req: Request) => {
     } = await caller.auth.getUser();
     if (!user) return json({ error: 'unauthorized' }, 401);
 
-    // Service role for the actual wipe. Delete order respects FKs; deleting
-    // the auth user last cascades anything missed.
+    // Service role for the actual wipe. Every table FKs auth.users ON DELETE
+    // CASCADE, so deleting the auth user removes all rows atomically — that is
+    // the source of truth for a full wipe. We also delete the known rows first
+    // as belt-and-suspenders (and so a deleteUser hiccup can't strand data),
+    // using the REAL v3 schema: shifts · debrief_sessions · daily_lines ·
+    // month_captions · profiles. (The old messages/debriefs tables were dropped
+    // in the v3 rebuild — deleting them here is what silently broke deletion.)
     const admin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const tables = ['messages', 'shifts', 'debriefs'] as const;
-    for (const table of tables) {
+    // Order respects FKs (debrief_sessions references shifts). Missing rows are
+    // a no-op; a truly missing table would error, so we only name real ones.
+    const byUser = ['debrief_sessions', 'shifts', 'daily_lines', 'month_captions'] as const;
+    for (const table of byUser) {
       const { error } = await admin.from(table).delete().eq('user_id', user.id);
       if (error) throw error;
     }
     const { error: profileError } = await admin.from('profiles').delete().eq('id', user.id);
     if (profileError) throw profileError;
 
+    // Final authority: delete the auth user; cascade sweeps anything missed.
     const { error: authError } = await admin.auth.admin.deleteUser(user.id);
     if (authError) throw authError;
 

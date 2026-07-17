@@ -171,6 +171,8 @@ export default function RecordScreen() {
       win: win.trim() || null,
       weight: weight.trim() || null,
       lesson: lesson.trim() || null,
+      started_at: initial.started_at ?? null,
+      ended_at: initial.ended_at ?? null,
       source: initial.source ?? (fromDebrief ? 'voice' : 'taps'),
     });
 

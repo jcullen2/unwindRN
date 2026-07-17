@@ -7,7 +7,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LanternGlyph } from '@/brand';
-import { Glass, Lockup, T } from '@/components/kit';
+import { Glass, Lockup, Rise, T } from '@/components/kit';
 import { Sky } from '@/components/sky';
 import { localToday } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -109,10 +109,19 @@ export default function HomeScreen() {
 
   const clockOutToDebrief = () => {
     const started = active.startedAt ? new Date(active.startedAt) : null;
+    const endedIso = new Date().toISOString();
     const hours = Math.max(0.5, Math.round(active.elapsed * 2) / 2);
     const night = started ? started.getHours() >= 17 || started.getHours() < 5 : false;
     active.clockOut();
-    router.push({ pathname: '/debrief', params: { hours: String(hours), night: night ? '1' : '0' } });
+    router.push({
+      pathname: '/debrief',
+      params: {
+        hours: String(hours),
+        night: night ? '1' : '0',
+        startedAt: active.startedAt ?? '',
+        endedAt: endedIso,
+      },
+    });
   };
 
   return (
@@ -123,16 +132,16 @@ export default function HomeScreen() {
           <T style={{ fontSize: 11, color: palette.moss }}>{format(now, 'EEE · MMM d')}</T>
         </View>
 
-        <T v="greeting" style={{ marginTop: space(5.5) }}>
-          {greeting(profile?.display_name)}
-        </T>
-        <T v="secondary" style={{ marginTop: 4 }}>
-          {active.startedAt
-            ? 'Still on the floor. The record waits for you.'
-            : todayShift
-              ? "Tonight's already in the book."
-              : 'The record is ready when you are.'}
-        </T>
+        <Rise style={{ marginTop: space(5.5) }}>
+          <T v="greeting">{greeting(profile?.display_name)}</T>
+          <T v="secondary" style={{ marginTop: 4 }}>
+            {active.startedAt
+              ? 'Still on the floor. The record waits for you.'
+              : todayShift
+                ? "Tonight's already in the book."
+                : 'The record is ready when you are.'}
+          </T>
+        </Rise>
 
         {/* Primary card: on-shift ⇄ next / clock-in */}
         {active.startedAt ? (
