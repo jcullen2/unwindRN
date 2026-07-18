@@ -2,6 +2,15 @@
 
 Debt logged per CLAUDE.md workflow. Newest first.
 
+## Pre-launch checklist item (2026-07-17)
+- **Anonymous sign-ins are enabled for dev demo mode** (sign-in screen,
+  __DEV__-only entry). Per-user RLS fully isolates anonymous users (no shared
+  tables in v1), and per-user daily AI caps apply — but an anonymous user does
+  consume AI budget. Before public launch either (a) disable "Allow anonymous
+  sign-ins" in the Supabase dashboard, or (b) add a reduced daily cap for
+  `is_anonymous` users inside the AI edge functions. Option (a) costs nothing:
+  the demo entry doesn't exist in release builds.
+
 ## QA sweep — real-build hardening (2026-07-17)
 Full architecture/security/scalability audit (two parallel review agents). Fixed
 in code; deploy state noted. The AI integration was verified REAL and correct —
