@@ -141,3 +141,10 @@ fallbacks. No mocks in the AI path.
 - **Whitelist deviation (pre-existing):** @tanstack/react-query and date-fns
   are in use from v1 and are not on the v3 whitelist. Flagged rather than
   ripped out mid-rebrand; decide keep-or-replace.
+
+## Dev demo door (2026-07-17) — REMOVE BEFORE LAUNCH
+- **`demo-login` edge function is live with verify_jwt=false** (deliberately —
+  it must be callable pre-auth). It mints throwaway `@demo.unwindrn.app` users
+  (RLS-isolated, swept after 24h) so simulator demos need zero dashboard
+  config. Before public launch: delete the function from the dashboard (client
+  demo entry is already __DEV__-only, so release builds never call it).

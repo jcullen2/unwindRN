@@ -64,21 +64,27 @@ export default function SignInScreen() {
     }
   };
 
-  // Dev-only demo entry: a REAL anonymous Supabase session (real rows, real
-  // RLS, real AI pipeline) with no Apple ID — simulators can't do Apple auth
-  // reliably (ASAuthorizationError 1000). Never rendered in release builds.
+  // Dev-only demo entry: a REAL Supabase session (real rows, real RLS, real
+  // AI pipeline) with no Apple ID — simulators can't do Apple auth reliably
+  // (ASAuthorizationError 1000). Tries anonymous sign-in first; if that's not
+  // enabled, falls back to the demo-login function, which mints a throwaway
+  // demo user + one-time token with zero dashboard config. Dev builds only.
   const demoIn = async () => {
     if (busy) return;
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInAnonymously();
-      if (error) throw error;
+      const anon = await supabase.auth.signInAnonymously();
+      if (!anon.error) return;
+      const { data, error } = await supabase.functions.invoke('demo-login', { body: {} });
+      if (error || !data?.token_hash) throw error ?? new Error('demo-login unavailable');
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        token_hash: data.token_hash,
+        type: 'email',
+      });
+      if (verifyError) throw verifyError;
     } catch (e: unknown) {
       const detail = e instanceof Error ? e.message : String(e);
-      Alert.alert(
-        "Demo mode couldn't start",
-        `The server said: "${detail}"\n\nIf it mentions anonymous sign-ins being disabled: Supabase dashboard → Authentication → Sign In / Up → enable "Allow anonymous sign-ins" → Save.`
-      );
+      Alert.alert("Demo mode couldn't start", `The server said: "${detail}"`);
     } finally {
       setBusy(false);
     }
