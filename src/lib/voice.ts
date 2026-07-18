@@ -3,12 +3,29 @@
  * text goes to the server). Wraps expo-speech-recognition with availability
  * detection so the debrief degrades to quiet-mode text wherever the native
  * module or on-device recognition isn't available.
+ *
+ * The native module is loaded DEFENSIVELY: expo-speech-recognition calls
+ * requireNativeModule at import time, so on a binary that doesn't contain the
+ * pod (Expo Go, a build made before pod install ran) a plain import crashes
+ * the whole app at startup. Here that failure is caught and simply means
+ * available=false — the debrief opens in quiet mode instead of red-screening.
  */
-import {
-  ExpoSpeechRecognitionModule,
-  useSpeechRecognitionEvent,
-} from 'expo-speech-recognition';
 import { useCallback, useEffect, useRef, useState } from 'react';
+
+type SpeechModule = typeof import('expo-speech-recognition');
+
+let speech: SpeechModule | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  speech = require('expo-speech-recognition') as SpeechModule;
+} catch {
+  speech = null; // native module absent — quiet mode only
+}
+
+// Fixed at module load, so hook order is stable across renders.
+const useSpeechEvent: SpeechModule['useSpeechRecognitionEvent'] = speech
+  ? speech.useSpeechRecognitionEvent
+  : ((() => {}) as SpeechModule['useSpeechRecognitionEvent']);
 
 const SILENCE_MS = 1200; // end-of-turn on ~1.2s silence
 
@@ -22,9 +39,13 @@ export function useVoiceTurn(onFinal: (text: string) => void) {
   onFinalRef.current = onFinal;
 
   useEffect(() => {
+    if (!speech) {
+      setAvailable(false);
+      return;
+    }
     try {
       // Sync in current versions; wrap so an async variant also works.
-      Promise.resolve(ExpoSpeechRecognitionModule.isRecognitionAvailable()).then(
+      Promise.resolve(speech.ExpoSpeechRecognitionModule.isRecognitionAvailable()).then(
         (ok) => setAvailable(!!ok),
         () => setAvailable(false)
       );
@@ -41,7 +62,7 @@ export function useVoiceTurn(onFinal: (text: string) => void) {
     setInterim('');
     setListening(false);
     try {
-      ExpoSpeechRecognitionModule.stop();
+      speech?.ExpoSpeechRecognitionModule.stop();
     } catch {
       // already stopped
     }
@@ -53,27 +74,28 @@ export function useVoiceTurn(onFinal: (text: string) => void) {
     silenceTimer.current = setTimeout(finishTurn, SILENCE_MS);
   }, [finishTurn]);
 
-  useSpeechRecognitionEvent('result', (event) => {
+  useSpeechEvent('result', (event) => {
     const text = event.results?.[0]?.transcript ?? '';
     interimRef.current = text;
     setInterim(text);
     armSilenceTimer();
   });
-  useSpeechRecognitionEvent('end', () => {
+  useSpeechEvent('end', () => {
     if (interimRef.current.trim()) finishTurn();
     else setListening(false);
   });
-  useSpeechRecognitionEvent('error', () => {
+  useSpeechEvent('error', () => {
     setListening(false);
     setInterim('');
     interimRef.current = '';
   });
 
   const start = useCallback(async () => {
+    if (!speech) return false;
     try {
-      const perms = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      const perms = await speech.ExpoSpeechRecognitionModule.requestPermissionsAsync();
       if (!perms.granted) return false;
-      ExpoSpeechRecognitionModule.start({
+      speech.ExpoSpeechRecognitionModule.start({
         lang: 'en-US',
         interimResults: true,
         continuous: true,
@@ -95,7 +117,7 @@ export function useVoiceTurn(onFinal: (text: string) => void) {
     () => () => {
       if (silenceTimer.current) clearTimeout(silenceTimer.current);
       try {
-        ExpoSpeechRecognitionModule.abort();
+        speech?.ExpoSpeechRecognitionModule.abort();
       } catch {
         // not running
       }
