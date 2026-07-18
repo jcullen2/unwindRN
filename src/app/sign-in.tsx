@@ -64,6 +64,25 @@ export default function SignInScreen() {
     }
   };
 
+  // Dev-only demo entry: a REAL anonymous Supabase session (real rows, real
+  // RLS, real AI pipeline) with no Apple ID — simulators can't do Apple auth
+  // reliably (ASAuthorizationError 1000). Never rendered in release builds.
+  const demoIn = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.signInAnonymously();
+      if (error) throw error;
+    } catch {
+      Alert.alert(
+        'Demo mode needs one switch',
+        'In the Supabase dashboard: Authentication → Sign In / Providers → enable "Allow anonymous sign-ins", then tap this again.'
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <Sky>
       <View style={[styles.wrap, { paddingTop: insets.top, paddingBottom: insets.bottom + space(9) }]}>
@@ -87,6 +106,13 @@ export default function SignInScreen() {
             I already have a record
           </T>
         </Glass>
+        {__DEV__ && (
+          <Pressable accessibilityRole="button" onPress={demoIn} disabled={busy} style={styles.demo} hitSlop={8}>
+            <T v="caption" style={{ color: palette.moss, textAlign: 'center' }}>
+              Demo mode — explore without an account
+            </T>
+          </Pressable>
+        )}
 
         <T v="whisper" style={styles.footer}>
           Not therapy or medical care.{'\n'}In crisis, call or text 988.
@@ -102,5 +128,6 @@ const styles = StyleSheet.create({
   rn: { fontFamily: 'Bricolage-SemiBold', fontSize: 14, color: palette.amber, position: 'relative', top: -12 },
   apple: { height: 52, width: '100%', marginTop: space(12) },
   already: { width: '100%', paddingVertical: space(3.25), marginTop: space(2.5) },
+  demo: { paddingVertical: space(3), paddingHorizontal: space(4) },
   footer: { position: 'absolute', bottom: space(4), textAlign: 'center' },
 });
