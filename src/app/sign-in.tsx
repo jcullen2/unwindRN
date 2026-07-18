@@ -73,10 +73,11 @@ export default function SignInScreen() {
     try {
       const { error } = await supabase.auth.signInAnonymously();
       if (error) throw error;
-    } catch {
+    } catch (e: unknown) {
+      const detail = e instanceof Error ? e.message : String(e);
       Alert.alert(
-        'Demo mode needs one switch',
-        'In the Supabase dashboard: Authentication → Sign In / Providers → enable "Allow anonymous sign-ins", then tap this again.'
+        "Demo mode couldn't start",
+        `The server said: "${detail}"\n\nIf it mentions anonymous sign-ins being disabled: Supabase dashboard → Authentication → Sign In / Up → enable "Allow anonymous sign-ins" → Save.`
       );
     } finally {
       setBusy(false);
