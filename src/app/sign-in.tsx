@@ -110,6 +110,16 @@ export default function SignInScreen() {
     }
   };
 
+  // __DEV__ builds only (stripped from release): anonymous session so the
+  // simulator can exercise the app without Apple/email plumbing.
+  const devBypass = async () => {
+    if (busy) return;
+    setBusy(true);
+    const { error } = await supabase.auth.signInAnonymously();
+    setBusy(false);
+    if (error) Alert.alert('Bypass failed', error.message);
+  };
+
   return (
     <Sky>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -176,6 +186,14 @@ export default function SignInScreen() {
             />
           </>
         )}
+        {__DEV__ && (
+          <Pressable accessibilityRole="button" onPress={devBypass} disabled={busy} style={styles.demo} hitSlop={8}>
+            <T v="caption" style={{ color: ink.dim, textAlign: 'center' }}>
+              Dev bypass
+            </T>
+          </Pressable>
+        )}
+
         <T v="whisper" style={styles.footer}>
           Not therapy or medical care.{'\n'}In crisis, call or text 988.
         </T>
