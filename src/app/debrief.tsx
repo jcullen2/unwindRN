@@ -506,6 +506,8 @@ export default function DebriefScreen() {
                       placeholderTextColor={ink.faint}
                       keyboardAppearance="dark"
                       style={styles.noteInput}
+                      multiline
+                      maxLength={200}
                     />
                   </View>
                   <FlameButton title="That's the shift — keep it" onPress={keepIt} loading={savingTaps} style={{ marginTop: space(5.5) }} />

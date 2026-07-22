@@ -11,6 +11,7 @@ import {
   GestureResponderEvent,
   LayoutChangeEvent,
   PanResponder,
+  PixelRatio,
   StyleSheet,
   View,
 } from 'react-native';
@@ -116,9 +117,16 @@ export function Heatfield({ year, month, shifts, onOpenDay }: Props) {
     })
   ).current;
 
+  // Exact device-pixel cell width. Seven cells at `100/7%` can round a hair
+  // past 100% at some container widths, wrapping the 7th cell — the grid then
+  // flows 6-wide and every week drifts off its weekday column.
+  const [cellW, setCellW] = useState(0);
   const onLayout = (e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width;
-    gridSize.current = { w, cell: w / 7 };
+    const px = PixelRatio.get();
+    const cell = Math.floor((w / 7) * px) / px;
+    gridSize.current = { w, cell };
+    setCellW(cell);
   };
 
   const scrubShift = scrub ? byDate.get(scrub) : undefined;
@@ -151,13 +159,14 @@ export function Heatfield({ year, month, shifts, onOpenDay }: Props) {
 
       <View onLayout={onLayout} {...pan.panHandlers} style={styles.grid}>
         {cells.map((date, i) => {
-          if (!date) return <View key={`pad-${i}`} style={styles.cell} />;
+          const sized = cellW > 0 ? { width: cellW } : null;
+          if (!date) return <View key={`pad-${i}`} style={[styles.cell, sized]} />;
           const shift = byDate.get(date);
           const isToday = date === today;
           const on = shift && litSet.has(date);
           const step = shift?.load != null ? shift.load - 1 : 0;
           return (
-            <View key={date} style={styles.cell}>
+            <View key={date} style={[styles.cell, sized]}>
               <View
                 accessible
                 accessibilityLabel={
