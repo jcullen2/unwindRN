@@ -74,20 +74,31 @@ export default function OnboardingScreen() {
   };
 
   const skip = async () => {
+    if (!session) return;
     setSaving(true);
-    if (await write(true)) await refreshProfile();
+    // ON CONFLICT DO NOTHING: skipping must never wipe a profile that a
+    // completed onboarding already wrote on this account.
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: session.user.id, usual_shift_hours: usualHours }, { ignoreDuplicates: true });
+    if (error) Alert.alert("Couldn't save that", 'Give it another try.');
+    else await refreshProfile();
     setSaving(false);
   };
 
   const lightIt = async () => {
     setSaving(true);
     const ok = await write(false);
-    setSaving(false);
-    if (ok)
+    if (ok) {
+      // The /welcome route sits behind the `authed` guard, which reads the
+      // context profile — refresh it first or the replace gets swallowed.
+      await refreshProfile();
       router.replace({
         pathname: '/welcome',
         params: { est: String(estShifts), hospital: hospital.trim(), years: String(years ?? 0) },
       });
+    }
+    setSaving(false);
   };
 
   const Dots = () => (
