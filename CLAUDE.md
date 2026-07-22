@@ -186,7 +186,10 @@ Local repo `~/Desktop/unwindRN/app` (main) · tsc clean · all committed (no rem
   contact email, URL) need John; host before the production build (EXPO_PUBLIC
   vars bake in). Anonymous sign-ins still ON for the dev bypass — disable at
   launch.
-- **Public site (web/):** unwindrn.com — static landing + /privacy + /terms,
+- **Public site (web/): LIVE at https://unwindrn.com with HTTPS**
+  (2026-07-22) — DNS cut over from Squarespace parking: apex A 75.2.60.5 +
+  www CNAME unwindrn.netlify.app (ALIAS impossible: zone has DNSSEC, kept).
+  Google Workspace MX + Resend records untouched. Static landing + /privacy + /terms,
   Netlify project `unwindrn` (site id 28195d7d-463d-40a6-b94f-defc4e1be650,
   team john-zrlyibo). Deploy: the Netlify MCP `deploy-site` CLI command 404s
   (its proxy URL gets a double slash); instead request the deploy command via
