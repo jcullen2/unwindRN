@@ -159,11 +159,15 @@ Local repo `~/Desktop/unwindRN/app` (main) · tsc clean · all committed (no rem
   Settings pointer). Onboarding now asks for first name (was never captured —
   partner always said "there") and persists hospital/city/unit/shift_pattern
   (migration `20260722000000`; unit chips were dead, now selectable).
-  ⚠️ AUTH BLOCKER (confirmed in dashboard 2026-07-22): the "Magic link or OTP"
-  template is the Supabase default — link only, NO `{{ .Token }}` — and
-  templates are read-only until custom SMTP is configured. The six-digit
-  sign-in cannot work on-device until John picks an SMTP provider (Resend
-  recommended) and the template is edited. Dev bypass covers simulator work.
+  ✅ EMAIL DELIVERY LIVE (2026-07-22, verified end-to-end): custom SMTP via
+  Resend — domain `unwindrn.com` verified (DKIM/SPF/DMARC in Squarespace DNS;
+  receiving stays OFF — Google Workspace owns the root MX for john@), sender
+  `hello@unwindrn.com`, host smtp.resend.com:465. "Magic link or OTP" template
+  rewritten: subject "Your unwindRN code", body carries `{{ .Token }}` only
+  (no link). Email OTP length changed 8 → 6 to match the app's input and copy.
+  Proven live: /otp → Resend → inbox → /verify issued a real session.
+  Rate limit: 30 emails/hr default with custom SMTP (raise in dashboard
+  before wide beta if needed).
 - **Apple plumbing DONE 2026-07-22:** `com.unwindrn.app` registered in the
   developer portal (explicit, Sign in with Apple capability); App Store
   Connect record created ("unwindRN", iOS, en-US, SKU `unwindrn-001`); ASC
