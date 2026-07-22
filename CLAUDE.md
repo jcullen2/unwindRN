@@ -146,11 +146,28 @@ Local repo `~/Desktop/unwindRN/app` (main) · tsc clean · all committed (no rem
   edit, before deploying. Live v6 verified end-to-end: SSE deltas stream, the
   utility event extracts (tags/hours/win, PHI-free), and crisis:true fires on a
   test phrase. The partner replies.
-- Email auth: Supabase email provider works; **email confirmation ON** (signUp
-  returns no session until the link is clicked). Phone auth needs Twilio.
-- IN PROGRESS: full auth + onboarding revamp (create-account/login split; email
-  OTP, phone, Apple; contextual iOS permission priming; richer data capture) —
-  research phase; resources studied: Apphud onboarding examples, IxDF login-screen.
+- **DONE 2026-07-22: auth + onboarding revamp (sim-verified end-to-end).**
+  Sign-in is now an explicit create-account/log-in split, passwordless: email →
+  six-digit OTP (`signInWithOtp` + `verifyOtp type:'email'`; log-in path sends
+  `shouldCreateUser:false` so a typo'd email can never quietly create an
+  account — the error renders "No record under this email yet" + "Start one
+  instead"). Apple stays as the secondary door (working code path; needs
+  Phase-C bundle-ID + provider config). Password flow removed. Phone OTP
+  DEFERRED to post-beta (needs Twilio). Contextual mic priming: the debrief's
+  talk button now shows a card stating the on-device promise BEFORE the iOS
+  mic/speech dialogs fire (grant → auto-starts listening; deny → quiet mode +
+  Settings pointer). Onboarding now asks for first name (was never captured —
+  partner always said "there") and persists hospital/city/unit/shift_pattern
+  (migration `20260722000000`; unit chips were dead, now selectable).
+  ⚠️ BETA GATE: Supabase built-in SMTP is dev-only (rate-limited ~2 emails/hr,
+  team-member recipients only) AND the "Magic Link" email template must include
+  `{{ .Token }}` or users get a link instead of the six-digit code — configure
+  custom SMTP + template in the dashboard before TestFlight.
+- ⚠️ LANDMINE (reanimated 4.5 + React Compiler): `entering={FadeIn}` on a view
+  that mounts WITH the screen renders it at opacity 0 — permanently invisible
+  (sign-in landing pane bug, 2026-07-22). Views that mount on later state
+  changes (onboarding beats, debrief prime card) animate fine. Rule: no
+  `entering` animations on first-render content of a screen.
 
 **Brand is now "DEEP WARD" — the visual law lives in code, DESIGN.md §1–§5 is
 archival.** Petrol-green night (`#090F0E`) + amber accent (`#FFB65C`/`#FFC97E`);
