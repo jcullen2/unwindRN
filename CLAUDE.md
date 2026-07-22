@@ -177,7 +177,7 @@ Local repo `~/Desktop/unwindRN/app` (main) · tsc clean · all committed (no rem
   month-caption). **Account deletion verified end-to-end** against production:
   throwaway user with profile+shift rows → delete-account → `{"deleted":true}`,
   auth user + all rows confirmed gone via SQL (Apple requirement met).
-  Privacy policy + ToS DRFTS at docs/legal/ — placeholders (entity, state,
+  Privacy policy + ToS DRAFTS at docs/legal/ — placeholders (entity, state,
   contact email, URL) need John; host before the production build (EXPO_PUBLIC
   vars bake in). Anonymous sign-ins still ON for the dev bypass — disable at
   launch.
