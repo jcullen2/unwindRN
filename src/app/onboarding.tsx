@@ -42,6 +42,7 @@ export default function OnboardingScreen() {
   const [beat, setBeat] = useState(0);
   const [name, setName] = useState('');
   const [specialty, setSpecialty] = useState<string | null>(null);
+  const [unit, setUnit] = useState<string | null>(null);
   const [hospital, setHospital] = useState('');
   const [city, setCity] = useState('');
   const [years, setYears] = useState<number | null>(null);
@@ -65,6 +66,10 @@ export default function OnboardingScreen() {
       usual_shift_hours: usualHours,
       est_career_shifts: skipped ? 0 : estShifts,
       est_career_hours: skipped ? 0 : estHours,
+      hospital: skipped ? null : hospital.trim() || null,
+      city: skipped ? null : city.trim() || null,
+      unit: skipped ? null : (unit === 'None' ? null : unit),
+      shift_pattern: skipped ? null : pattern,
     });
     if (error) {
       Alert.alert("Couldn't save that", 'Give it another try.');
@@ -193,6 +198,22 @@ export default function OnboardingScreen() {
               <T v="title">Where do you practice?</T>
               <View style={styles.dash} />
               <T v="overline" style={styles.label}>
+                First name
+              </T>
+              <GlassField>
+                <TextInput
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="What the partner calls you"
+                  placeholderTextColor={ink.faint}
+                  keyboardAppearance="dark"
+                  autoCapitalize="words"
+                  autoComplete="given-name"
+                  textContentType="givenName"
+                  style={styles.input}
+                />
+              </GlassField>
+              <T v="overline" style={styles.label}>
                 Specialty
               </T>
               <View style={styles.chips}>
@@ -205,7 +226,7 @@ export default function OnboardingScreen() {
               </T>
               <View style={styles.chips}>
                 {UNITS.map((u) => (
-                  <Chip key={u} label={u} />
+                  <Chip key={u} label={u} selected={unit === u} onPress={() => setUnit(u)} />
                 ))}
               </View>
               <T v="overline" style={styles.label}>

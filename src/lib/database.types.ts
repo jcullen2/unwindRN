@@ -22,6 +22,10 @@ export type Database = {
           usual_shift_hours: number | null
           est_career_shifts: number | null
           est_career_hours: number | null
+          hospital: string | null
+          city: string | null
+          unit: string | null
+          shift_pattern: string | null
           created_at: string | null
         }
         Insert: {
@@ -33,6 +37,10 @@ export type Database = {
           usual_shift_hours?: number | null
           est_career_shifts?: number | null
           est_career_hours?: number | null
+          hospital?: string | null
+          city?: string | null
+          unit?: string | null
+          shift_pattern?: string | null
           created_at?: string | null
         }
         Update: {
@@ -44,6 +52,10 @@ export type Database = {
           usual_shift_hours?: number | null
           est_career_shifts?: number | null
           est_career_hours?: number | null
+          hospital?: string | null
+          city?: string | null
+          unit?: string | null
+          shift_pattern?: string | null
           created_at?: string | null
         }
         Relationships: []
