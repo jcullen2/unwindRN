@@ -3,10 +3,13 @@
 // streams the partner's reply (SSE `delta` events) from claude-sonnet-4-6 and,
 // in parallel, fires claude-haiku-4-5-20251001 with a strict JSON schema
 // (SSE `utility` event): {crisis, tags_detected, hours_mentioned, win, weight,
-// lesson}. The system prompt lives ONLY in ./system-prompt.md.
+// lesson}. The system prompt lives ONLY in ./system-prompt.md, compiled into
+// ./system-prompt.ts by scripts/gen-system-prompt.sh — eszip deploys bundle
+// only the import graph, so a runtime readTextFile of the .md 500s in prod.
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { z } from 'npm:zod@3';
+import { SYSTEM_PROMPT_TEMPLATE } from './system-prompt.ts';
 
 const CONVERSATION_MODEL = 'claude-sonnet-4-6';
 const UTILITY_MODEL = 'claude-haiku-4-5-20251001';
@@ -163,8 +166,7 @@ Deno.serve(async (req: Request) => {
     ]);
     if (!profile) return json({ error: 'profile_required' }, 400);
 
-    const template = await Deno.readTextFile(new URL('./system-prompt.md', import.meta.url));
-    const system = template
+    const system = SYSTEM_PROMPT_TEMPLATE
       .replaceAll('{display_name}', profile.display_name ?? 'there')
       .replaceAll('{specialty}', profile.specialty ?? 'nursing')
       .replaceAll('{years_in}', String(profile.years_in ?? 0))

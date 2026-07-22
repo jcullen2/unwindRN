@@ -137,10 +137,15 @@ Local repo `~/Desktop/unwindRN/app` (main) · tsc clean · all committed (no rem
   or quiet signUp, one Continue). DEMO MODE REMOVED (client + repo + server
   endpoint retired 410; a __DEV__-only anonymous "Dev bypass" link remains, and
   anonymous sign-ins are still ON in the dashboard for it).
-- debrief-turn redeployed v3 WITH system-prompt.md (was missing from the deploy
-  bundle — guaranteed 500) + bump_usage rate limiting. **STILL 500s — root cause
-  open**; error-detail debug variant prepared but not deployed. ANTHROPIC_API_KEY
-  confirmed set (108 chars). This is the top blocker: the partner cannot reply.
+- **FIXED 2026-07-22: debrief-turn 500 — root cause found and killed.** Eszip
+  deploys (MCP / Management API) bundle ONLY the import graph; static assets like
+  system-prompt.md are silently dropped even when uploaded, so the runtime
+  `Deno.readTextFile` threw NotFound → generic 500. The prompt now compiles to
+  `system-prompt.ts` (an imported module) via `scripts/gen-system-prompt.sh`; the
+  .md stays the editable source. RUN THE GEN SCRIPT after every system-prompt.md
+  edit, before deploying. Live v6 verified end-to-end: SSE deltas stream, the
+  utility event extracts (tags/hours/win, PHI-free), and crisis:true fires on a
+  test phrase. The partner replies.
 - Email auth: Supabase email provider works; **email confirmation ON** (signUp
   returns no session until the link is clicked). Phone auth needs Twilio.
 - IN PROGRESS: full auth + onboarding revamp (create-account/login split; email
@@ -160,10 +165,11 @@ bucket API is a no-op shim). Prototype (`Design_optimization_needed.zip` →
 **Backend — Supabase project `unwindRN-v1` (`fucstcfrpxlmqzzpfped`, us-east-1):**
 - Schema applied + RLS on everything (`(select auth.uid())` form); security advisor: 0 findings.
   Tables: profiles · shifts · debrief_sessions · daily_lines · month_captions.
-- Edge functions LIVE: `debrief-turn` (SSE sonnet + parallel haiku utility; system
-  prompt ONLY in its system-prompt.md; 12-turn cap; ~8k-token truncation; now with
-  a deterministic PHI `scrubPHI` backstop on win/weight/lesson — **local fix awaiting
-  redeploy**), `speak` (ElevenLabs proxy, 503 → client degrades to text silently),
+- Edge functions LIVE: `debrief-turn` **v6, verified working 2026-07-22** (SSE
+  sonnet + parallel haiku utility; system prompt ONLY in its system-prompt.md,
+  compiled to system-prompt.ts by `scripts/gen-system-prompt.sh` — the eszip
+  deploy drops non-module files; 12-turn cap; ~8k-token truncation; deterministic
+  PHI `scrubPHI` backstop live), `speak` (ElevenLabs proxy, 503 → client degrades to text silently),
   `daily-line` + `month-caption` (haiku, cached per day/month), `delete-account`
   (service role — **FIXED locally, awaiting redeploy**: the live version deletes
   dropped v1 tables and 500s, so in-app deletion is broken until deployed). Legacy
