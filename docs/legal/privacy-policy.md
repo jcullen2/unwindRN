@@ -1,12 +1,12 @@
 # unwindRN Privacy Policy
 
-**DRAFT for founder review — not yet published. Replace bracketed placeholders,
-then have a lawyer look it over before the production build bakes the URL in.**
+<!-- Published at https://unwindrn.com/privacy. Attorney review recommended
+     before the public (external TestFlight) beta — tracked in the plan. -->
 
-*Effective date: [DATE — set when published]*
+*Effective date: July 22, 2026*
 
 unwindRN ("the app," "we," "us") is a post-shift debrief and career logbook for
-nurses, operated by [FOUNDER / BUSINESS NAME]. This policy explains what we
+nurses, operated by unwindRN LLC (Michigan, USA). This policy explains what we
 collect, why, and what we will never do. It is written to be read — no legal
 scavenger hunt.
 
@@ -75,7 +75,7 @@ only.
 
 ## Your controls
 
-- **Export** — [feature planned; note in-app when available].
+- **Export** — coming during the beta; your records are yours to take.
 - **Deletion** — Profile → Delete account removes your auth account, profile,
   and every shift record immediately. There is no retention window and no
   backup we quietly keep.
@@ -97,8 +97,9 @@ children under 13, and we do not knowingly collect their data.
 ## Changes
 
 If this policy changes materially, we will note it in the app before the
-change takes effect. The current version always lives at [PRIVACY POLICY URL].
+change takes effect. The current version always lives at
+https://unwindrn.com/privacy.
 
 ## Contact
 
-Questions or requests: [CONTACT EMAIL]
+Questions or requests: support@unwindrn.com

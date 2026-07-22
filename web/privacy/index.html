@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — unwindRN</title>
+<meta name="description" content="unwindRN privacy policy: your voice never leaves your phone, debriefs are never stored, no ads, no tracking, delete means delete.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="/icon-256.png">
+<style>
+  :root{
+    --night:#090F0E; --ink:#EAF1EC; --ink-dim:rgba(234,241,236,.66);
+    --ink-faint:rgba(234,241,236,.38); --amber:#FFB65C;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--night); color:var(--ink);
+    font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  header{padding:28px 24px; max-width:720px; margin:0 auto}
+  header a{color:var(--ink-dim); text-decoration:none; font-size:14px}
+  header a:hover{color:var(--amber)}
+  article{max-width:720px; margin:0 auto; padding:16px 24px 80px}
+  h1{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:34px; letter-spacing:-.4px}
+  .date{color:var(--ink-faint); font-size:14px; margin:10px 0 30px}
+  h2{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:21px; margin:40px 0 12px}
+  p{color:var(--ink-dim); margin-bottom:14px}
+  p strong, li strong{color:var(--ink)}
+  ul{color:var(--ink-dim); margin:0 0 14px 22px}
+  li{margin-bottom:8px}
+  a{color:var(--amber)}
+  footer{max-width:720px; margin:0 auto; padding:0 24px 56px; color:var(--ink-faint); font-size:13.5px}
+</style>
+</head>
+<body>
+<header><a href="/">← unwindRN</a></header>
+<article>
+  <h1>unwindRN Privacy Policy</h1>
+  <p class="date">Effective date: July 22, 2026</p>
+
+  <p>unwindRN (“the app,” “we,” “us”) is a post-shift debrief and career logbook
+  for nurses, operated by unwindRN LLC (Michigan, USA). This policy explains what
+  we collect, why, and what we will never do. It is written to be read — no legal
+  scavenger hunt.</p>
+
+  <h2>The short version</h2>
+  <ul>
+    <li><strong>Your voice never leaves your phone.</strong> Speech is transcribed on-device by iOS. We never receive or store audio.</li>
+    <li><strong>Debrief conversations are not stored.</strong> The words you speak in a debrief live in your phone’s memory during the session and are gone when it ends. Only the shift record you approve — win, weight, lesson, hours, tags — is saved.</li>
+    <li><strong>We don’t want patient information, and we actively strip it.</strong> The app’s design, prompts, and an automated scrubber all work to keep patient identifiers out of your record.</li>
+    <li><strong>No ads, no tracking, no selling data.</strong> Ever.</li>
+    <li><strong>Delete means delete.</strong> In-app account deletion removes your account and every record, immediately and permanently.</li>
+  </ul>
+
+  <h2>What we collect</h2>
+  <p><strong>Account.</strong> Your email address (or, if you use Sign in with
+  Apple, the identifier Apple shares). Used to sign you in and nothing else.</p>
+  <p><strong>Profile you choose to give us.</strong> First name, specialty, years
+  at the bedside, shift pattern, usual shift length, and optionally your
+  hospital, city, and unit role. These personalize your debrief partner and your
+  career statistics. All optional; skipping onboarding is always allowed.</p>
+  <p><strong>Shift records.</strong> What you save when you clock out: date,
+  hours, load, tags (e.g., “Short-staffed”), and the win / weight / lesson lines
+  you approve. This is your logbook — it exists so you have a record of your
+  career.</p>
+  <p><strong>What we deliberately do NOT collect:</strong> audio recordings,
+  debrief transcripts, patient information, location data, contacts, photos,
+  advertising identifiers, or analytics profiles. The app contains no ad SDKs
+  and no third-party trackers.</p>
+
+  <h2>How the AI works with your words</h2>
+  <p>When you talk in a debrief, the on-device transcript text (not audio) is
+  sent over an encrypted connection to our server, which forwards it to
+  Anthropic (the AI provider) to generate your debrief partner’s reply and to
+  extract the shift-record fields. Transcript text is processed in memory to
+  produce the reply and is not stored on our servers. Anthropic processes this
+  data as our service provider; it is not used to train their models. An
+  automated scrubber removes structured identifiers (room numbers, bed numbers,
+  record numbers) from any extracted field before it can be saved.</p>
+  <p>If voice replies are enabled, the partner’s reply text (never yours) is
+  sent to ElevenLabs, a speech-synthesis provider, to generate the spoken
+  audio.</p>
+
+  <h2>Where your data lives</h2>
+  <p>Your account, profile, and shift records are stored with Supabase (hosted
+  on AWS in the United States), encrypted in transit. Access is enforced
+  per-account at the database level: your records are readable by your account
+  only.</p>
+
+  <h2>What we will never do</h2>
+  <ul>
+    <li>Sell or rent your data.</li>
+    <li>Show you ads or share data with advertisers.</li>
+    <li>Ask for or knowingly store patient-identifying information.</li>
+    <li>Contact your employer.</li>
+    <li>Use your debrief content for anything other than producing your own record.</li>
+  </ul>
+
+  <h2>Your controls</h2>
+  <ul>
+    <li><strong>Export</strong> — coming during the beta; your records are yours to take.</li>
+    <li><strong>Deletion</strong> — Profile → Delete account removes your auth account, profile, and every shift record immediately. There is no retention window and no backup we quietly keep.</li>
+    <li><strong>Skipping</strong> — every question in onboarding and every debrief is optional. “Save without another word” stores only what you tapped.</li>
+  </ul>
+
+  <h2>What this app is not</h2>
+  <p>unwindRN is not therapy, medical care, or a medical device, and it is not a
+  system of record for patient care. If you are in crisis, call or text 988
+  (Suicide &amp; Crisis Lifeline, US) — the app surfaces this resource and never
+  gates it.</p>
+
+  <h2>Age</h2>
+  <p>unwindRN is for working professionals and is rated 17+. It is not directed
+  at children under 13, and we do not knowingly collect their data.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy changes materially, we will note it in the app before the
+  change takes effect. The current version always lives at
+  <a href="https://unwindrn.com/privacy">unwindrn.com/privacy</a>.</p>
+
+  <h2>Contact</h2>
+  <p>Questions or requests: <a href="mailto:support@unwindrn.com">support@unwindrn.com</a></p>
+</article>
+<footer>© 2026 unwindRN LLC · <a href="/terms" style="color:inherit">Terms of Service</a></footer>
+</body>
+</html>

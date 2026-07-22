@@ -1,12 +1,11 @@
 # unwindRN Terms of Service
 
-**DRAFT for founder review — not yet published. Replace bracketed placeholders,
-then have a lawyer look it over. The governing-law state and business entity
-must be filled in before publication.**
+<!-- Published at https://unwindrn.com/terms. Attorney review recommended
+     before the public (external TestFlight) beta — tracked in the plan. -->
 
-*Effective date: [DATE — set when published]*
+*Effective date: July 22, 2026*
 
-These terms are an agreement between you and [FOUNDER / BUSINESS NAME]
+These terms are an agreement between you and unwindRN LLC
 ("unwindRN," "we") about your use of the unwindRN iOS app.
 
 ## 1. What unwindRN is — and is not
@@ -73,7 +72,7 @@ practicable.
 
 ## 8. Governing law
 
-These terms are governed by the laws of the State of [STATE], without regard
+These terms are governed by the laws of the State of Michigan, without regard
 to conflict-of-law rules.
 
 ## 9. Changes to these terms
@@ -83,4 +82,4 @@ takes effect. Continued use after that constitutes acceptance.
 
 ## Contact
 
-[CONTACT EMAIL]
+support@unwindrn.com

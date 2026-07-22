@@ -1,0 +1,3 @@
+# unwindrn.com — static marketing + legal pages. No build step; publish web/ as-is.
+[build]
+  publish = "web"
