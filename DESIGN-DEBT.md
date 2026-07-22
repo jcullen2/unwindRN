@@ -2,6 +2,20 @@
 
 Debt logged per CLAUDE.md workflow. Newest first.
 
+## On-device shakedown (2026-07-22)
+- **PAID:** display-type clipping everywhere (lineHeight audit); "Light it"
+  navigation dead-end; Skip wiping profiles; Apple-only login; demo mode
+  (removed entirely — dev builds keep a __DEV__ "Dev bypass" via anonymous
+  sign-in; disable anonymous sign-ins in the dashboard before launch).
+- **PAID (server):** debrief-turn deploy now bundles system-prompt.md + daily
+  rate cap; demo-login endpoint retired (410, verify_jwt on).
+- **OPEN — TOP BLOCKER:** debrief-turn still 500s before streaming; root cause
+  unknown (bump_usage RPC? Anthropic SDK under Deno? model id?). Debug variant
+  ready in session scratchpad; deploy it, read the error, fix, revert.
+- **OPEN:** win-line TextInput appeared to truncate typed text mid-entry —
+  verify maxLength intent.
+- **OPEN:** app icon / splash need a full-res re-export pass before submission.
+
 ## Pre-launch checklist item (2026-07-17)
 - **Anonymous sign-ins are enabled for dev demo mode** (sign-in screen,
   __DEV__-only entry). Per-user RLS fully isolates anonymous users (no shared

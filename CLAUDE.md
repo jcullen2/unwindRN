@@ -120,8 +120,32 @@ IDEAS.md with anything cut, DESIGN-DEBT.md with anything shipped as a fallback.
 Never echo secrets. Keep §State of the build current — it exists so future
 sessions never pay to rediscover the codebase.
 
-## State of the build — 2026-07-17 (keep current; the map, not the territory)
-Branch `claude/app-from-scratch-jgngvv` · tsc clean · all committed/pushed.
+## State of the build — 2026-07-22 (keep current; the map, not the territory)
+Local repo `~/Desktop/unwindRN/app` (main) · tsc clean · all committed (no remote yet).
+
+**2026-07-21/22 — first-ever on-device run (simulator, this Mac) + fixes:**
+- Dev environment on this Mac works: Xcode 26.6, iOS 26.5 sim runtime, CocoaPods
+  1.17 via user gems (`PATH+=~/.gem/ruby/2.6.0/bin`; do NOT use Homebrew — owned by
+  another user). Build with `xcodebuild -workspace ios/unwindRN.xcworkspace -scheme
+  unwindRN` (expo run:ios misdetects → signing error). `xattr -rc` once fixed
+  codesign "detritus". Metro: plain `nohup npx expo start` (NEVER CI=1 — it freezes
+  the file map and serves stale bundles).
+- FIXED: display-type clipping app-wide (T defaults to body's 23px line box; every
+  fontSize override now carries lineHeight; Lockup computes it). Onboarding
+  "Light it" dead-end (refreshProfile before guarded replace). Skip wiping saved
+  profiles (ignoreDuplicates upsert). Apple-only login (email primary — signIn
+  or quiet signUp, one Continue). DEMO MODE REMOVED (client + repo + server
+  endpoint retired 410; a __DEV__-only anonymous "Dev bypass" link remains, and
+  anonymous sign-ins are still ON in the dashboard for it).
+- debrief-turn redeployed v3 WITH system-prompt.md (was missing from the deploy
+  bundle — guaranteed 500) + bump_usage rate limiting. **STILL 500s — root cause
+  open**; error-detail debug variant prepared but not deployed. ANTHROPIC_API_KEY
+  confirmed set (108 chars). This is the top blocker: the partner cannot reply.
+- Email auth: Supabase email provider works; **email confirmation ON** (signUp
+  returns no session until the link is clicked). Phone auth needs Twilio.
+- IN PROGRESS: full auth + onboarding revamp (create-account/login split; email
+  OTP, phone, Apple; contextual iOS permission priming; richer data capture) —
+  research phase; resources studied: Apphud onboarding examples, IxDF login-screen.
 
 **Brand is now "DEEP WARD" — the visual law lives in code, DESIGN.md §1–§5 is
 archival.** Petrol-green night (`#090F0E`) + amber accent (`#FFB65C`/`#FFC97E`);
