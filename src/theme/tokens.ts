@@ -103,7 +103,7 @@ export const type = {
   hero: {
     fontFamily: fonts.display700,
     fontSize: 84,
-    lineHeight: 88,
+    lineHeight: 102,
     letterSpacing: -3,
     color: palette.amber,
     textShadowColor: glow.apricot,
@@ -150,7 +150,7 @@ export const type = {
   milestone: {
     fontFamily: fonts.display700,
     fontSize: 88,
-    lineHeight: 92,
+    lineHeight: 106,
     letterSpacing: -3,
     color: palette.amber,
     textShadowColor: glow.apricot,

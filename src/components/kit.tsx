@@ -50,7 +50,8 @@ export function Lockup({ markSize = 13, fontSize = 16 }: { markSize?: number; fo
   return (
     <View style={styles.lockup}>
       <Lantern size={markSize} />
-      <Text style={[styles.wm, { fontSize }]}>
+      {/* lineHeight must clear Bricolage's tall ascenders or the "d" clips */}
+      <Text style={[styles.wm, { fontSize, lineHeight: Math.round(fontSize * 1.32) }]}>
         unwind
         <Text style={[styles.wmRN, { fontSize: fontSize * 0.56, top: -fontSize * 0.4 }]}>RN</Text>
       </Text>

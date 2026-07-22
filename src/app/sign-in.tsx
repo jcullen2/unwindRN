@@ -110,32 +110,6 @@ export default function SignInScreen() {
     }
   };
 
-  // Dev-only demo entry: a REAL Supabase session (real rows, real RLS, real
-  // AI pipeline) with no Apple ID — simulators can't do Apple auth reliably
-  // (ASAuthorizationError 1000). Tries anonymous sign-in first; if that's not
-  // enabled, falls back to the demo-login function, which mints a throwaway
-  // demo user + one-time token with zero dashboard config. Dev builds only.
-  const demoIn = async () => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      const anon = await supabase.auth.signInAnonymously();
-      if (!anon.error) return;
-      const { data, error } = await supabase.functions.invoke('demo-login', { body: {} });
-      if (error || !data?.token_hash) throw error ?? new Error('demo-login unavailable');
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        token_hash: data.token_hash,
-        type: 'email',
-      });
-      if (verifyError) throw verifyError;
-    } catch (e: unknown) {
-      const detail = e instanceof Error ? e.message : String(e);
-      Alert.alert("Demo mode couldn't start", `The server said: "${detail}"`);
-    } finally {
-      setBusy(false);
-    }
-  };
-
   return (
     <Sky>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -202,14 +176,6 @@ export default function SignInScreen() {
             />
           </>
         )}
-        {__DEV__ && (
-          <Pressable accessibilityRole="button" onPress={demoIn} disabled={busy} style={styles.demo} hitSlop={8}>
-            <T v="caption" style={{ color: palette.moss, textAlign: 'center' }}>
-              Demo mode — explore without an account
-            </T>
-          </Pressable>
-        )}
-
         <T v="whisper" style={styles.footer}>
           Not therapy or medical care.{'\n'}In crisis, call or text 988.
         </T>
@@ -221,7 +187,7 @@ export default function SignInScreen() {
 
 const styles = StyleSheet.create({
   wrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space(9) },
-  wm: { fontFamily: 'Bricolage-Medium', fontSize: 30, color: palette.ink, marginTop: space(5.5) },
+  wm: { fontFamily: 'Bricolage-Medium', fontSize: 30, lineHeight: 40, color: palette.ink, marginTop: space(5.5) },
   rn: { fontFamily: 'Bricolage-SemiBold', fontSize: 14, color: palette.amber, position: 'relative', top: -12 },
   emailCta: { width: '100%', marginTop: space(12) },
   apple: { height: 52, width: '100%', marginTop: space(2.5) },

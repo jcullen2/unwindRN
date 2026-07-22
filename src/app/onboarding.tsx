@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   dotOn: { width: 16, backgroundColor: palette.amber },
   beat: { flex: 1, justifyContent: 'center' },
   beatScroll: { paddingTop: space(8), paddingBottom: space(10) },
-  big1854: { fontFamily: fonts.display700, fontSize: 60, letterSpacing: -2, color: palette.amber },
+  big1854: { fontFamily: fonts.display700, fontSize: 60, lineHeight: 74, letterSpacing: -2, color: palette.amber },
   ghostRow: { height: 34, borderRadius: 10, backgroundColor: 'rgba(234,241,236,.04)' },
   tonightRow: {
     height: 34,

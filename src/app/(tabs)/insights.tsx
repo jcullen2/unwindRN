@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: glass.fill, borderRadius: 18, padding: space(3.5), overflow: 'hidden' },
   topLight: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: glass.hi },
   hero: { backgroundColor: glass.fill, borderRadius: 20, padding: space(4), overflow: 'hidden', flexDirection: 'row', alignItems: 'flex-end', gap: space(3.5) },
-  heroNum: { fontFamily: 'Bricolage-Bold', fontSize: 42, lineHeight: 42, letterSpacing: -1.5, color: palette.ink },
+  heroNum: { fontFamily: 'Bricolage-Bold', fontSize: 42, lineHeight: 52, letterSpacing: -1.5, color: palette.ink },
   bars: { flexDirection: 'row', alignItems: 'flex-end', gap: 4, height: 54 },
   ringCard: { backgroundColor: glass.fill, borderRadius: 18, padding: space(3.25), overflow: 'hidden', alignItems: 'center', justifyContent: 'center', flex: 1 },
   deltaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: space(2) },

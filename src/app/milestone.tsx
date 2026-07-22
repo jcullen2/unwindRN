@@ -125,7 +125,7 @@ export default function MilestoneScreen() {
 function Stat({ value, label, color }: { value: string; label: string; color: string }) {
   return (
     <View>
-      <T style={{ fontFamily: 'Bricolage-Bold', fontSize: 44, letterSpacing: -1, color }}>{value}</T>
+      <T style={{ fontFamily: 'Bricolage-Bold', fontSize: 44, lineHeight: 54, letterSpacing: -1, color }}>{value}</T>
       <T v="overline" style={{ marginTop: 2 }}>
         {label}
       </T>
