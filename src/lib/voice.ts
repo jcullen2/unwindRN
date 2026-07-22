@@ -29,8 +29,11 @@ const useSpeechEvent: SpeechModule['useSpeechRecognitionEvent'] = speech
 
 const SILENCE_MS = 1200; // end-of-turn on ~1.2s silence
 
+export type MicPermission = 'undetermined' | 'granted' | 'denied';
+
 export function useVoiceTurn(onFinal: (text: string) => void) {
   const [available, setAvailable] = useState(false);
+  const [permission, setPermission] = useState<MicPermission>('undetermined');
   const [listening, setListening] = useState(false);
   const [interim, setInterim] = useState('');
   const interimRef = useRef('');
@@ -51,6 +54,32 @@ export function useVoiceTurn(onFinal: (text: string) => void) {
       );
     } catch {
       setAvailable(false);
+    }
+    // Permission state feeds the contextual priming card: the system dialog
+    // must never fire cold — the debrief explains the on-device promise first.
+    try {
+      speech.ExpoSpeechRecognitionModule.getPermissionsAsync().then(
+        (p) => setPermission(p.granted ? 'granted' : p.status === 'denied' ? 'denied' : 'undetermined'),
+        () => setPermission('undetermined')
+      );
+    } catch {
+      setPermission('undetermined');
+    }
+  }, []);
+
+  /**
+   * Fires the iOS mic + speech dialogs. Call ONLY from the priming card (or
+   * after it) so the ask always lands in context. Returns whether we can talk.
+   */
+  const requestPermission = useCallback(async (): Promise<boolean> => {
+    if (!speech) return false;
+    try {
+      const perms = await speech.ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      setPermission(perms.granted ? 'granted' : 'denied');
+      return perms.granted;
+    } catch {
+      setPermission('denied');
+      return false;
     }
   }, []);
 
@@ -93,7 +122,10 @@ export function useVoiceTurn(onFinal: (text: string) => void) {
   const start = useCallback(async () => {
     if (!speech) return false;
     try {
+      // Belt-and-suspenders: resolves instantly when already granted. The
+      // contextual card upstream is what keeps this from firing cold.
       const perms = await speech.ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      setPermission(perms.granted ? 'granted' : 'denied');
       if (!perms.granted) return false;
       speech.ExpoSpeechRecognitionModule.start({
         lang: 'en-US',
@@ -125,5 +157,5 @@ export function useVoiceTurn(onFinal: (text: string) => void) {
     []
   );
 
-  return { available, listening, interim, start, stop };
+  return { available, permission, requestPermission, listening, interim, start, stop };
 }

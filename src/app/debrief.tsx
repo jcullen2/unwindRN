@@ -38,7 +38,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LanternGlyph } from '@/brand';
 import { PulsingLantern } from '@/app/sign-in';
-import { Chip, FlameButton, Glass, T } from '@/components/kit';
+import { Chip, FlameButton, Glass, QuietButton, T } from '@/components/kit';
 import { Sky } from '@/components/sky';
 import { localToday, RecordDraft } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -165,6 +165,9 @@ export default function DebriefScreen() {
   const [partial, setPartial] = useState('');
   const [awaiting, setAwaiting] = useState(false);
   const [quietMode, setQuietMode] = useState(false);
+  // Contextual mic priming: the iOS permission dialog never fires cold — a
+  // card states the on-device promise first, then she chooses.
+  const [micPrime, setMicPrime] = useState(false);
   const [draft, setDraft] = useState('');
   const [capped, setCapped] = useState(false);
   const [crisisVisible, setCrisisVisible] = useState(false);
@@ -284,9 +287,29 @@ export default function DebriefScreen() {
       setDraft('');
       return;
     }
+    if (voice.permission !== 'granted') {
+      setMicPrime(true);
+      return;
+    }
     if (voice.listening) voice.stop();
     else voice.start();
   }, [awaiting, quietMode, voice, draft, sendTurn]);
+
+  const enableMic = useCallback(async () => {
+    const ok = await voice.requestPermission();
+    setMicPrime(false);
+    if (ok) {
+      voice.start();
+    } else {
+      // She said no (or Settings already has it off) — never nag. Quiet mode
+      // tonight, with the Settings path named once.
+      setQuietMode(true);
+      Alert.alert('Typing tonight', 'The mic stays off until you turn it on in Settings.', [
+        { text: 'Open Settings', onPress: () => Linking.openSettings() },
+        { text: 'OK' },
+      ]);
+    }
+  }, [voice]);
 
   const keepIt = async () => {
     if (!userId || savingTaps) return;
@@ -665,6 +688,32 @@ export default function DebriefScreen() {
             back to taps
           </T>
         </Pressable>
+
+        {micPrime && (
+          <View style={styles.primeScrim}>
+            <Animated.View entering={FadeIn.duration(250)} style={{ width: '100%' }}>
+              <Glass style={styles.primeCard}>
+                <T v="body" style={{ fontWeight: '600' }}>
+                  Your voice stays on this phone.
+                </T>
+                <T v="secondary" style={{ marginTop: space(2), lineHeight: 21 }}>
+                  Transcription runs on-device — audio never leaves. iOS will ask for the
+                  microphone and speech recognition next; that&apos;s all it&apos;s for.
+                </T>
+                <FlameButton title="Enable the mic" onPress={enableMic} style={{ marginTop: space(4.5) }} />
+                <QuietButton
+                  title="Type tonight instead"
+                  tone="dim"
+                  onPress={() => {
+                    setMicPrime(false);
+                    setQuietMode(true);
+                  }}
+                  style={{ marginTop: space(2) }}
+                />
+              </Glass>
+            </Animated.View>
+          </View>
+        )}
       </KeyboardAvoidingView>
 
       <Modal visible={crisisVisible} transparent animationType="fade" onRequestClose={() => setCrisisVisible(false)}>
@@ -721,6 +770,17 @@ const styles = StyleSheet.create({
   idleWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space(10) },
   stream: { paddingHorizontal: space(6), paddingTop: space(4), paddingBottom: space(4) },
   partnerLine: { flexDirection: 'row', gap: space(2.5), marginBottom: space(5), paddingRight: space(4) },
+  primeScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(9,15,14,.72)',
+    justifyContent: 'center',
+    paddingHorizontal: space(6),
+  },
+  primeCard: { padding: space(5) },
   waves: { flexDirection: 'row', gap: 3, height: 22, alignItems: 'center', justifyContent: 'center' },
   wbar: { width: 3, borderRadius: 2, backgroundColor: palette.amber },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: space(2), paddingHorizontal: space(6), paddingBottom: space(2) },
