@@ -14,7 +14,9 @@
       "supportsTablet": false,
       "usesAppleSignIn": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSSpeechRecognitionUsageDescription": "Your words are transcribed on this phone — only the text you approve is saved.",
+        "NSMicrophoneUsageDescription": "unwindRN listens only while you debrief. Audio never leaves your phone."
       }
     },
     "plugins": [
@@ -41,6 +43,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "72ba8228-8d80-4e84-80a8-4141cce4754e"
+      }
+    },
+    "owner": "unwindrn"
   }
 }
