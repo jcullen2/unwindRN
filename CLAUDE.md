@@ -186,6 +186,15 @@ Local repo `~/Desktop/unwindRN/app` (main) · tsc clean · all committed (no rem
   contact email, URL) need John; host before the production build (EXPO_PUBLIC
   vars bake in). Anonymous sign-ins still ON for the dev bypass — disable at
   launch.
+- **Public site (web/):** unwindrn.com — static landing + /privacy + /terms,
+  Netlify project `unwindrn` (site id 28195d7d-463d-40a6-b94f-defc4e1be650,
+  team john-zrlyibo). Deploy: the Netlify MCP `deploy-site` CLI command 404s
+  (its proxy URL gets a double slash); instead request the deploy command via
+  MCP for a fresh proxy token, then POST the zip directly:
+  `curl -X POST "https://netlify-mcp.netlify.app/proxy/<token>/api/v1/sites/<siteId>/builds" -F "zip=@site.zip;type=application/zip"`
+  (single slash before `proxy`). Zip = web/ contents + netlify.toml with
+  publish=".". Favicon must come from assets/images/icon.png — the "app icon"
+  PNGs in design/brand/ are STALE pre-rebrand lamps.
 - ⚠️ LANDMINE (reanimated 4.5 + React Compiler): `entering={FadeIn}` on a view
   that mounts WITH the screen renders it at opacity 0 — permanently invisible
   (sign-in landing pane bug, 2026-07-22). Views that mount on later state
