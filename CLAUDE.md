@@ -169,8 +169,9 @@ Local repo `~/Desktop/unwindRN/app` (main) · tsc clean · all committed (no rem
   Connect record created ("unwindRN", iOS, en-US, SKU `unwindrn-001`); ASC
   ToS accepted. Supabase Apple provider verified: enabled, Client IDs =
   `com.unwindrn.app` (native flow ready; no web-OAuth secret, fine).
-  Remaining: `eas login` → `eas init` → `eas credentials`; EU trader status
-  before EU App Store distribution (not needed for internal TestFlight).
+  `eas init` DONE — Expo project `@unwindrn/unwindrn`, projectId in app.json
+  (`eas credentials` runs at first build). Remaining Apple-side: EU trader
+  status before EU App Store distribution (not needed for internal TestFlight).
 - **Phase D hardening 2026-07-22:** legacy `debrief` + `extract` + `demo-login`
   functions DELETED from the live project (sources archived in git history;
   live set is now delete-account · health · debrief-turn · speak · daily-line ·
