@@ -159,10 +159,18 @@ Local repo `~/Desktop/unwindRN/app` (main) · tsc clean · all committed (no rem
   Settings pointer). Onboarding now asks for first name (was never captured —
   partner always said "there") and persists hospital/city/unit/shift_pattern
   (migration `20260722000000`; unit chips were dead, now selectable).
-  ⚠️ BETA GATE: Supabase built-in SMTP is dev-only (rate-limited ~2 emails/hr,
-  team-member recipients only) AND the "Magic Link" email template must include
-  `{{ .Token }}` or users get a link instead of the six-digit code — configure
-  custom SMTP + template in the dashboard before TestFlight.
+  ⚠️ AUTH BLOCKER (confirmed in dashboard 2026-07-22): the "Magic link or OTP"
+  template is the Supabase default — link only, NO `{{ .Token }}` — and
+  templates are read-only until custom SMTP is configured. The six-digit
+  sign-in cannot work on-device until John picks an SMTP provider (Resend
+  recommended) and the template is edited. Dev bypass covers simulator work.
+- **Apple plumbing DONE 2026-07-22:** `com.unwindrn.app` registered in the
+  developer portal (explicit, Sign in with Apple capability); App Store
+  Connect record created ("unwindRN", iOS, en-US, SKU `unwindrn-001`); ASC
+  ToS accepted. Supabase Apple provider verified: enabled, Client IDs =
+  `com.unwindrn.app` (native flow ready; no web-OAuth secret, fine).
+  Remaining: `eas login` → `eas init` → `eas credentials`; EU trader status
+  before EU App Store distribution (not needed for internal TestFlight).
 - ⚠️ LANDMINE (reanimated 4.5 + React Compiler): `entering={FadeIn}` on a view
   that mounts WITH the screen renders it at opacity 0 — permanently invisible
   (sign-in landing pane bug, 2026-07-22). Views that mount on later state
