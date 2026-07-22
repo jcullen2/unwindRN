@@ -171,6 +171,16 @@ Local repo `~/Desktop/unwindRN/app` (main) · tsc clean · all committed (no rem
   `com.unwindrn.app` (native flow ready; no web-OAuth secret, fine).
   Remaining: `eas login` → `eas init` → `eas credentials`; EU trader status
   before EU App Store distribution (not needed for internal TestFlight).
+- **Phase D hardening 2026-07-22:** legacy `debrief` + `extract` + `demo-login`
+  functions DELETED from the live project (sources archived in git history;
+  live set is now delete-account · health · debrief-turn · speak · daily-line ·
+  month-caption). **Account deletion verified end-to-end** against production:
+  throwaway user with profile+shift rows → delete-account → `{"deleted":true}`,
+  auth user + all rows confirmed gone via SQL (Apple requirement met).
+  Privacy policy + ToS DRFTS at docs/legal/ — placeholders (entity, state,
+  contact email, URL) need John; host before the production build (EXPO_PUBLIC
+  vars bake in). Anonymous sign-ins still ON for the dev bypass — disable at
+  launch.
 - ⚠️ LANDMINE (reanimated 4.5 + React Compiler): `entering={FadeIn}` on a view
   that mounts WITH the screen renders it at opacity 0 — permanently invisible
   (sign-in landing pane bug, 2026-07-22). Views that mount on later state
