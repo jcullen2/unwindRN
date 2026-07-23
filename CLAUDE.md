@@ -186,6 +186,15 @@ Local repo `~/Desktop/unwindRN/app` (main) · tsc clean · all committed (no rem
   contact email, URL) need John; host before the production build (EXPO_PUBLIC
   vars bake in). Anonymous sign-ins still ON for the dev bypass — disable at
   launch.
+- **Landing v4 (2026-07-22 late):** hero "Log the shift. Watch your career
+  add up.", Strava-for-shifts framing, auto-cycling app screenshots, scroll
+  reveals, count-up stats, plain-speech FAQ. **Waitlist is LIVE via Netlify
+  Forms** (form name `waitlist`, submissions at app.netlify.com → unwindrn →
+  Forms; tested end-to-end). JOHN'S COPY LAW: plain human sentences, no
+  AI-speak, no "hours held"/"tonight deserves a record" register; docs/brand/
+  holds the brand skill but John's plain-speech preference OVERRIDES it where
+  they conflict. Screens in web/screens/ are real sim captures (regenerate
+  after UI changes).
 - **Public site (web/): LIVE at https://unwindrn.com with HTTPS**
   (2026-07-22) — DNS cut over from Squarespace parking: apex A 75.2.60.5 +
   www CNAME unwindrn.netlify.app (ALIAS impossible: zone has DNSSEC, kept).
