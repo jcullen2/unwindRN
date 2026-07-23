@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>unwindRN — Put the shift down. Keep the career.</title>
-<meta name="description" content="The nurse's end-of-shift ritual: log tonight in twenty seconds, talk it down with a debrief partner fluent in your floor, and build the career record nobody else keeps for you. iPhone beta.">
-<meta property="og:title" content="unwindRN — Put the shift down. Keep the career.">
-<meta property="og:description" content="Twenty seconds to log the shift. A debrief partner who gets the floor. A record of every shift you've ever held. Join the iPhone beta waitlist.">
+<title>unwindRN — Every shift counts. Now they're counted.</title>
+<meta name="description" content="unwindRN is how nurses know their own careers — every shift counted, every pattern surfaced, written in the minutes after clock-out. Join the iPhone beta waitlist.">
+<meta property="og:title" content="unwindRN — Every shift counts. Now they're counted.">
+<meta property="og:description" content="How nurses know their own careers: every shift counted, every pattern surfaced, written in the minutes after clock-out. iPhone beta.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://unwindrn.com/">
 <meta property="og:image" content="https://unwindrn.com/icon-256.png">
@@ -23,14 +23,12 @@
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
-  body{
-    background:var(--night); color:var(--ink);
+  body{background:var(--night); color:var(--ink);
     font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    -webkit-font-smoothing:antialiased;
-  }
+    -webkit-font-smoothing:antialiased}
   .wrap{max-width:1080px; margin:0 auto; padding:0 24px}
   h1,h2,h3{font-family:"Bricolage Grotesque",sans-serif}
-  /* ---------- nav ---------- */
+  /* nav */
   nav{position:sticky; top:0; z-index:10; backdrop-filter:blur(14px);
       background:rgba(9,15,14,.8); border-bottom:1px solid var(--line)}
   .nav-in{display:flex; align-items:center; justify-content:space-between; padding:14px 24px; max-width:1080px; margin:0 auto}
@@ -40,26 +38,24 @@
   .lockup .rn{color:var(--amber); font-weight:600; font-size:11px; vertical-align:super}
   .nav-cta{background:linear-gradient(135deg,var(--amber-hi),var(--amber)); color:var(--night);
       font-weight:600; font-size:14px; text-decoration:none; padding:9px 18px; border-radius:16px}
-  /* ---------- hero ---------- */
-  .hero{padding:72px 0 40px; background:
+  /* hero */
+  .hero{padding:72px 0 64px; background:
       radial-gradient(ellipse 80% 50% at 70% -10%, rgba(255,182,92,.08), transparent 60%)}
   .hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:48px; align-items:center}
   .eyebrow{color:var(--amber); font-size:12.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase}
-  .hero h1{font-weight:600; font-size:52px; line-height:1.06; letter-spacing:-1px; margin:16px 0 20px}
-  .hero .sub{color:var(--ink-dim); font-size:18px; line-height:1.7; max-width:34em}
+  .hero h1{font-weight:600; font-size:50px; line-height:1.08; letter-spacing:-1px; margin:16px 0 20px}
+  .hero .sub{color:var(--ink-dim); font-size:18px; line-height:1.7; max-width:33em}
   .hero .sub strong{color:var(--ink); font-weight:600}
-  /* waitlist form */
-  .waitlist{margin-top:30px; max-width:460px}
+  .hero .backfill{color:var(--ink-dim); font-size:15.5px; margin-top:14px}
+  .hero .backfill b{color:var(--amber); font-family:"Bricolage Grotesque",sans-serif; font-weight:600}
+  .waitlist{margin-top:28px; max-width:460px}
   .wl-row{display:flex; gap:10px}
-  .wl-row input[type=email]{
-    flex:1; background:rgba(234,241,236,.06); border:1px solid var(--line); border-radius:16px;
-    padding:14px 18px; color:var(--ink); font-size:15.5px; outline:none; min-width:0}
+  .wl-row input[type=email]{flex:1; background:rgba(234,241,236,.06); border:1px solid var(--line);
+    border-radius:16px; padding:14px 18px; color:var(--ink); font-size:15.5px; outline:none; min-width:0}
   .wl-row input[type=email]:focus{border-color:rgba(255,182,92,.5)}
   .wl-row input::placeholder{color:var(--ink-faint)}
-  .wl-row button{
-    background:linear-gradient(135deg,var(--amber-hi),var(--amber)); color:var(--night);
-    font-weight:600; font-size:15.5px; border:none; border-radius:16px; padding:14px 22px; cursor:pointer;
-    white-space:nowrap}
+  .wl-row button{background:linear-gradient(135deg,var(--amber-hi),var(--amber)); color:var(--night);
+    font-weight:600; font-size:15.5px; border:none; border-radius:16px; padding:14px 22px; cursor:pointer; white-space:nowrap}
   .wl-row button:hover{filter:brightness(1.05)}
   .wl-micro{color:var(--ink-faint); font-size:13px; margin-top:12px; line-height:1.6}
   .wl-success{display:none; background:rgba(155,199,189,.1); border:1px solid rgba(155,199,189,.3);
@@ -73,39 +69,68 @@
   .hero-visual .phone.front{width:262px; z-index:2; transform:rotate(2deg)}
   .hero-visual .phone.back{width:225px; position:absolute; right:4%; top:44px; z-index:1;
     transform:rotate(-6deg); opacity:.75}
-  /* ---------- reality strip ---------- */
-  .strip{border-top:1px solid var(--line); border-bottom:1px solid var(--line);
-    padding:18px 0; text-align:center; color:var(--ink-dim); font-size:15px}
-  .strip b{color:var(--ink); font-weight:600}
-  /* ---------- sections ---------- */
+  /* sections */
   section{padding:76px 0}
   .kicker{color:var(--amber); font-size:12.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase}
   h2{font-weight:600; font-size:34px; letter-spacing:-.5px; margin:12px 0 14px}
   .lead{color:var(--ink-dim); font-size:17px; max-width:38em; line-height:1.7}
-  /* how it works */
-  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:26px; margin-top:48px}
-  .step{background:var(--panel); border:1px solid var(--line); border-radius:24px; padding:26px 24px 0; overflow:hidden}
-  .step .num{font-family:"Bricolage Grotesque",sans-serif; color:var(--amber); font-weight:600; font-size:15px}
-  .step h3{font-size:20.5px; font-weight:600; margin:8px 0 10px}
-  .step p{color:var(--ink-dim); font-size:14.8px; line-height:1.65; margin-bottom:22px}
-  .step .shot{margin:0 -6px; border-radius:22px 22px 0 0; overflow:hidden;
-    border:1.5px solid rgba(234,241,236,.12); border-bottom:none}
-  .step .shot img{display:block; width:100%}
-  /* record section */
-  .record-grid{display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; margin-top:8px}
+  .lead b, .lead strong{color:var(--ink)}
+  /* logbook section */
+  .record-grid{display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center}
   .stats{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:30px}
   .stat{background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:18px 16px}
   .stat .v{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:26px; color:var(--amber)}
   .stat .v.moon{color:var(--moon)}
   .stat .k{color:var(--ink-faint); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; margin-top:4px}
   .record-note{color:var(--ink-faint); font-size:13.5px; margin-top:18px}
-  /* trust */
-  .trust{background:var(--panel); border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
-  .trust-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:22px; margin-top:44px}
-  .t-card{border:1px solid var(--line); border-radius:20px; padding:24px; background:rgba(9,15,14,.5)}
-  .t-card h3{font-size:18.5px; font-weight:600; margin-bottom:8px}
-  .t-card p{color:var(--ink-dim); font-size:14.8px; line-height:1.65}
-  .t-card a{color:var(--amber); text-decoration:none}
+  /* how written */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:26px; margin-top:48px}
+  .step{background:var(--panel); border:1px solid var(--line); border-radius:24px; padding:26px 24px 0; overflow:hidden; display:flex; flex-direction:column}
+  .step .num{font-family:"Bricolage Grotesque",sans-serif; color:var(--amber); font-weight:600; font-size:15px}
+  .step h3{font-size:20.5px; font-weight:600; margin:8px 0 10px}
+  .step p{color:var(--ink-dim); font-size:14.8px; line-height:1.65; margin-bottom:22px}
+  .step p em{color:var(--ink); font-style:italic}
+  .step .shot{margin:auto -6px 0; border-radius:22px 22px 0 0; overflow:hidden;
+    border:1.5px solid rgba(234,241,236,.12); border-bottom:none}
+  .step .shot img{display:block; width:100%}
+  .entry-mock{margin:auto -6px 0; border:1.5px solid rgba(234,241,236,.12); border-bottom:none;
+    border-radius:22px 22px 0 0; background:rgba(9,15,14,.6); padding:20px 18px 26px}
+  .entry-mock .e-date{color:var(--ink-faint); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase}
+  .entry-mock .e-facts{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:17px; margin-top:6px}
+  .entry-mock .e-tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:10px}
+  .entry-mock .e-tag{border:1px solid rgba(255,182,92,.4); color:var(--amber); font-size:11.5px;
+    padding:3px 10px; border-radius:10px}
+  .entry-mock .e-win{color:var(--ink-dim); font-size:13.5px; margin-top:12px; font-style:italic}
+  /* flywheel */
+  .flywheel{background:var(--panel); border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
+  .insights{display:grid; gap:14px; margin-top:40px; max-width:640px}
+  .insight{background:rgba(9,15,14,.55); border:1px solid var(--line); border-left:3px solid var(--amber);
+    border-radius:14px; padding:16px 20px; font-size:16px; color:var(--ink)}
+  .insight span{color:var(--ink-dim)}
+  .ramp{display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:48px}
+  .ramp-step{border-top:2px solid rgba(255,182,92,.35); padding-top:14px}
+  .ramp-step .when{font-family:"Bricolage Grotesque",sans-serif; color:var(--amber); font-weight:600; font-size:15px}
+  .ramp-step p{color:var(--ink-dim); font-size:14.5px; line-height:1.6; margin-top:6px}
+  .ramp-step p b{color:var(--ink)}
+  /* shift cards */
+  .cards-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:44px; max-width:760px}
+  .shift-card{background:linear-gradient(150deg,#101A18,#0B1211); border:1px solid rgba(234,241,236,.13);
+    border-radius:22px; padding:26px 26px 22px; box-shadow:0 18px 50px rgba(0,0,0,.4)}
+  .shift-card .sc-label{color:var(--ink-faint); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    display:flex; align-items:center; gap:8px}
+  .shift-card .sc-label svg{width:12px}
+  .shift-card .sc-big{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:30px; margin-top:10px}
+  .shift-card .sc-big .hl{color:var(--amber)}
+  .shift-card .sc-sub{color:var(--ink-dim); font-size:14.5px; margin-top:8px}
+  .shift-card .sc-foot{color:var(--ink-faint); font-size:12px; margin-top:18px; border-top:1px solid var(--line); padding-top:12px}
+  /* inversion */
+  .inversion h2{max-width:16em}
+  .decl{font-family:"Bricolage Grotesque",sans-serif; font-weight:500; font-size:24px; line-height:1.5;
+    max-width:24em; margin-top:20px}
+  .decl b{color:var(--amber); font-weight:600}
+  .truths{margin-top:40px; display:grid; grid-template-columns:1fr 1fr; gap:12px 40px; max-width:820px}
+  .truth{display:flex; gap:12px; color:var(--ink-dim); font-size:15px; line-height:1.6}
+  .truth::before{content:"—"; color:var(--amber); flex-shrink:0}
   /* faq */
   .faq{max-width:720px}
   .faq details{border-bottom:1px solid var(--line); padding:20px 0}
@@ -114,30 +139,31 @@
   .faq details[open] summary::after{content:"–"}
   .faq details p{color:var(--ink-dim); font-size:15.5px; line-height:1.7; margin-top:12px; max-width:60ch}
   .faq details a{color:var(--amber)}
-  /* final cta */
+  /* final */
   .final{text-align:center; padding:88px 0}
   .final h2{font-size:38px}
   .final .waitlist{margin:30px auto 0}
-  /* footer */
   footer{border-top:1px solid var(--line); padding:36px 24px 48px; text-align:center;
     color:var(--ink-faint); font-size:13.5px; line-height:2.1}
   footer a{color:var(--ink-dim); text-decoration:none}
   footer a:hover{color:var(--amber)}
   .crisis a{color:var(--amber)}
-  /* responsive */
   @media (max-width:900px){
     .hero-grid{grid-template-columns:1fr; gap:44px}
-    .hero h1{font-size:40px}
+    .hero h1{font-size:38px}
     .hero-visual{min-height:0}
     .hero-visual .phone.back{display:none}
     .steps{grid-template-columns:1fr}
     .record-grid{grid-template-columns:1fr; gap:40px}
-    .trust-grid{grid-template-columns:1fr}
+    .ramp{grid-template-columns:1fr}
+    .cards-grid{grid-template-columns:1fr}
+    .truths{grid-template-columns:1fr}
   }
   @media (max-width:480px){
     .hero{padding-top:48px}
-    .hero h1{font-size:34px}
+    .hero h1{font-size:33px}
     h2{font-size:28px}
+    .decl{font-size:20px}
     .wl-row{flex-direction:column}
     .stats{grid-template-columns:1fr 1fr}
   }
@@ -160,18 +186,19 @@
   </div>
 </nav>
 
+<!-- 1 · HERO: the record -->
 <header class="hero">
   <div class="wrap hero-grid">
     <div>
-      <div class="eyebrow">For nurses · iPhone beta</div>
-      <h1>Put the shift down.<br>Keep the career.</h1>
+      <div class="eyebrow">The nurse's logbook · iPhone beta</div>
+      <h1>Every shift counts.<br>Now they're counted.</h1>
       <p class="sub">
-        unwindRN is the end-of-shift ritual for nurses: <strong>twenty seconds of
-        taps</strong> to log tonight, a <strong>debrief partner who gets the
-        floor</strong> when you need to talk it down, and a <strong>career
-        record</strong> that counts what nobody else does — every shift you've
-        ever held.
+        unwindRN is how nurses know their own careers — <strong>every shift
+        counted, every pattern surfaced</strong>, written in the minutes after
+        clock-out.
       </p>
+      <p class="backfill">Eight years in? That's about <b>1,153 shifts</b>.
+      They count too — your record starts where your career did.</p>
 
       <div class="waitlist" id="waitlist">
         <form name="waitlist" method="POST" action="/" data-netlify="true" netlify-honeypot="bot-field" id="wl-form">
@@ -185,120 +212,176 @@
         <div class="wl-success" id="wl-success">
           <b>You're on the list.</b> One email when your invite is ready — that's the only one we'll send.
         </div>
-        <p class="wl-micro">Free during beta · TestFlight · First invites go out soon.
-        No spam, no newsletter — one email when it's your turn.</p>
+        <p class="wl-micro">Free during beta · One email when your invite is
+        ready — that's the only one we'll send.</p>
       </div>
     </div>
 
     <div class="hero-visual">
-      <div class="phone back"><img src="/screens/talk.jpg" alt="unwindRN debrief screen — a lantern and the question 'How was today?'" loading="lazy"></div>
-      <div class="phone front"><img src="/screens/home.jpg" alt="unwindRN home screen — career shifts held, this week's record, milestone progress"></div>
+      <div class="phone back"><img src="/screens/home.jpg" alt="unwindRN home — career shifts held, milestone countdown" loading="lazy"></div>
+      <div class="phone front"><img src="/screens/logbook.jpg" alt="The unwindRN logbook — a month of shifts in the heatfield, 1,153 shifts kept"></div>
     </div>
   </div>
 </header>
 
-<div class="strip">
-  <div class="wrap">
-    Built for the 12-hour reality — <b>nights, codes, short-staffed floors</b> —
-    and for the minutes after, when the shift follows you to the parking lot.
+<!-- 2 · THE LOGBOOK -->
+<section id="logbook">
+  <div class="wrap record-grid">
+    <div>
+      <div class="kicker">The logbook</div>
+      <h2>The career nobody else counts.</h2>
+      <p class="lead">Hospitals count your hours for payroll. Boards count your
+      CEUs. <b>Nobody counts your career.</b> Tell unwindRN where yours started
+      and the record begins there — a nurse eight years in has held roughly
+      1,153 shifts — then it grows, night by night: hours held, nights
+      survived, milestones as they pass.</p>
+      <p class="lead" style="margin-top:14px">Yours to keep, export, or delete
+      — every entry, any time.</p>
+      <div class="stats">
+        <div class="stat"><div class="v">~1,153</div><div class="k">Career shifts</div></div>
+        <div class="stat"><div class="v">~13,836</div><div class="k">Hours held</div></div>
+        <div class="stat"><div class="v moon">347</div><div class="k">Shifts to #1,500</div></div>
+      </div>
+      <p class="record-note">Estimates wear the ~ on purpose. The record is
+      honest about what's counted and what's estimated.</p>
+    </div>
+    <div class="hero-visual" style="min-height:0">
+      <div class="phone front" style="transform:rotate(-1.5deg)"><img src="/screens/home.jpg" alt="Career stats — shifts held, hours held, milestone progress" loading="lazy"></div>
+    </div>
   </div>
-</div>
+</section>
 
+<!-- 3 · HOW THE RECORD GETS WRITTEN -->
 <section id="how">
   <div class="wrap">
-    <div class="kicker">How it works</div>
-    <h2>Twenty seconds. Then sleep.</h2>
-    <p class="lead">No journaling homework. No wellness lecture. A ritual short
-    enough to survive a brutal night — and worth more every time you do it.</p>
+    <div class="kicker">How the record gets written</div>
+    <h2>In the minutes after clock-out.</h2>
+    <p class="lead">A debrief is what pilots do after a flight. Nurses hold
+    harder nights with less ceremony — unwindRN gives the shift somewhere
+    to land.</p>
 
     <div class="steps">
       <div class="step">
         <div class="num">01</div>
         <h3>Clock out by taps</h3>
-        <p>Hours, load, and what tonight had — code, a loss, a good save.
-        A few taps and it's kept. <em>“Save without another word”</em> is
-        always one tap, and never judged.</p>
+        <p>Hours, load, what tonight had — code, a loss, a good save. Counted
+        facts, kept. <em>“Save without another word”</em> is always one tap,
+        and never judged.</p>
         <div class="shot"><img src="/screens/taps.jpg" alt="Clock-out taps — 'How long tonight?' with quick answers" loading="lazy"></div>
       </div>
       <div class="step">
         <div class="num">02</div>
-        <h3>Talk it down — when you want to</h3>
-        <p>A debrief partner fluent in your specialty listens like a colleague
-        at the end of the hall: one question at a time, no clinical labels,
-        no chirpy nonsense. Name the win, the weight, the lesson — then go
-        to bed.</p>
-        <div class="shot"><img src="/screens/talk.jpg" alt="The debrief — 'How was today?' with on-device transcription" loading="lazy"></div>
+        <h3>Debrief — as long as the night needs</h3>
+        <p>As short as your good nights, as long as your bad ones. When it was
+        a code and a loss, the voice companion is there — fluent in your
+        specialty, one question at a time, like a colleague at the end of
+        the hall.</p>
+        <div class="shot"><img src="/screens/talk.jpg" alt="The debrief — voice companion, transcribed on-device" loading="lazy"></div>
       </div>
       <div class="step">
         <div class="num">03</div>
-        <h3>The record writes itself</h3>
-        <p>Every night becomes a clean entry — date, hours, load, tags, and
-        the one line worth keeping. Your months fill a heatfield. Your career
-        fills a logbook.</p>
-        <div class="shot"><img src="/screens/logbook.jpg" alt="The logbook — a month heatfield of shifts, one day lit" loading="lazy"></div>
+        <h3>On the record</h3>
+        <p>Either way, tonight becomes a clean entry — the facts, the tags,
+        and the one line worth keeping. The logbook does the rest.</p>
+        <div class="entry-mock" aria-hidden="true">
+          <div class="e-date">Shift #1,153 · Jul 22</div>
+          <div class="e-facts">12h · Heavy · 1:5</div>
+          <div class="e-tags"><span class="e-tag">Code</span><span class="e-tag">A loss</span><span class="e-tag">Good save</span></div>
+          <div class="e-win">“Family was present at the end.”</div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<section id="record">
-  <div class="wrap record-grid">
-    <div>
-      <div class="kicker">The logbook</div>
-      <h2>The career nobody else counts.</h2>
-      <p class="lead">You know your years. unwindRN counts the rest. Tell it
-      your history and it starts the record where your career actually started —
-      a nurse eight years in has held roughly 1,150 shifts — then it grows,
-      night by night: hours held, nights survived, milestones as they pass.</p>
-      <p class="lead" style="margin-top:14px">It's the professional memory no
-      hospital ever kept for you. And it's yours — export it, or delete every
-      trace, any time.</p>
-      <div class="stats">
-        <div class="stat"><div class="v">~1,153</div><div class="k">Career shifts</div></div>
-        <div class="stat"><div class="v">~13,836</div><div class="k">Hours held</div></div>
-        <div class="stat"><div class="v moon">#1,500</div><div class="k">Next milestone</div></div>
-      </div>
-      <p class="record-note">Estimates wear the ~ on purpose — your record is
-      honest about what's counted and what's estimated.</p>
-    </div>
-    <div class="hero-visual" style="min-height:0">
-      <div class="phone front" style="transform:rotate(-1.5deg)"><img src="/screens/logbook.jpg" alt="unwindRN logbook heatfield" loading="lazy"></div>
-    </div>
-  </div>
-</section>
-
-<section class="trust" id="trust">
+<!-- 4 · THE FLYWHEEL -->
+<section class="flywheel" id="flywheel">
   <div class="wrap">
-    <div class="kicker">Built to be trusted</div>
-    <h2>Safe for you. Safe for your license.</h2>
-    <div class="trust-grid">
-      <div class="t-card">
-        <h3>Your voice never leaves the phone</h3>
-        <p>Speech is transcribed on-device by iOS. Audio is never uploaded and
-        never stored — and the words you speak in a debrief aren't kept either.
-        Only the record you approve is saved.</p>
+    <div class="kicker">What the record gives back</div>
+    <h2>Keep logging. Start knowing.</h2>
+    <p class="lead">The logbook gets smarter the longer you keep it — and
+    everything it knows, it learned from you. Nothing scraped, nothing pulled
+    from the hospital. <b>You'll know your career.</b> It never works the
+    other way around.</p>
+
+    <div class="insights">
+      <div class="insight">“Your charge shifts doubled since March — <span>that's a promotion pattern.</span>”</div>
+      <div class="insight">“You've held 38% more nights than this time last year.”</div>
+      <div class="insight">“47 shifts to #1,500.”</div>
+    </div>
+
+    <div class="ramp">
+      <div class="ramp-step">
+        <div class="when">Day one</div>
+        <p><b>Your record, backfilled.</b> Years, pattern, usual shift — the
+        career you've already held, on the record from the first night.</p>
       </div>
-      <div class="t-card">
-        <h3>Patients stay unnamed</h3>
-        <p>unwindRN is engineered to keep patient information out of your
-        record — by design, by prompt, and by an automated scrubber. Talk about
-        your night, not their identity.</p>
+      <div class="ramp-step">
+        <div class="when">Month three</div>
+        <p><b>Patterns.</b> Your real shift mix, your heaviest stretches,
+        which nights cost the most — surfaced from what you logged.</p>
       </div>
-      <div class="t-card">
-        <h3>Not therapy — and honest about it</h3>
-        <p>No diagnoses, no clinical labels, no pretending to be treatment.
-        If a night is heavier than an app should hold, 988 is surfaced
-        immediately — never gated, never delayed.</p>
-      </div>
-      <div class="t-card">
-        <h3>No streaks. No guilt.</h3>
-        <p>No red badges, no “you missed a day.” Skip a week and the record
-        just waits. The only pressure in this app is the kind you put down.</p>
+      <div class="ramp-step">
+        <div class="when">Year one</div>
+        <p><b>Self-knowledge.</b> A career's worth of counted nights showing
+        you things about your own trajectory nobody else could.</p>
       </div>
     </div>
   </div>
 </section>
 
+<!-- 5 · MILESTONES & SHIFT CARDS -->
+<section id="milestones">
+  <div class="wrap">
+    <div class="kicker">Milestones &amp; shift cards</div>
+    <h2>Proof you can hold up.</h2>
+    <p class="lead">Milestones are celebrated the way they were earned — by
+    the number. And any night can become a card worth keeping, or sharing
+    with the only people who really get it.</p>
+
+    <div class="cards-grid">
+      <div class="shift-card">
+        <div class="sc-label">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="32 0 56 104" aria-hidden="true"><g transform="translate(34.4 47) scale(0.4 0.55)"><path d="M60 67C44 52 64 42 64 18C84 35 82 53 60 67Z" fill="#FFB65C"></path></g><circle cx="60" cy="18" r="10" fill="none" stroke="#EAF1EC" stroke-width="3.5"></circle><path d="M52 28 L68 28 L75 38 L45 38 Z" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linejoin="round"></path><path d="M47 38 L43 92 M73 38 L77 92 M39 92 H81 M45 92 L47 102 H73 L75 92" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          unwindRN · shift card
+        </div>
+        <div class="sc-big">Night 3 of 3<span class="hl"> · Held.</span></div>
+        <div class="sc-sub">12.5 hrs · Full census</div>
+        <div class="sc-foot">On the record · Jul 2026</div>
+      </div>
+      <div class="shift-card">
+        <div class="sc-label">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="32 0 56 104" aria-hidden="true"><g transform="translate(34.4 47) scale(0.4 0.55)"><path d="M60 67C44 52 64 42 64 18C84 35 82 53 60 67Z" fill="#FFB65C"></path></g><circle cx="60" cy="18" r="10" fill="none" stroke="#EAF1EC" stroke-width="3.5"></circle><path d="M52 28 L68 28 L75 38 L45 38 Z" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linejoin="round"></path><path d="M47 38 L43 92 M73 38 L77 92 M39 92 H81 M45 92 L47 102 H73 L75 92" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          unwindRN · milestone
+        </div>
+        <div class="sc-big">Shift <span class="hl">#1,500</span></div>
+        <div class="sc-sub">Eleven years on the floor, on the record.</div>
+        <div class="sc-foot">ICU · Shareable</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · THE TRUST INVERSION -->
+<section class="inversion" id="trust">
+  <div class="wrap">
+    <div class="kicker">Whose record is it</div>
+    <h2>Nurses are the most surveyed, least served people in the building.</h2>
+    <p class="decl">Every survey sends your data up. This is the first record
+    where it flows <b>to you</b> — and stops. No dashboard for your manager.
+    No report to HR. No survey to score you. <b>Your record.</b></p>
+    <div class="truths">
+      <div class="truth">Voice is transcribed on your phone. Audio is never uploaded, never stored — only the entry you approve is saved.</div>
+      <div class="truth">Patient identifiers are kept out by design — deflected in the debrief, scrubbed before anything can be saved.</div>
+      <div class="truth">Estimates wear the ~. The record is honest about counted versus estimated.</div>
+      <div class="truth">No streaks, no red badges, no “you missed a day.” Skipping is invisible.</div>
+      <div class="truth">Export everything or delete everything — both are always one tap.</div>
+      <div class="truth">Free during beta. No surprise paywalls on your own record.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 · FAQ -->
 <section id="faq">
   <div class="wrap">
     <div class="kicker">Questions nurses ask</div>
@@ -306,47 +389,54 @@
     <div class="faq">
       <details>
         <summary>Is unwindRN therapy?</summary>
-        <p>No — and it never pretends to be. It's a debrief partner and a
-        logbook: a place to put the shift down and keep your record. It doesn't
-        diagnose, treat, or replace real support. If you're in crisis, call or
-        text 988 — the app keeps that one tap away, always.</p>
+        <p>No. It's a logbook with a debrief — the professional ritual, not
+        treatment. It doesn't diagnose, doesn't label you, and doesn't pretend
+        to be care. If a night is heavier than an app should hold, 988 is one
+        tap away — always, never gated.</p>
       </details>
       <details>
-        <summary>What happens to what I say?</summary>
-        <p>Your voice is transcribed on your phone — audio never leaves it. The
-        transcript text is used to generate your partner's reply and the draft
-        record, then it's gone; we don't store conversations. The only thing
-        saved is the shift entry you approve. Full details in the
+        <summary>What happens to what I say in a debrief?</summary>
+        <p>Your voice is transcribed on your phone — audio never leaves it.
+        The words you speak are used to write the entry and the companion's
+        replies, then they're gone; conversations aren't stored. The only
+        thing kept is the entry you approve. Details in the
         <a href="/privacy">privacy policy</a>.</p>
       </details>
       <details>
         <summary>Could this cause trouble with HIPAA or my license?</summary>
-        <p>unwindRN is built for the opposite. It never asks for patient
-        information, the partner deflects it if offered, and an automated
-        scrubber strips identifiers (rooms, beds, record numbers) before
-        anything can be saved. Your record describes your night — never a
-        patient's identity.</p>
+        <p>It's engineered for the opposite. unwindRN never asks for patient
+        information, deflects it if offered, and an automated scrubber strips
+        identifiers — rooms, beds, record numbers — before anything can be
+        saved. Your record is about your night, never a patient's identity.</p>
+      </details>
+      <details>
+        <summary>Can my hospital see any of this?</summary>
+        <p>No. There is no employer product, no manager dashboard, no
+        aggregate report — those don't exist to be bought. Your record lives
+        in your account, and account deletion removes every trace
+        immediately.</p>
       </details>
       <details>
         <summary>What does it cost?</summary>
-        <p>Free during the beta. If that ever changes, you'll hear it from us
-        plainly and first — no surprise paywalls on your own record.</p>
+        <p>Free during the beta. If that ever changes, you'll hear it plainly
+        and first — no surprise paywalls on your own record.</p>
       </details>
       <details>
         <summary>Android?</summary>
         <p>iPhone first, so the beta can be excellent instead of everywhere.
-        Android is on the roadmap — join the waitlist and tell us that's you,
-        and you'll be first to know.</p>
+        Android is on the roadmap — join the waitlist and reply to your
+        invite email to tell us that's you.</p>
       </details>
     </div>
   </div>
 </section>
 
+<!-- 8 · CLOSING CTA -->
 <section class="final">
   <div class="wrap">
     <h2>Tonight deserves a record.</h2>
-    <p class="lead" style="margin:0 auto">Join the waitlist and be first in
-    when TestFlight invites go out.</p>
+    <p class="lead" style="margin:0 auto">Join the waitlist — first TestFlight
+    invites go out soon.</p>
     <div class="waitlist" style="max-width:460px">
       <form name="waitlist" method="POST" action="/" data-netlify="true" netlify-honeypot="bot-field" id="wl-form-2">
         <input type="hidden" name="form-name" value="waitlist">
@@ -369,7 +459,7 @@
     <a href="mailto:support@unwindrn.com">support@unwindrn.com</a>
   </div>
   <div class="crisis">unwindRN isn't medical care or therapy. In crisis, call or text <a href="tel:988">988</a>.</div>
-  <div>© 2026 unwindRN LLC · Made for the people who stay when it's hard.</div>
+  <div>© 2026 unwindRN LLC · Every shift counted.</div>
 </footer>
 
 <script>
