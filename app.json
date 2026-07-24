@@ -15,7 +15,7 @@
       "usesAppleSignIn": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSSpeechRecognitionUsageDescription": "Your words are transcribed on this phone — only the text you approve is saved.",
+        "NSSpeechRecognitionUsageDescription": "unwindRN transcribes your words on this phone so that only the text you approve is ever saved.",
         "NSMicrophoneUsageDescription": "unwindRN listens only while you debrief. Audio never leaves your phone."
       }
     },
@@ -28,7 +28,7 @@
         "expo-speech-recognition",
         {
           "microphonePermission": "unwindRN listens only while you debrief. Audio never leaves your phone.",
-          "speechRecognitionPermission": "Your words are transcribed on this phone — only the text you approve is saved."
+          "speechRecognitionPermission": "unwindRN transcribes your words on this phone so that only the text you approve is ever saved."
         }
       ],
       [
