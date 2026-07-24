@@ -120,8 +120,54 @@ IDEAS.md with anything cut, DESIGN-DEBT.md with anything shipped as a fallback.
 Never echo secrets. Keep §State of the build current — it exists so future
 sessions never pay to rediscover the codebase.
 
-## State of the build — 2026-07-22 (keep current; the map, not the territory)
-Local repo `~/Desktop/unwindRN/app` (main) · tsc clean · all committed (no remote yet).
+## State of the build — 2026-07-24 (keep current; the map, not the territory)
+Repo `~/Desktop/unwindRN/app` (main) · tsc clean · pushed to github.com:jcullen2/unwindRN.
+
+**2026-07-24 — review, correctness pass, onboarding/wrapped rebuild.**
+Full review doc: `~/Desktop/unwindRN/unwindRN-critical-review-and-plan-2026-07-24.md`.
+- **12 bugs fixed** (commit `7ae751c`): offline-queue duplicate-insert race (two
+  overlapping flushes could log the same shift twice); duplicated turn on a
+  failed debrief send; SSE stream never aborted on leave; `TopBar` declared
+  inside render; Skia paths re-parsed per render in nav-pill; double-shift days
+  losing hours on Home + heatfield; dead `useFocusEffect`; three broken
+  `useMemo`s; Insights lock-screen flash; self prompt-injection in
+  `debrief-turn` (client `taps.tags` now validated server-side against the
+  canonical set, interpolated values newline-stripped/capped); TTS overlap race.
+- **Onboarding rebuilt (6 beats → 3)** around one persistent live instrument:
+  `components/career-grid.tsx` (Skia, one cell per shift) + `year-dial.tsx` +
+  `count-up.tsx`, all driven by `lib/career.ts` — **the single source of truth
+  for the estimate** (shifts/yr and night share by pattern, hours→days→years,
+  miles-on-feet, landmark comparison). Nightingale + "Our promises" removed.
+  Wrapped rebuilt to 5 visualization-led slides.
+- `components/lantern.tsx` — PulsingLantern moved OUT of the sign-in route.
+- **Nights are now estimated** on the same basis as shifts/hours (they were
+  logged-only, so a 5-year backfill showed "740 shifts · 0 nights").
+- **Site live with the 5-year persona** (740 / 8,880 / 296 — all derived from
+  lib/career.ts constants), tighter value prop, real 1200×630 `og.png`
+  (`web/og-source.html` regenerates it; render at 1200×630 with headless
+  Chrome), `twitter:card=summary_large_image`, canonical, robots.txt,
+  sitemap.xml. Verified live.
+- ⚠️ **`git push` to GitHub intermittently dies** with "unexpected disconnect
+  while reading sideband packet". Retry with
+  `GIT_SSH_COMMAND="ssh -o ServerAliveInterval=15"`. Also: `git show --stat`
+  hangs on the binary og.png — use `git diff-tree --name-only`.
+- ⚠️ `npx tsc --noEmit` takes 6–12 min (TypeScript ~6.0.3). Budget for it.
+- ⚠️ **`xcodebuild` with a fresh `-derivedDataPath` wedges** (40 min, zero
+  compile actions). Build against the default DerivedData cache.
+
+**SUBMISSION BLOCKERS found 2026-07-24 (research-backed, see review doc §7):**
+- **App Review cannot receive the email OTP.** Supabase has no email test-OTP
+  escape hatch (only `[auth.sms.test_otp]`). `docs/store-metadata.md` now
+  carries the guideline-2.1 note telling the reviewer to use Continue with
+  Apple. Without it this is a rejection.
+- **Guideline 5.1.1(ix): apps in "highly regulated fields (such as…
+  healthcare)" must be submitted by a legal entity, not an individual
+  developer account.** Verify the Apple Developer account is unwindRN LLC.
+- **The create/log-in split leaks account existence** ("No record under this
+  email yet") — an enumeration oracle on a nurse mental-health-adjacent
+  product. Supabase protects against this by default; the custom split defeats
+  it. Collapse to one identifier-first field.
+- `delete-account` is STILL not redeployed — in-app deletion 500s in prod.
 
 **2026-07-21/22 — first-ever on-device run (simulator, this Mac) + fixes:**
 - Dev environment on this Mac works: Xcode 26.6, iOS 26.5 sim runtime, CocoaPods
