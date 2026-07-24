@@ -37,6 +37,7 @@ export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [noRecord, setNoRecord] = useState(false);
+  const [codeError, setCodeError] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
   const codeRef = useRef<TextInput>(null);
 
@@ -93,11 +94,11 @@ export default function SignInScreen() {
     try {
       const { error } = await supabase.auth.verifyOtp({ email: addr, token, type: 'email' });
       if (error) {
-        setCode('');
-        Alert.alert(
-          "That code didn't match",
-          'Check the newest email — codes expire, and only the latest one counts.'
-        );
+        // Her digits stay put. Clearing the field on a bad code is the single
+        // most-hated behaviour on these screens: she has to re-read the email
+        // and retype all six to fix one.
+        setCodeError('That code didn’t match. Check the newest email — only the latest one works.');
+        codeRef.current?.setSelection?.(0, token.length);
         return;
       }
       // Session lands via onAuthStateChange; the root guards route from here.
@@ -204,6 +205,9 @@ export default function SignInScreen() {
                   setNoRecord(false);
                 }}
                 placeholder="Email"
+                // The placeholder is otherwise the field's only accessible
+                // name, and a placeholder disappears the moment she types.
+                accessibilityLabel="Email address"
                 placeholderTextColor={ink.faint}
                 keyboardAppearance="dark"
                 keyboardType="email-address"
@@ -263,6 +267,7 @@ export default function SignInScreen() {
                 onChangeText={(v) => {
                   const digits = v.replace(/\D/g, '').slice(0, 6);
                   setCode(digits);
+                  setCodeError(null);
                   if (digits.length === 6) verify(digits);
                 }}
                 placeholder="••••••"
@@ -270,11 +275,19 @@ export default function SignInScreen() {
                 keyboardAppearance="dark"
                 keyboardType="number-pad"
                 textContentType="oneTimeCode"
-                autoComplete="one-time-code"
-                maxLength={6}
+                // Deliberately longer than six: maxLength truncates BEFORE the
+                // non-digit strip above, so pasting "123 456" from the email
+                // would otherwise lose its last digit and silently fail.
+                maxLength={12}
+                accessibilityLabel={`Verification code, 6 digits, sent to ${addr}`}
                 style={[styles.input, styles.codeInput]}
               />
             </GlassField>
+            {codeError && (
+              <T v="caption" style={{ color: palette.amber, marginTop: space(2), textAlign: 'center' }}>
+                {codeError}
+              </T>
+            )}
             <FlameButton
               title="Open the record"
               onPress={() => verify(code)}

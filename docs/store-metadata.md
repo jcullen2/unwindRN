@@ -32,13 +32,20 @@ unwindRN is not therapy or medical care. If you're in crisis, call or text 988
 nurse,nursing,shift,debrief,logbook,charge,ICU,ER,night shift,career,RN,decompress
 
 ## App Privacy answers (what we actually collect)
-- **Contact info:** name (optional, user-provided) — linked to account.
-- **User content:** debrief transcripts (text only), shift records — linked, not
-  used for tracking, not shared with third parties.
+- **Contact info:** name (optional, user-provided) and email address — linked to
+  account.
+- **User content:** shift records only (date, hours, load, tags, and the
+  win/weight/lesson lines she approves) — linked, not used for tracking, not
+  shared with third parties.
+- **Debrief transcripts: NOT collected.** The `debrief_sessions.transcript`
+  column was dropped in migration `20260717000000`. Spoken and typed turns live
+  in memory on the device for the length of the debrief and are never written to
+  the database. Only the identifier-stripped record she approves is saved.
 - **Voice/audio:** NOT collected — speech is recognized on-device
   (`requiresOnDeviceRecognition`); only text leaves the phone.
 - **Tracking:** none. No ads, no data sale, no third-party analytics SDKs.
-- Sign in with Apple is the only login. In-app account deletion wipes everything.
+- **Sign-in:** passwordless email OTP is the primary door; Sign in with Apple is
+  the secondary one. In-app account deletion wipes everything.
 
 ## Review notes (paragraph for App Review)
 unwindRN is a journaling/logbook app for nurses. An AI "debrief partner" (Anthropic
@@ -49,8 +56,13 @@ recognition runs entirely on-device; audio never leaves the phone. If a user's
 message suggests she herself is in crisis, a classifier surfaces a full-screen card
 with the 988 Suicide & Crisis Lifeline (call/text) — resources are also always
 reachable from Settings and the debrief screen. Account deletion (Settings →
-Profile → Delete account) removes all rows and the auth user immediately. Test
-account: reviewer may sign in with any Apple ID; no server-side allowlist.
+Profile → Delete account) removes all rows and the auth user immediately.
+
+**How to sign in for review (guideline 2.1 — please read):** the primary
+sign-in sends a six-digit code to the reviewer's own email inbox, which a
+reviewer cannot access. **Please use "Continue with Apple" on the sign-in
+screen** — it works with any Apple ID, there is no server-side allowlist, and
+it requires no code. No demo account is needed.
 
 ## Screenshot plan (shoot at 21:00 device time, ember sky)
 1. Home — monument numeral (caption: "Your whole career, counted.")
