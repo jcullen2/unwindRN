@@ -164,19 +164,29 @@ export default function OnboardingScreen() {
                   nights={pattern ? est.nights : 0}
                   width={gridWidth}
                   progress={reveal}
+                  cell={5}
+                  gap={2}
+                  // 49 cols x 16 rows = 784 cells, so the default five-year
+                  // career (740) draws one square per shift. Longer careers
+                  // downscale and the grid says so.
+                  maxRows={16}
                 />
               )}
             </View>
           </View>
 
           <View style={styles.body}>
+            {/* No `entering` here: beat 0 mounts WITH the screen, and under
+                reanimated 4.5 + the React Compiler that leaves it at opacity 0
+                forever (CLAUDE.md landmine). Beats 1 and 2 mount on a later
+                state change, so they animate fine. */}
             {beat === 0 && (
-              <Animated.View key="b0" entering={FadeIn.duration(280)}>
+              <View key="b0">
                 <T v="ask">How long have you been a nurse?</T>
                 <View style={{ marginTop: space(5) }}>
                   <YearDial value={years} onChange={setYears} />
                 </View>
-              </Animated.View>
+              </View>
             )}
 
             {beat === 1 && (
@@ -312,7 +322,9 @@ const styles = StyleSheet.create({
     letterSpacing: -0.8,
     fontVariant: ['tabular-nums'],
   },
-  body: { flex: 1, justifyContent: 'center', paddingHorizontal: space(7), paddingVertical: space(4) },
+  // flex-start, not center: centring inside the leftover space floated the
+  // question halfway down an empty screen once the grid shrank.
+  body: { flex: 1, paddingHorizontal: space(7), paddingTop: space(7) },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space(2), marginTop: space(3) },
   fieldRow: { flexDirection: 'row', gap: space(2), marginTop: space(3) },
   input: { color: palette.ink, fontSize: type.body.fontSize, lineHeight: 22, padding: 0, minHeight: 24 },

@@ -129,9 +129,12 @@ export default function WelcomeScreen() {
           </View>
 
           <View style={styles.center} onLayout={(e) => setGridW(e.nativeEvent.layout.width)}>
-            {/* 0 · the grid draws, and the number lands on it */}
+            {/* 0 · the grid draws, and the number lands on it.
+                No `entering`: slide 0 mounts with the screen, and reanimated
+                4.5 + the React Compiler would pin it at opacity 0 (CLAUDE.md
+                landmine). The later slides mount on a state change. */}
             {slide === 0 && (
-              <Animated.View key="s0" entering={FadeIn.duration(400)}>
+              <View key="s0">
                 <T v="overline" style={{ letterSpacing: 2 }}>
                   {yearsWord} years at {where}
                 </T>
@@ -145,7 +148,7 @@ export default function WelcomeScreen() {
                 <T v="secondary" style={{ marginTop: space(2) }}>
                   Not one of them written down.
                 </T>
-              </Animated.View>
+              </View>
             )}
 
             {/* 1 · hours, made real */}
