@@ -47,7 +47,7 @@ export default function MilestoneScreen() {
 
   const n = Number(count) || totals.shifts;
   const hours = Math.round(totals.hours);
-  const nights = (shifts ?? []).filter((s) => s.is_night).length;
+  const nights = totals.nights;
   const wins = (shifts ?? []).filter((s) => s.win).length;
 
   const [slide, setSlide] = useState(0);

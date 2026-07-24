@@ -92,7 +92,7 @@ export default function InsightsScreen() {
 
   const now = new Date();
   const year = now.getFullYear();
-  const nights = (shifts ?? []).filter((s) => s.is_night).length;
+  const nights = totals.nights;
 
   const yearShifts = useMemo(
     () => (shifts ?? []).filter((s) => s.shift_date.startsWith(String(year))),

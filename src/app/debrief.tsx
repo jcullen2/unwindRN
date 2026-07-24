@@ -37,7 +37,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { LanternGlyph } from '@/brand';
-import { PulsingLantern } from '@/app/sign-in';
+import { PulsingLantern } from '@/components/lantern';
 import { Chip, FlameButton, Glass, QuietButton, T } from '@/components/kit';
 import { Sky } from '@/components/sky';
 import { localToday, RecordDraft } from '@/lib/api';

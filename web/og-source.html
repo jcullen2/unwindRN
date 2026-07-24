@@ -1,0 +1,58 @@
+<!doctype html>
+<!--
+  Source for /og.png — the 1200×630 link-preview card. Not deployed; render
+  this at exactly 1200×630 and export to web/og.png. Kept in the repo so the
+  card can be regenerated when the numbers or the wordmark change.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{width:1200px;height:630px;background:#090F0E;overflow:hidden;
+    font-family:"Bricolage Grotesque",-apple-system,sans-serif;color:#EAF1EC;
+    position:relative;display:flex;flex-direction:column;justify-content:center;padding:0 84px}
+  .glow{position:absolute;left:50%;bottom:-42%;transform:translateX(-50%);
+    width:1500px;height:620px;border-radius:50%;
+    background:radial-gradient(ellipse at center, rgba(255,182,92,.20), rgba(255,140,90,.06) 46%, transparent 72%)}
+  .lockup{display:flex;align-items:center;gap:14px;margin-bottom:44px;position:relative}
+  .lockup svg{width:34px}
+  .lockup span{font-weight:500;font-size:31px}
+  .lockup .rn{color:#FFB65C;font-weight:600;font-size:17px;vertical-align:super}
+  h1{font-weight:600;font-size:66px;line-height:1.06;letter-spacing:-1.8px;position:relative}
+  .nums{display:flex;gap:64px;margin-top:52px;position:relative}
+  .n .v{font-weight:700;font-size:62px;letter-spacing:-2px;line-height:1}
+  .n:nth-child(1) .v{color:#EAF1EC}
+  .n:nth-child(2) .v{color:#FFB65C}
+  .n:nth-child(3) .v{color:#9BC7BD}
+  .n .k{font-size:16px;letter-spacing:1.6px;text-transform:uppercase;
+    color:rgba(234,241,236,.55);margin-top:12px;font-weight:600}
+  .foot{position:absolute;bottom:46px;left:84px;font-size:19px;
+    color:rgba(234,241,236,.55);letter-spacing:.3px}
+</style>
+</head>
+<body>
+<div class="glow"></div>
+
+<div class="lockup">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="32 0 56 104">
+    <g transform="translate(34.4 47) scale(0.4 0.55)"><path d="M60 67C44 52 64 42 64 18C84 35 82 53 60 67Z" fill="#FFB65C"></path></g>
+    <circle cx="60" cy="18" r="10" fill="none" stroke="#EAF1EC" stroke-width="3.5"></circle>
+    <path d="M52 28 L68 28 L75 38 L45 38 Z" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linejoin="round"></path>
+    <path d="M47 38 L43 92 M73 38 L77 92 M39 92 H81 M45 92 L47 102 H73 L75 92" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path>
+  </svg>
+  <span>unwind<span class="rn">RN</span></span>
+</div>
+
+<h1>Log the shift.<br>Watch your career add up.</h1>
+
+<div class="nums">
+  <div class="n"><div class="v">740</div><div class="k">shifts</div></div>
+  <div class="n"><div class="v">8,880</div><div class="k">hours</div></div>
+  <div class="n"><div class="v">296</div><div class="k">nights</div></div>
+</div>
+
+<div class="foot">The career logbook for nurses · unwindrn.com</div>
+</body>
+</html>

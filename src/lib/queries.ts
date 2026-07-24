@@ -39,6 +39,15 @@ export function useShift(id: string | undefined) {
 }
 
 /**
+ * Roughly what share of a career's shifts are nights, by the pattern she
+ * picked at onboarding. Nights and hours have to be estimated on the same
+ * basis as shifts — otherwise a nurse who backfilled five years of rotating
+ * sees "740 shifts" beside "0 nights", which reads as "you have never worked
+ * a night" rather than "we haven't counted them yet".
+ */
+const NIGHT_SHARE: Record<string, number> = { Nights: 0.95, Rotating: 0.4, Days: 0.05 };
+
+/**
  * Career totals = onboarding estimate (est_*) + logged rows, computed from
  * the shifts query — never stored counters. Estimated portions wear the ~.
  */
@@ -47,13 +56,17 @@ export function useCareerTotals() {
   const { data: shifts } = useShifts();
   const logged = shifts ?? [];
   const loggedHours = logged.reduce((sum, s) => sum + Number(s.hours ?? 0), 0);
+  const loggedNights = logged.filter((s) => s.is_night).length;
   const estShifts = profile?.est_career_shifts ?? 0;
   const estHours = profile?.est_career_hours ?? 0;
+  const estNights = Math.round(estShifts * (NIGHT_SHARE[profile?.shift_pattern ?? ''] ?? 0));
   return {
     shifts: estShifts + logged.length,
     hours: estHours + loggedHours,
+    nights: estNights + loggedNights,
     loggedShifts: logged.length,
     loggedHours,
+    loggedNights,
     estimated: estShifts > 0 || estHours > 0,
   };
 }

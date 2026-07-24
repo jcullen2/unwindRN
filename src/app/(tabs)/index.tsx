@@ -104,7 +104,6 @@ export default function HomeScreen() {
       hours: days.reduce((sum, d) => sum + (byDate.get(d)?.hours ?? 0), 0),
     };
   }, [shifts]);
-  const nightCount = (shifts ?? []).filter((s) => s.is_night).length;
   const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   // Next milestone progress.
@@ -262,7 +261,8 @@ export default function HomeScreen() {
           </Pressable>
           <Pressable style={styles.tile} onPress={() => router.push('/insights')}>
             <T v="statValue" style={{ color: palette.moon }}>
-              {nightCount}
+              {approx}
+              {totals.nights.toLocaleString()}
             </T>
             <T v="overline" style={{ marginTop: 2 }}>
               nights

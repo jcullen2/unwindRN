@@ -16,38 +16,13 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Lantern } from '@/brand';
 import { FlameButton, GlassField, QuietButton, T } from '@/components/kit';
+import { PulsingLantern } from '@/components/lantern';
 import { Sky } from '@/components/sky';
 import { supabase } from '@/lib/supabase';
 import { ink, palette, space, type } from '@/theme/tokens';
-
-/** The lantern glows on a 5s idle pulse (§Motion). */
-export function PulsingLantern({ size = 58 }: { size?: number }) {
-  const reduced = useReducedMotion();
-  const v = useSharedValue(0);
-  useEffect(() => {
-    if (reduced) return;
-    v.value = withRepeat(withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.sin) }), -1, true);
-  }, [v, reduced]);
-  const st = useAnimatedStyle(() => ({ shadowOpacity: 0.5 + v.value * 0.4, shadowRadius: 12 + v.value * 14 }));
-  return (
-    <Animated.View
-      style={[{ shadowColor: palette.amber, shadowOffset: { width: 0, height: 0 } }, st]}>
-      <Lantern size={size} />
-    </Animated.View>
-  );
-}
 
 type Mode = 'create' | 'login';
 type Stage = 'landing' | 'email' | 'code';
