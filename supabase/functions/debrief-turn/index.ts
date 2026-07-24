@@ -87,10 +87,22 @@ const json = (body: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   });
 
+// One encoder for the process — sse() runs once per streamed token.
+const encoder = new TextEncoder();
+
 function sse(controller: ReadableStreamDefaultController<Uint8Array>, event: string, data: unknown) {
-  controller.enqueue(
-    new TextEncoder().encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
-  );
+  controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+}
+
+/**
+ * Values that originate with the user (her display name, her tap tags) are
+ * spliced into the system prompt. Left raw, a name like "…\n\nIgnore the
+ * rules above" would read to the model as instructions rather than as data.
+ * She can only steer her own partner, but the guardrails in that prompt are
+ * the PHI and not-therapy laws, so they don't get to be user-editable.
+ */
+function asData(value: string, max = 120): string {
+  return value.replace(/[\r\n]+/g, ' ').replace(/[<>{}]/g, '').trim().slice(0, max);
 }
 
 async function runUtility(anthropic: Anthropic, userTurn: string, priorPartnerLine: string | null): Promise<Utility> {
@@ -147,14 +159,23 @@ Deno.serve(async (req: Request) => {
         )
       : [];
 
+    // Taps are numbers and a closed tag set. Anything else the client sends is
+    // dropped rather than trusted into the prompt.
     const taps = body?.taps ?? null;
+    const tapHours = Number(taps?.hours);
+    const tapLoad = Number(taps?.load);
+    const tapTags: string[] = Array.isArray(taps?.tags)
+      ? taps.tags.filter((t: unknown): t is string =>
+          (CANONICAL_TAGS as readonly string[]).includes(t as string)
+        )
+      : [];
     const tapsSummary = taps
       ? [
-          taps.hours != null ? `${taps.hours}h` : null,
-          taps.load != null
-            ? `load ${['Light', 'Steady', 'Full', 'Heavy', 'Brutal'][taps.load - 1] ?? taps.load}`
+          Number.isFinite(tapHours) && tapHours > 0 && tapHours <= 24 ? `${tapHours}h` : null,
+          Number.isInteger(tapLoad) && tapLoad >= 1 && tapLoad <= 5
+            ? `load ${['Light', 'Steady', 'Full', 'Heavy', 'Brutal'][tapLoad - 1]}`
             : null,
-          Array.isArray(taps.tags) && taps.tags.length > 0 ? `tags: ${taps.tags.join(', ')}` : null,
+          tapTags.length > 0 ? `tags: ${tapTags.join(', ')}` : null,
         ]
           .filter(Boolean)
           .join(', ') || 'none'
@@ -167,11 +188,11 @@ Deno.serve(async (req: Request) => {
     if (!profile) return json({ error: 'profile_required' }, 400);
 
     const system = SYSTEM_PROMPT_TEMPLATE
-      .replaceAll('{display_name}', profile.display_name ?? 'there')
-      .replaceAll('{specialty}', profile.specialty ?? 'nursing')
-      .replaceAll('{years_in}', String(profile.years_in ?? 0))
+      .replaceAll('{display_name}', asData(profile.display_name ?? 'there', 40))
+      .replaceAll('{specialty}', asData(profile.specialty ?? 'nursing', 40))
+      .replaceAll('{years_in}', String(Number(profile.years_in) || 0))
       .replaceAll('{shift_number}', String((shiftCount ?? 0) + 1))
-      .replaceAll('{taps_summary}', tapsSummary);
+      .replaceAll('{taps_summary}', asData(tapsSummary, 200));
 
     // Budgets: truncate context to ~8k tokens, keeping the newest turns.
     let chars = 0;

@@ -177,15 +177,28 @@ export default function DebriefScreen() {
   const transcriptRef = useRef<ChatMessage[]>([]);
   const factsRef = useRef(facts);
   const latencies = useRef<number[]>([]);
+  const abortRef = useRef<AbortController | null>(null);
   useEffect(() => {
     transcriptRef.current = transcript;
   }, [transcript]);
   useEffect(() => {
     factsRef.current = facts;
   }, [facts]);
-  useEffect(() => () => stopSpeaking(), []);
+  // Leaving mid-stream must actually stop the stream — otherwise the reply
+  // keeps arriving (and billing) into a screen nobody is looking at.
+  useEffect(
+    () => () => {
+      abortRef.current?.abort();
+      stopSpeaking();
+    },
+    []
+  );
 
+  // Read through a ref inside sendTurn: a fresh object literal every render
+  // would rebuild sendTurn every render, and useVoiceTurn's onFinal with it.
   const taps: Taps = { hours: hours ?? usual, load, tags, is_night: isNight };
+  const tapsRef = useRef(taps);
+  tapsRef.current = taps;
 
   const mergeUtility = useCallback((u: Utility) => {
     if (u.crisis) {
@@ -216,6 +229,10 @@ export default function DebriefScreen() {
       if (!turn || !userId || sendingRef.current) return;
       sendingRef.current = true;
       stopSpeaking();
+      const prior = transcriptRef.current;
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
       try {
         let sid = sessionId;
         if (!sid) {
@@ -228,9 +245,9 @@ export default function DebriefScreen() {
           sid = data.id;
           setSessionId(sid);
         }
-        const prior = transcriptRef.current;
         const withUser = [...prior, { role: 'user' as const, content: turn }];
         setTranscript(withUser);
+        transcriptRef.current = withUser;
         setAwaiting(true);
         setPartial('');
         // PHI guardrail: the raw spoken transcript (which could contain a
@@ -241,9 +258,10 @@ export default function DebriefScreen() {
         const t0 = Date.now();
         let first = 0;
         const { reply, capped: hitCap } = await streamDebriefTurn({
-          taps,
+          taps: tapsRef.current,
           transcript: prior,
           userTurn: turn,
+          signal: controller.signal,
           onDelta: (chunk) => {
             if (!first) {
               first = Date.now() - t0;
@@ -263,11 +281,20 @@ export default function DebriefScreen() {
 
         const withReply = [...withUser, { role: 'assistant' as const, content: reply }];
         setTranscript(withReply);
+        transcriptRef.current = withReply;
         setPartial('');
         if (hitCap) setCapped(true);
         if (!quietMode) speak(reply);
       } catch {
         setPartial('');
+        // A turn we deliberately cancelled (she left, or spoke again) is not
+        // an error worth an alert.
+        if (controller.signal.aborted) return;
+        // Put her words back in the box exactly once: the turn was already
+        // appended optimistically, so it has to come back out or resending
+        // would say the same thing twice.
+        setTranscript(prior);
+        transcriptRef.current = prior;
         setDraft(turn);
         Alert.alert(TURN_ERROR);
       } finally {
@@ -275,7 +302,7 @@ export default function DebriefScreen() {
         sendingRef.current = false;
       }
     },
-    [userId, sessionId, quietMode, taps, mergeUtility]
+    [userId, sessionId, quietMode, mergeUtility]
   );
 
   const voice = useVoiceTurn(sendTurn);
@@ -361,16 +388,18 @@ export default function DebriefScreen() {
 
   const lastUserIdx = transcript.map((m) => m.role).lastIndexOf('user');
 
-  const TopBar = ({ tone = 'taps' }: { tone?: 'taps' | 'talk' }) => (
+  const close = useCallback(() => {
+    abortRef.current?.abort();
+    stopSpeaking();
+    router.back();
+  }, [router]);
+
+  // Rendered as a call, not <TopBar/>: a component declared inside render is a
+  // new type every render, so React would unmount and remount this subtree on
+  // every keystroke.
+  const topBar = (tone: 'taps' | 'talk' = 'taps') => (
     <View style={styles.top}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Close"
-        onPress={() => {
-          stopSpeaking();
-          router.back();
-        }}
-        hitSlop={12}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={close} hitSlop={12}>
         <T style={{ color: ink.dim, fontSize: 20, lineHeight: 22 }}>✕</T>
       </Pressable>
       {tone === 'taps' ? (
@@ -395,7 +424,7 @@ export default function DebriefScreen() {
       <Sky>
         <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={{ flex: 1, paddingTop: insets.top + space(3), paddingHorizontal: space(6.5) }}>
-            <TopBar />
+            {topBar()}
 
             {recordLine.length > 0 && (
               <Glass warm style={styles.recordLine}>
@@ -552,7 +581,7 @@ export default function DebriefScreen() {
     <Sky>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={{ paddingTop: insets.top + space(3), paddingHorizontal: space(6) }}>
-          <TopBar tone="talk" />
+          {topBar('talk')}
         </View>
 
         {idle ? (

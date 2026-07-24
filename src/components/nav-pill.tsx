@@ -18,8 +18,14 @@ const ICON_PATHS: Record<string, string> = {
   profile: 'M10 9.5 a3.1 3.1 0 1 0 0-6.2 a3.1 3.1 0 0 0 0 6.2 M4 16.5 C4.8 13.4 7.1 11.8 10 11.8 C12.9 11.8 15.2 13.4 16 16.5',
 };
 
+// Parsed once. The icons never change, and Skia paths are native objects —
+// re-parsing them every render allocated four of them per tab switch.
+const ICONS: Record<string, ReturnType<typeof Skia.Path.MakeFromSVGString>> = Object.fromEntries(
+  Object.entries(ICON_PATHS).map(([k, d]) => [k, Skia.Path.MakeFromSVGString(d)])
+);
+
 function TabIcon({ route, active }: { route: string; active: boolean }) {
-  const path = Skia.Path.MakeFromSVGString(ICON_PATHS[route] ?? '');
+  const path = ICONS[route];
   if (!path) return null;
   return (
     <Canvas style={{ width: 20, height: 20 }} pointerEvents="none">

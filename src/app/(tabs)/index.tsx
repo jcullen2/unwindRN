@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -72,25 +72,38 @@ export default function HomeScreen() {
   const { data: dailyLine } = useDailyLine(totals.loggedShifts > 0);
   const active = useActiveShift();
 
-  // Keep career count fresh on focus.
-  useFocusEffect(useCallback(() => {}, []));
-
   const usual = Number(profile?.usual_shift_hours ?? 12);
   const approx = totals.estimated ? '~' : '';
   const todayShift = shifts?.find((s) => s.shift_date === localToday());
 
-  // This-week strip (Sun..Sat around today)
+  // This-week strip (Sun..Sat around today). A day can hold more than one
+  // shift — a double-back has to count as two shifts and all of its hours,
+  // so the day is an aggregate, not "whichever row sorted last".
   const now = new Date();
-  const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay());
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart);
-    d.setDate(weekStart.getDate() + i);
-    return format(d, 'yyyy-MM-dd');
-  });
-  const byDate = new Map((shifts ?? []).map((s) => [s.shift_date, s]));
-  const weekShifts = weekDays.filter((d) => byDate.has(d)).length;
-  const weekHours = weekDays.reduce((sum, d) => sum + Number(byDate.get(d)?.hours ?? 0), 0);
+  const week = useMemo(() => {
+    const start = new Date();
+    start.setDate(start.getDate() - start.getDay());
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      return format(d, 'yyyy-MM-dd');
+    });
+    const byDate = new Map<string, { count: number; hours: number; load: number | null }>();
+    for (const s of shifts ?? []) {
+      const held = byDate.get(s.shift_date) ?? { count: 0, hours: 0, load: null };
+      byDate.set(s.shift_date, {
+        count: held.count + 1,
+        hours: held.hours + Number(s.hours ?? 0),
+        load: Math.max(held.load ?? 0, s.load ?? 0) || null,
+      });
+    }
+    return {
+      days,
+      byDate,
+      shifts: days.reduce((n, d) => n + (byDate.get(d)?.count ?? 0), 0),
+      hours: days.reduce((sum, d) => sum + (byDate.get(d)?.hours ?? 0), 0),
+    };
+  }, [shifts]);
   const nightCount = (shifts ?? []).filter((s) => s.is_night).length;
   const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -185,12 +198,12 @@ export default function HomeScreen() {
         <View style={styles.weekHead}>
           <T v="overline">This week</T>
           <T v="caption">
-            {weekShifts} shifts · {Math.round(weekHours)}h ›
+            {week.shifts} shifts · {Math.round(week.hours)}h ›
           </T>
         </View>
         <View style={styles.week}>
-          {weekDays.map((d, i) => {
-            const s = byDate.get(d);
+          {week.days.map((d, i) => {
+            const s = week.byDate.get(d);
             const isToday = d === localToday();
             const step = s?.load != null ? s.load - 1 : -1;
             const dark = step >= 3;

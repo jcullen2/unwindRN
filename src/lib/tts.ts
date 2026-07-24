@@ -11,8 +11,13 @@ const FUNCTIONS_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1`;
 
 let audioModeReady = false;
 let current: AudioPlayer | null = null;
+// Two awaits sit between the call and playback. Without a generation counter,
+// a second reply arriving first would leave both voices talking at once.
+let generation = 0;
 
 export async function speak(text: string): Promise<void> {
+  stopSpeaking(); // bumps the generation, so claim ours after it
+  const mine = generation;
   try {
     if (!audioModeReady) {
       await setAudioModeAsync({ playsInSilentMode: true });
@@ -20,9 +25,8 @@ export async function speak(text: string): Promise<void> {
     }
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
-    if (!token) return;
+    if (!token || mine !== generation) return;
 
-    stopSpeaking();
     const uri = `${FUNCTIONS_URL}/speak?text=${encodeURIComponent(text.slice(0, 1200))}`;
     const player = createAudioPlayer({
       uri,
@@ -31,6 +35,10 @@ export async function speak(text: string): Promise<void> {
         apikey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
       },
     });
+    if (mine !== generation) {
+      player.remove();
+      return;
+    }
     current = player;
     player.play();
   } catch {
@@ -39,6 +47,7 @@ export async function speak(text: string): Promise<void> {
 }
 
 export function stopSpeaking(): void {
+  generation++;
   try {
     current?.pause();
     current?.remove();

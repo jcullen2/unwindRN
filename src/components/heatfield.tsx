@@ -36,20 +36,29 @@ export function Heatfield({ year, month, shifts, onOpenDay }: Props) {
   const reduced = useReducedMotion();
   const today = localToday();
 
+  // A double-back or an overlapping shift means two rows share a date. Show
+  // the heavier one rather than whichever happened to sort last, so the cell
+  // is deterministic and never under-reports the day.
   const byDate = useMemo(() => {
     const m = new Map<string, Shift>();
-    for (const s of shifts) m.set(s.shift_date, s);
+    for (const s of shifts) {
+      const held = m.get(s.shift_date);
+      if (!held || (s.load ?? 0) > (held.load ?? 0)) m.set(s.shift_date, s);
+    }
     return m;
   }, [shifts]);
 
-  const daysInMonth = new Date(year, month, 0).getDate();
-  const firstWeekday = new Date(year, month - 1, 1).getDay();
-  const cells: (string | null)[] = [
-    ...Array(firstWeekday).fill(null),
-    ...Array.from({ length: daysInMonth }, (_, i) =>
-      `${year}-${String(month).padStart(2, '0')}-${String(i + 1).padStart(2, '0')}`
-    ),
-  ];
+  const cells = useMemo<(string | null)[]>(() => {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const firstWeekday = new Date(year, month - 1, 1).getDay();
+    return [
+      ...Array(firstWeekday).fill(null),
+      ...Array.from(
+        { length: daysInMonth },
+        (_, i) => `${year}-${String(month).padStart(2, '0')}-${String(i + 1).padStart(2, '0')}`
+      ),
+    ];
+  }, [year, month]);
   const workedDates = useMemo(
     () => cells.filter((d): d is string => !!d && byDate.has(d)),
     [cells, byDate]

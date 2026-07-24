@@ -73,7 +73,7 @@ export default function InsightsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { profile } = useAuth();
-  const { data: shifts } = useShifts();
+  const { data: shifts, isPending } = useShifts();
   const totals = useCareerTotals();
   const logged = shifts?.length ?? 0;
   const usual = Number(profile?.usual_shift_hours ?? 12);
@@ -94,10 +94,15 @@ export default function InsightsScreen() {
   const year = now.getFullYear();
   const nights = (shifts ?? []).filter((s) => s.is_night).length;
 
-  const yearShifts = (shifts ?? []).filter((s) => s.shift_date.startsWith(String(year)));
+  const yearShifts = useMemo(
+    () => (shifts ?? []).filter((s) => s.shift_date.startsWith(String(year))),
+    [shifts, year]
+  );
   const monthCounts = useMemo(() => {
     const c = Array(12).fill(0);
-    for (const s of yearShifts) c[parseISO(s.shift_date).getMonth()]++;
+    // The date is already YYYY-MM-DD; slicing beats constructing 12 Date
+    // objects per render, and it can't drift across a timezone boundary.
+    for (const s of yearShifts) c[Number(s.shift_date.slice(5, 7)) - 1]++;
     return c;
   }, [yearShifts]);
   const maxMonth = Math.max(1, ...monthCounts);
@@ -121,6 +126,10 @@ export default function InsightsScreen() {
 
   // CCRN eligibility — real: hours toward 2,000.
   const ccrnFrac = Math.min(1, totals.hours / 2000);
+
+  // Don't flash the locked screen at a nurse with 400 shifts while her rows
+  // are still in flight.
+  if (isPending) return <Sky />;
 
   if (logged < UNLOCK_AT) {
     const remaining = UNLOCK_AT - logged;

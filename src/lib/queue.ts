@@ -44,6 +44,20 @@ async function writeQueue(q: QueuedShift[]): Promise<void> {
 }
 
 /**
+ * Every read-modify-write of the queue runs through this chain. AsyncStorage
+ * has no transactions, so two overlapping flushes (a foreground event landing
+ * mid-save, say) would each read the same array and each insert the same row —
+ * her shift would appear twice in the logbook and count twice toward a
+ * milestone. Serializing every mutation is what makes a duplicate impossible.
+ */
+let chain: Promise<unknown> = Promise.resolve();
+function exclusive<T>(job: () => Promise<T>): Promise<T> {
+  const run = chain.then(job, job);
+  chain = run.catch(() => {});
+  return run;
+}
+
+/**
  * Queue the shift locally (never lost), then try to sync now.
  * Returns { synced, shiftId } — shiftId only when the row reached Supabase.
  */
@@ -54,42 +68,46 @@ export async function saveShift(
     clientId: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     payload,
   };
-  const q = await readQueue();
-  await writeQueue([...q, entry]);
+  return exclusive(async () => {
+    const q = await readQueue();
+    await writeQueue([...q, entry]);
 
-  try {
-    const { data, error } = await supabase
-      .from('shifts')
-      .insert(payload)
-      .select('id')
-      .single();
-    if (error) throw error;
-    const rest = (await readQueue()).filter((e) => e.clientId !== entry.clientId);
-    await writeQueue(rest);
-    return { synced: true, shiftId: data.id };
-  } catch {
-    return { synced: false, shiftId: null };
-  }
+    try {
+      const { data, error } = await supabase
+        .from('shifts')
+        .insert(payload)
+        .select('id')
+        .single();
+      if (error) throw error;
+      const rest = (await readQueue()).filter((e) => e.clientId !== entry.clientId);
+      await writeQueue(rest);
+      return { synced: true, shiftId: data.id };
+    } catch {
+      return { synced: false, shiftId: null };
+    }
+  });
 }
 
 /** Push any stranded rows. Safe to call often; no-ops when empty. */
-export async function flushShiftQueue(): Promise<number> {
-  const q = await readQueue();
-  if (q.length === 0) return 0;
-  let flushed = 0;
-  const remaining: QueuedShift[] = [];
-  for (const entry of q) {
-    try {
-      const { error } = await supabase.from('shifts').insert(entry.payload);
-      if (error) throw error;
-      flushed++;
-    } catch {
-      remaining.push(entry);
+export function flushShiftQueue(): Promise<number> {
+  return exclusive(async () => {
+    const q = await readQueue();
+    if (q.length === 0) return 0;
+    let flushed = 0;
+    const remaining: QueuedShift[] = [];
+    for (const entry of q) {
+      try {
+        const { error } = await supabase.from('shifts').insert(entry.payload);
+        if (error) throw error;
+        flushed++;
+      } catch {
+        remaining.push(entry);
+      }
     }
-  }
-  await writeQueue(remaining);
-  if (flushed > 0) emitSynced();
-  return flushed;
+    await writeQueue(remaining);
+    if (flushed > 0) emitSynced();
+    return flushed;
+  });
 }
 
 // Retry stranded rows whenever the app comes back to the foreground.
