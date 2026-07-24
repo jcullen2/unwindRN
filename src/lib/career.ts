@@ -61,16 +61,25 @@ export function estimateCareer(
   };
 }
 
+const LA_TO_NY = 2_790;
+
 /**
  * A true, checkable comparison for a distance. Nurses have heard "you walk a
  * lot" — a named place they can picture is what makes it land.
+ *
+ * Past coast-to-coast the anchor multiplies rather than topping out: a nurse
+ * thirty years in has walked roughly six of them, and handing her the same
+ * line as a five-year nurse would understate her by 6x.
  */
 export function milesLandmark(miles: number): string | null {
+  if (miles >= LA_TO_NY * 2) {
+    return `Los Angeles to New York, ${Math.floor(miles / LA_TO_NY)} times over`;
+  }
   const marks: [number, string][] = [
-    [2_790, 'farther than walking Los Angeles to New York'],
+    [LA_TO_NY, 'farther than walking Los Angeles to New York'],
     [2_190, 'the whole Appalachian Trail, end to end'],
     [1_000, 'Chicago to Miami on foot'],
-    [500, 'the length of the Camino de Santiago, three times over'],
+    [500, 'the Camino de Santiago, end to end'],
     [100, 'a hundred miles on your feet'],
   ];
   return marks.find(([m]) => miles >= m)?.[1] ?? null;

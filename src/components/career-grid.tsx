@@ -13,9 +13,11 @@
  */
 import { Canvas, Group, Path, Skia } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
+import { View } from 'react-native';
 import { useDerivedValue, type SharedValue } from 'react-native-reanimated';
 
-import { palette } from '@/theme/tokens';
+import { T } from '@/components/kit';
+import { palette, space } from '@/theme/tokens';
 
 type Props = {
   shifts: number;
@@ -39,9 +41,24 @@ export function CareerGrid({
   gap = 2.5,
   maxRows = 26,
 }: Props) {
-  const pitch = cell + gap;
-  const cols = Math.max(1, Math.floor((width + gap) / pitch));
-  const rows = Math.min(maxRows, Math.max(1, Math.ceil(shifts / cols)));
+  // A career that won't fit at one-cell-per-shift shrinks the cell first, and
+  // only once the cells would stop reading as cells does one cell start
+  // standing for ten. Truncating instead would put a hero number of ~2,960
+  // above a grid of 700 dots — in an app whose promise is an honest count,
+  // that is the one error not worth making. `per` is surfaced so the caller
+  // can say so on screen.
+  let c = cell;
+  let cols = Math.max(1, Math.floor((width + gap) / (c + gap)));
+  while (c > 4 && Math.ceil(shifts / cols) > maxRows) {
+    c -= 0.5;
+    cols = Math.max(1, Math.floor((width + gap) / (c + gap)));
+  }
+  const per = Math.ceil(shifts / (cols * maxRows)) || 1;
+  const marks = Math.ceil(shifts / per);
+  const nightMarks = Math.round(nights / per);
+
+  const pitch = c + gap;
+  const rows = Math.max(1, Math.ceil(marks / cols));
   const height = rows * pitch - gap;
 
   // Nights are distributed evenly through the grid rather than clumped at the
@@ -51,20 +68,20 @@ export function CareerGrid({
     const day = Skia.Path.Make();
     const night = Skia.Path.Make();
     const frame = Skia.Path.Make();
-    const drawn = Math.min(shifts, cols * rows);
-    const nightEvery = nights > 0 ? drawn / nights : 0;
+    const drawn = Math.min(marks, cols * rows);
+    const nightEvery = nightMarks > 0 ? drawn / nightMarks : 0;
     let nightsPlaced = 0;
 
     for (let i = 0; i < cols * rows; i++) {
       const x = (i % cols) * pitch;
       const y = Math.floor(i / cols) * pitch;
-      const r = Skia.RRectXY(Skia.XYWHRect(x, y, cell, cell), 1.6, 1.6);
+      const r = Skia.RRectXY(Skia.XYWHRect(x, y, c, c), 1.6, 1.6);
       if (i >= drawn) {
         frame.addRRect(r);
         continue;
       }
       const wantNights = nightEvery > 0 ? Math.floor(i / nightEvery) + 1 : 0;
-      if (nightsPlaced < wantNights && nightsPlaced < nights) {
+      if (nightsPlaced < wantNights && nightsPlaced < nightMarks) {
         night.addRRect(r);
         nightsPlaced++;
       } else {
@@ -72,7 +89,7 @@ export function CareerGrid({
       }
     }
     return { dayPath: day, nightPath: night, framePath: frame };
-  }, [shifts, nights, cols, rows, pitch, cell]);
+  }, [marks, nightMarks, cols, rows, pitch, c]);
 
   // Built as a plain object rather than Skia's rect() helper: this runs on the
   // UI thread and must not depend on a non-worklet factory.
@@ -84,13 +101,20 @@ export function CareerGrid({
   }));
 
   return (
-    <Canvas style={{ width, height }}>
-      {/* the unworked remainder of the frame, barely there */}
-      <Path path={framePath} color={palette.ink} opacity={0.05} />
-      <Group clip={clip}>
-        <Path path={dayPath} color={palette.amber} opacity={0.85} />
-        <Path path={nightPath} color={palette.moon} opacity={0.9} />
-      </Group>
-    </Canvas>
+    <View>
+      <Canvas style={{ width, height }}>
+        {/* the unworked remainder of the frame, barely there */}
+        <Path path={framePath} color={palette.ink} opacity={0.05} />
+        <Group clip={clip}>
+          <Path path={dayPath} color={palette.amber} opacity={0.85} />
+          <Path path={nightPath} color={palette.moon} opacity={0.9} />
+        </Group>
+      </Canvas>
+      {per > 1 && (
+        <T v="whisper" style={{ marginTop: space(1.5) }}>
+          one square = {per} shifts
+        </T>
+      )}
+    </View>
   );
 }

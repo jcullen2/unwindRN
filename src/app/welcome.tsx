@@ -94,7 +94,6 @@ export default function WelcomeScreen() {
 
   const advance = () => {
     if (slide < SLIDES - 1) setSlide((s) => s + 1);
-    else router.replace('/');
   };
 
   useEffect(() => {
@@ -102,6 +101,10 @@ export default function WelcomeScreen() {
       draw.value = 0;
       draw.value = withTiming(1, { duration: 1800, easing: Easing.out(Easing.cubic) });
     }
+    // The last slide never auto-advances. It's the dwell moment, the
+    // screenshot, and the only real call to action — timing her out of it is
+    // the one thing that would waste the whole story.
+    if (slide === SLIDES - 1) return;
     timer.current = setTimeout(advance, SLIDE_MS);
     return () => {
       if (timer.current) clearTimeout(timer.current);
@@ -137,7 +140,7 @@ export default function WelcomeScreen() {
                     <CareerGrid shifts={shifts} nights={nights} width={gridW} progress={draw} maxRows={20} />
                   </View>
                 )}
-                <CountUp value={shifts} prefix="~" style={styles.hero} duration={1800} />
+                <CountUp value={shifts} prefix="~" from={0} style={styles.hero} duration={1800} />
                 <T v="ask">{spec ? `${spec} shifts.` : 'shifts.'}</T>
                 <T v="secondary" style={{ marginTop: space(2) }}>
                   Not one of them written down.
@@ -148,7 +151,7 @@ export default function WelcomeScreen() {
             {/* 1 · hours, made real */}
             {slide === 1 && (
               <Animated.View key="s1" entering={FadeIn.duration(400)}>
-                <CountUp value={hours} prefix="~" style={styles.hero} duration={1900} />
+                <CountUp value={hours} prefix="~" from={0} style={styles.hero} duration={1900} />
                 <T v="ask">hours on the floor.</T>
                 <View style={{ marginTop: space(8) }}>
                   <DrawnLine delay={700} />
@@ -165,7 +168,7 @@ export default function WelcomeScreen() {
             {/* 2 · only the nights light */}
             {slide === 2 && (
               <Animated.View key="s2" entering={FadeIn.duration(400)}>
-                <CountUp value={nights} prefix="~" style={[styles.hero, { color: palette.moon }]} duration={1700} />
+                <CountUp value={nights} prefix="~" from={0} style={[styles.hero, { color: palette.moon }]} duration={1700} />
                 <T v="ask">of them were nights.</T>
                 {gridW > 0 && (
                   <View style={{ marginTop: space(7) }}>
@@ -178,7 +181,7 @@ export default function WelcomeScreen() {
             {/* 3 · the miles */}
             {slide === 3 && (
               <Animated.View key="s3" entering={FadeIn.duration(400)}>
-                <CountUp value={miles} prefix="~" style={styles.hero} duration={1900} />
+                <CountUp value={miles} prefix="~" from={0} style={styles.hero} duration={1900} />
                 <T v="ask">miles, on your feet.</T>
                 <View style={{ marginTop: space(8) }}>
                   <DrawnLine delay={600} />

@@ -13,11 +13,18 @@ import { useReducedMotion } from 'react-native-reanimated';
 import { T } from '@/components/kit';
 import type { ComponentProps } from 'react';
 
-/** Eases toward `value`, re-tweening whenever the target moves. */
-export function useTweenedNumber(value: number, duration = 620): number {
+/**
+ * Eases toward `value`, re-tweening whenever the target moves.
+ *
+ * `start` seeds the first tween. Leave it undefined where the number is
+ * already on screen and only changes in response to a control (the year dial),
+ * and pass 0 where the number is a reveal — otherwise the first render begins
+ * at the target, the effect sees no change, and 740 simply appears.
+ */
+export function useTweenedNumber(value: number, duration = 620, start?: number): number {
   const reduced = useReducedMotion();
-  const [shown, setShown] = useState(value);
-  const from = useRef(value);
+  const [shown, setShown] = useState(start ?? value);
+  const from = useRef(start ?? value);
   const raf = useRef<number | null>(null);
 
   useEffect(() => {
@@ -52,10 +59,12 @@ type Props = Omit<ComponentProps<typeof T>, 'children'> & {
   prefix?: string;
   suffix?: string;
   duration?: number;
+  /** Pass 0 to make the number climb from nothing on first render. */
+  from?: number;
 };
 
-export function CountUp({ value, prefix = '', suffix = '', duration, ...rest }: Props) {
-  const shown = useTweenedNumber(value, duration);
+export function CountUp({ value, prefix = '', suffix = '', duration, from, ...rest }: Props) {
+  const shown = useTweenedNumber(value, duration, from);
   return (
     <T {...rest}>
       {prefix}
