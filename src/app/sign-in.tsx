@@ -158,13 +158,13 @@ export default function SignInScreen() {
           unwind<T style={styles.rn}>RN</T>
         </T>
         <T v="secondary" style={{ marginTop: space(2.5) }}>
-          Put the shift down.
+          Your career, counted.
         </T>
 
         {stage === 'landing' && (
           <View style={styles.paneWrap}>
             <FlameButton
-              title="Start your record"
+              title="Start your logbook"
               onPress={() => {
                 setMode('create');
                 setStage('email');
@@ -172,7 +172,7 @@ export default function SignInScreen() {
               style={{ width: '100%' }}
             />
             <QuietButton
-              title="I already have one"
+              title="Log in"
               onPress={() => {
                 setMode('login');
                 setStage('email');
@@ -192,7 +192,7 @@ export default function SignInScreen() {
         {stage === 'email' && (
           <View style={styles.paneWrap}>
             <T v="ask" style={{ fontSize: 22, textAlign: 'center' }}>
-              {mode === 'create' ? 'Start your record.' : 'Welcome back.'}
+              {mode === 'create' ? 'Start your logbook.' : 'Welcome back.'}
             </T>
             <T v="secondary" style={{ marginTop: space(2), textAlign: 'center' }}>
               We’ll email you a six-digit code.{'\n'}No password to remember.
@@ -289,7 +289,7 @@ export default function SignInScreen() {
               </T>
             )}
             <FlameButton
-              title="Open the record"
+              title="Continue"
               onPress={() => verify(code)}
               loading={busy}
               disabled={code.length !== 6}

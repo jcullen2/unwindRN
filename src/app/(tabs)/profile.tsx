@@ -1,6 +1,6 @@
 /**
- * Profile (Deep Ward) — a tab, not a sheet. Amber-ring avatar, "Keeper of N
- * shifts", a "From your record" card drawn from her own logged shifts, then the
+ * Profile (Deep Ward) — a tab, not a sheet. Amber-ring avatar, her shift and
+ * hour totals, a "From your record" card drawn from her own logged shifts, then the
  * settings list (reminder, career signals, export, resources) and in-app account
  * deletion (full cascade). 988 always in the footer.
  */
@@ -177,7 +177,7 @@ export default function ProfileScreen() {
               </T>
             )}
             <T v="caption" style={{ color: palette.amber, marginTop: 3 }}>
-              Keeper of {totals.shifts.toLocaleString()} shifts
+              {totals.shifts.toLocaleString()} shifts · {Math.round(totals.hours).toLocaleString()} hours
             </T>
           </View>
         </View>
@@ -186,12 +186,12 @@ export default function ProfileScreen() {
           <View style={styles.topLight} />
           <T v="overline">From your record</T>
           <View style={styles.recRow}>
-            <T v="caption" style={{ color: palette.moss }}>Longest stretch held</T>
+            <T v="caption" style={{ color: palette.moss }}>Longest stretch</T>
             <T v="caption" style={{ color: ink.text }}>{record.longest} {record.longest === 1 ? 'shift' : 'shifts'}</T>
           </View>
           {record.topWord && (
             <View style={styles.recRow}>
-              <T v="caption" style={{ color: palette.moss }}>Most-written word in wins</T>
+              <T v="caption" style={{ color: palette.moss }}>Word you write most</T>
               <T v="caption" style={{ color: palette.amber }}>"{record.topWord}"</T>
             </View>
           )}
@@ -203,7 +203,7 @@ export default function ProfileScreen() {
           )}
           {record.since && (
             <View style={styles.recRow}>
-              <T v="caption" style={{ color: palette.moss }}>Keeping the record since</T>
+              <T v="caption" style={{ color: palette.moss }}>Logging since</T>
               <T v="caption" style={{ color: ink.text }}>{record.since}</T>
             </View>
           )}

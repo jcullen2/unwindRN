@@ -1,9 +1,8 @@
 /**
  * The debrief — the companion, one question at a time (Deep Ward).
  *   Stage 1 · Taps: the partner asks five short things; a growing amber record
- *     line assembles as she answers. "That's the shift — keep it" saves; "or
- *     talk it down instead" opens voice; "Save without another word" is always
- *     one tap and never shamed.
+ *     line assembles as she answers. "Log it" saves; "Rough one? Talk it out"
+ *     opens voice; "Just save it" is always one tap and never shamed.
  *   Stage 2 · Talk: on-device STT teleprompter, streaming partner, live chips
  *     from the per-turn utility call, TTS captions. Degrades to quiet-mode text.
  *     The record forms → /record. Crisis card surfaces over everything.
@@ -59,10 +58,10 @@ const MILESTONES = [1, 5, 10, 25, 50, 100, 250, 500, 750, 1000, 1500, 2000];
 // The partner's five asks — one question at a time, floor-literate.
 const ASKS: [string, string][] = [
   ['How long tonight?', 'Your usual is highlighted.'],
-  ['How heavy did it carry?', 'Tap where it landed.'],
+  ['How heavy?', 'Tap where it landed.'],
   ['How many were yours?', 'Ratio, plus anything that made it harder.'],
-  ['What did tonight have?', 'Name it plainly. Skip what doesn’t fit.'],
-  ['One line worth keeping?', 'It becomes the win in your record.'],
+  ['What happened?', 'Skip what doesn’t fit.'],
+  ['Anything worth remembering?', 'One line. Or skip it.'],
 ];
 
 type Facts = {
@@ -539,10 +538,10 @@ export default function DebriefScreen() {
                       maxLength={200}
                     />
                   </View>
-                  <FlameButton title="That's the shift — keep it" onPress={keepIt} loading={savingTaps} style={{ marginTop: space(5.5) }} />
+                  <FlameButton title="Log it" onPress={keepIt} loading={savingTaps} style={{ marginTop: space(5.5) }} />
                   <Pressable accessibilityRole="button" onPress={() => setStage('talk')} style={{ paddingVertical: space(3), alignItems: 'center' }}>
                     <T v="secondary" style={{ color: palette.moon }}>
-                      or talk it down instead
+                      Rough one? Talk it out
                     </T>
                   </Pressable>
                 </>
@@ -564,7 +563,7 @@ export default function DebriefScreen() {
                 disabled={savingTaps}
                 style={{ alignItems: 'center', paddingBottom: Math.max(insets.bottom, space(5)), paddingTop: space(2) }}>
                 <T v="caption" style={{ color: ink.faint }}>
-                  {savingTaps ? 'Saving…' : 'Save without another word'}
+                  {savingTaps ? 'Saving…' : 'Just save it'}
                 </T>
               </Pressable>
             )}
@@ -652,7 +651,7 @@ export default function DebriefScreen() {
 
         {(transcript.filter((m) => m.role === 'user').length >= 1 || capped) && !awaiting && (
           <View style={{ paddingHorizontal: space(6), marginBottom: space(2), gap: space(2.5) }}>
-            <FlameButton title="That's the shift — keep it" onPress={wrapUp} />
+            <FlameButton title="Log it" onPress={wrapUp} />
           </View>
         )}
 
@@ -716,7 +715,7 @@ export default function DebriefScreen() {
 
         <Pressable accessibilityRole="button" onPress={() => setStage('taps')} style={{ alignItems: 'center', paddingBottom: Math.max(insets.bottom, space(3)) }}>
           <T v="caption" style={{ color: ink.faint }}>
-            back to taps
+            Back to taps
           </T>
         </Pressable>
 

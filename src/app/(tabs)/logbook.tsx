@@ -110,6 +110,10 @@ export default function LogbookScreen() {
       return { y, m };
     });
 
+  // Her own words if we have them, else the month caption. If neither exists
+  // the card stays quiet rather than reaching for something to say.
+  const memoryQuote = memory?.win ? `"${memory.win}"` : caption;
+
   const openShift = (s: Shift) => router.push(`/shift/${s.id}`);
   const empty = !isLoading && (shifts?.length ?? 0) === 0;
 
@@ -133,7 +137,7 @@ export default function LogbookScreen() {
           <PageTitle>{view === 'month' ? 'Logbook' : 'Journal'}</PageTitle>
           {view === 'month' ? (
             <T v="caption" style={{ color: ink.dim }}>
-              {totals.shifts.toLocaleString()} shifts kept
+              {totals.shifts.toLocaleString()} shifts
             </T>
           ) : (
             <Pressable accessibilityRole="button" onPress={() => setView('month')} style={styles.addBtn}>
@@ -147,10 +151,10 @@ export default function LogbookScreen() {
         {empty ? (
           <View style={styles.empty}>
             <T v="ask" style={{ textAlign: 'center' }}>
-              Shift #1 starts the record.
+              Nothing logged yet.
             </T>
             <T v="secondary" style={{ textAlign: 'center', marginTop: space(2) }}>
-              Clock out tonight, or add one by hand — either way, it counts.
+              Log tonight’s shift, or backfill an old one.
             </T>
           </View>
         ) : view === 'month' ? (
@@ -181,11 +185,7 @@ export default function LogbookScreen() {
                   <LinearGradient colors={[warmRow.from, warmRow.to]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
                   <View style={styles.topLight} />
                   <T style={styles.memoryOver}>{memory ? 'One year ago' : 'The month writes itself'}</T>
-                  <T style={styles.memoryQuote}>
-                    {memory?.win
-                      ? `"${memory.win}"`
-                      : caption ?? 'Every shift you put down becomes part of this.'}
-                  </T>
+                  {memoryQuote ? <T style={styles.memoryQuote}>{memoryQuote}</T> : null}
                   {memory && (
                     <T style={styles.memoryMeta}>
                       {meta(memory)}

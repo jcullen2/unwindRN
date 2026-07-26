@@ -84,22 +84,22 @@ export default function MilestoneScreen() {
             {slide === 0 && (
               <>
                 <T v="overline" style={{ letterSpacing: 2, color: ink.dim }}>
-                  The record just turned
+                  Shift
                 </T>
                 <T v="milestone" adjustsFontSizeToFit numberOfLines={1} style={{ marginTop: space(3) }}>
                   #{n.toLocaleString()}
                 </T>
                 <T v="ask" style={{ marginTop: space(4) }}>
-                  {n.toLocaleString()} shifts, kept.
+                  {n.toLocaleString()} shifts logged.
                 </T>
               </>
             )}
 
             {slide === 1 && (
               <View style={{ gap: space(6.5) }}>
-                <Stat value={hours.toLocaleString()} label="hours held" color={palette.ink} />
-                <Stat value={nights.toLocaleString()} label="nights walked" color={palette.moon} />
-                <Stat value={wins.toLocaleString()} label="wins written down" color={palette.amber} />
+                <Stat value={hours.toLocaleString()} label="hours" color={palette.ink} />
+                <Stat value={nights.toLocaleString()} label="nights" color={palette.moon} />
+                <Stat value={wins.toLocaleString()} label="notes kept" color={palette.amber} />
               </View>
             )}
 

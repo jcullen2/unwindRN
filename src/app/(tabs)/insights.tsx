@@ -138,10 +138,10 @@ export default function InsightsScreen() {
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space(10), paddingTop: insets.top }}>
           <Lantern size={44} />
           <T v="ask" style={{ textAlign: 'center', marginTop: space(6) }}>
-            Insights open at shift {UNLOCK_AT}.
+            Insights need {UNLOCK_AT} logged shifts.
           </T>
           <T v="secondary" style={{ textAlign: 'center', marginTop: space(2) }}>
-            {remaining} to go. No rush — the record keeps either way.
+            {remaining} to go.
           </T>
         </View>
       </Sky>
@@ -253,10 +253,6 @@ export default function InsightsScreen() {
             </T>
           )}
         </View>
-
-        <T v="whisper" style={{ textAlign: 'center', marginTop: space(1) }}>
-          Numbers first. Described, never judged.
-        </T>
       </ScrollView>
     </Sky>
   );

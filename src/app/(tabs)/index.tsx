@@ -75,6 +75,14 @@ export default function HomeScreen() {
   const usual = Number(profile?.usual_shift_hours ?? 12);
   const approx = totals.estimated ? '~' : '';
   const todayShift = shifts?.find((s) => s.shift_date === localToday());
+  // Say what happened, not how it felt: hours, and her own weight line if she left one.
+  const loggedLine = todayShift
+    ? `Logged. ${Number(todayShift.hours)}h${todayShift.weight ? `, ${todayShift.weight}` : ''}.`
+    : null;
+  // Only the first-run nudge earns a line of its own; once she's logging, the
+  // daily line speaks or nothing does.
+  const presenceLine =
+    dailyLine ?? (totals.loggedShifts === 0 ? 'Nothing logged yet. The first one takes about twenty seconds.' : null);
 
   // This-week strip (Sun..Sat around today). A day can hold more than one
   // shift — a double-back has to count as two shifts and all of its hours,
@@ -148,10 +156,8 @@ export default function HomeScreen() {
           <T v="greeting">{greeting(profile?.display_name)}</T>
           <T v="secondary" style={{ marginTop: 4 }}>
             {active.startedAt
-              ? 'Still on the floor. The record waits for you.'
-              : todayShift
-                ? "Tonight's already in the book."
-                : 'The record is ready when you are.'}
+              ? `On since ${format(parseISO(active.startedAt), 'h:mm a')}.`
+              : (loggedLine ?? 'Nothing logged today.')}
           </T>
         </Rise>
 
@@ -189,7 +195,7 @@ export default function HomeScreen() {
 
         <Pressable accessibilityRole="button" onPress={() => router.push('/debrief')} style={{ marginTop: space(3) }}>
           <T v="caption" style={{ color: ink.dim }}>
-            Put a past shift down ›
+            Add an old shift ›
           </T>
         </Pressable>
 
@@ -247,7 +253,7 @@ export default function HomeScreen() {
               {totals.shifts.toLocaleString()}
             </T>
             <T v="overline" style={{ marginTop: 2 }}>
-              career shifts
+              shifts
             </T>
           </Pressable>
           <Pressable style={styles.tile} onPress={() => router.push('/insights')}>
@@ -256,7 +262,7 @@ export default function HomeScreen() {
               {Math.round(totals.hours).toLocaleString()}
             </T>
             <T v="overline" style={{ marginTop: 2 }}>
-              hours held
+              hours
             </T>
           </Pressable>
           <Pressable style={styles.tile} onPress={() => router.push('/insights')}>
@@ -270,17 +276,16 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        <View style={styles.presence}>
-          <View style={{ marginTop: 1 }}>
-            <LanternGlyph size={11} />
+        {presenceLine && (
+          <View style={styles.presence}>
+            <View style={{ marginTop: 1 }}>
+              <LanternGlyph size={11} />
+            </View>
+            <T v="partnerCaption" style={{ flex: 1, fontSize: 11.5 }}>
+              {presenceLine}
+            </T>
           </View>
-          <T v="partnerCaption" style={{ flex: 1, fontSize: 11.5 }}>
-            {dailyLine ??
-              (totals.loggedShifts === 0
-                ? 'The lantern is lit whenever you clock out. Nothing has to stay unwritten.'
-                : 'The record is holding. Every shift you put down stays put.')}
-          </T>
-        </View>
+        )}
       </View>
     </Sky>
   );
