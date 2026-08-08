@@ -120,7 +120,39 @@ IDEAS.md with anything cut, DESIGN-DEBT.md with anything shipped as a fallback.
 Never echo secrets. Keep §State of the build current — it exists so future
 sessions never pay to rediscover the codebase.
 
-## State of the build — 2026-07-24 (keep current; the map, not the territory)
+## State of the build — 2026-08-08 (keep current; the map, not the territory)
+
+**2026-08-08 — deadpan copy pass shipped app-wide + site visibly redesigned.**
+- The §3.3 rewrite from the review doc is now LIVE in code: Home ("Logged.
+  12h, brutal." / "Nothing logged today." / shifts·hours·nights tiles),
+  Profile ("751 shifts · 9,014 hours", "Logging since"), Insights (locked copy,
+  footer deleted), Logbook, debrief (asks, "Log it", "Just save it", "Rough
+  one? Talk it out", live chips now show the extracted text itself), record
+  ("Save it"), milestone ("Still counting."), sign-in ("Your career, counted.",
+  "Start your logbook"/"Log in"). "hours held"/"Keeper of"/"life's work" are
+  gone.
+- Chip: glass background + 44pt min height (was invisible-until-selected and
+  ~33pt). Contrast floors raised: ink dim .55 / faint .46 / whisper .42.
+- LogBox silenced in __DEV__ (screenshot hygiene). Insights footer removed.
+- **Demo account = the site persona.** The active sim account
+  (6cf44609…, anonymous dev bypass) was UPDATED in place (no deletes) to
+  Maria / Peds Onc / 5y / Rotating / 12h / est 740/8880, plus 10 seeded
+  July–Aug shifts alongside John's own Aug-8 entry. scripts/seed.sql now
+  matches. Sim-verified: Home ~751/~9,014/~301, logbook August lit, wrapped
+  "Shift #741".
+- **unwindrn.com redesigned and deployed:** hero cycler now runs four REAL
+  captures of the current build (home / logbook August / ~2,960-miles slide /
+  "Shift #741"), plus a new "Five years looks like this." section — a live
+  canvas career grid (740 cells, 296 mint nights, draws on scroll, honors
+  reduced-motion). Old taps/talk screenshots deleted.
+- Deep-link trick for sim navigation without UI taps:
+  `xcrun simctl openurl <udid> "unwindrn:///welcome"` (iOS shows an Open-in
+  dialog each time). Status bar cleaned via `simctl status_bar override`.
+- ⚠️ Sim account note: it's an ANONYMOUS session — signing out orphans it
+  (rows persist in DB, unrecoverable in-app). Classifier blocks destructive
+  SQL and sign-out taps; work additively (UPDATE/INSERT) instead.
+
+## State of the build — 2026-07-24 (previous)
 Repo `~/Desktop/unwindRN/app` (main) · tsc clean · pushed to github.com:jcullen2/unwindRN.
 
 **2026-07-24 — review, correctness pass, onboarding/wrapped rebuild.**

@@ -201,7 +201,7 @@ export default function InsightsScreen() {
             <T v="overline">This month vs your average</T>
             <Delta label="Hours" val={String(Math.round(monthHours))} chip={hoursDelta === 0 ? 'even' : `${hoursDelta > 0 ? '+' : ''}${hoursDelta}%`} tone={hoursDelta > 0 ? 'amber' : hoursDelta < 0 ? 'moon' : 'flat'} />
             <Delta label="Nights" val={String(monthNights)} chip={monthNights ? 'logged' : 'none'} tone={monthNights ? 'moon' : 'flat'} />
-            <Delta label="Heavy (4–5)" val={String(monthHeavy)} chip={monthHeavy ? 'held' : 'none'} tone={monthHeavy ? 'amber' : 'flat'} />
+            <Delta label="Heavy (4–5)" val={String(monthHeavy)} chip={monthHeavy ? 'logged' : 'none'} tone={monthHeavy ? 'amber' : 'flat'} />
             <Delta label="Shifts" val={String(mShifts.length)} chip={`${monthsActive}mo avg`} tone="flat" />
           </View>
         </View>

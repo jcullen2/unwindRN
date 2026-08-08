@@ -89,9 +89,6 @@ export default function MilestoneScreen() {
                 <T v="milestone" adjustsFontSizeToFit numberOfLines={1} style={{ marginTop: space(3) }}>
                   #{n.toLocaleString()}
                 </T>
-                <T v="ask" style={{ marginTop: space(4) }}>
-                  {n.toLocaleString()} shifts logged.
-                </T>
               </>
             )}
 
@@ -106,11 +103,11 @@ export default function MilestoneScreen() {
             {slide === 2 && (
               <View style={{ alignItems: 'center' }}>
                 <T v="ask" style={{ fontSize: 30, lineHeight: 39, textAlign: 'center' }}>
-                  This record is{'\n'}a life’s work.
+                  {n.toLocaleString()} shifts.{'\n'}Still counting.
                 </T>
                 <Glass style={styles.cta}>
                   <T v="body" style={{ textAlign: 'center' }}>
-                    Back to the record
+                    Back to the log
                   </T>
                 </Glass>
               </View>

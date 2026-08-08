@@ -231,7 +231,7 @@ export default function ProfileScreen() {
             <Switch value={signalsOn} onValueChange={toggleSignals} trackColor={{ true: palette.moon, false: glass.hi }} thumbColor={palette.ink} />
           </View>
           <Hairline />
-          <Row label="Export the record" value="soon" onPress={() => Alert.alert('Export is coming', 'The record is yours to take anywhere — PDF and CSV export lands soon.')} />
+          <Row label="Export your log" value="soon" onPress={() => Alert.alert('Export is coming', 'The record is yours to take anywhere — PDF and CSV export lands soon.')} />
           {privacyUrl ? (
             <>
               <Hairline />

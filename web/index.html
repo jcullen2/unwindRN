@@ -72,12 +72,19 @@
   .hero-visual{display:flex; justify-content:center}
   .phone{background:#0B1211; border:1.5px solid rgba(234,241,236,.16); border-radius:42px;
     padding:9px; box-shadow:0 34px 90px rgba(0,0,0,.6), 0 0 70px rgba(255,182,92,.06); width:280px}
-  .cycler{position:relative; border-radius:34px; overflow:hidden; aspect-ratio:404/880}
+  .cycler{position:relative; border-radius:34px; overflow:hidden; aspect-ratio:1179/2556}
+  .cycler img{object-fit:cover}
   .cycler img{position:absolute; inset:0; width:100%; opacity:0; transition:opacity .8s ease}
   .cycler img.on{opacity:1}
   .dots{display:flex; gap:6px; justify-content:center; margin-top:16px}
   .dots i{width:5px; height:5px; border-radius:3px; background:rgba(234,241,236,.22); transition:all .3s}
   .dots i.on{width:16px; background:var(--amber)}
+  /* live career grid */
+  .gridband{padding:76px 0 64px; border-top:1px solid var(--line)}
+  .gridband h2{margin-bottom:26px}
+  #grid{width:100%; display:block}
+  .gb-cap{color:var(--ink-dim); font-size:15px; line-height:1.7; margin-top:18px; max-width:44em}
+  .gb-cap .mint{color:var(--moon); font-weight:600}
   /* steps band */
   .band{border-top:1px solid var(--line); padding:72px 0}
   .band-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:44px}
@@ -180,10 +187,10 @@
       <div>
         <div class="phone">
           <div class="cycler" id="cycler">
-            <img src="/screens/home.jpg" class="on" alt="unwindRN home — your week and career totals">
-            <img src="/screens/logbook.jpg" alt="The logbook — a month of shifts filling in">
-            <img src="/screens/taps.jpg" alt="Clocking out — how long was tonight?">
-            <img src="/screens/talk.jpg" alt="The debrief — talk it out">
+            <img src="/screens/home.jpg" class="on" alt="unwindRN home — this week, milestones, and career totals">
+            <img src="/screens/logbook.jpg" alt="The logbook — August filling in, shift by shift">
+            <img src="/screens/miles.jpg" alt="~2,960 miles on your feet — farther than walking Los Angeles to New York">
+            <img src="/screens/shift741.jpg" alt="Shift #741 is the first one you keep">
           </div>
         </div>
         <div class="dots" id="dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
@@ -191,6 +198,17 @@
     </div>
   </div>
 </header>
+
+<section class="gridband">
+  <div class="wrap">
+    <div class="eyebrow rv">One square, one shift</div>
+    <h2 class="rv">Five years looks like this.</h2>
+    <canvas id="grid" aria-label="740 squares, one per shift; 296 in mint were nights"></canvas>
+    <p class="gb-cap">740 squares. The <b class="mint">mint ones</b> were nights — 296 of them.
+    Drawn from five years of rotating twelves, before a single shift is logged.
+    Everything you log after this is exact.</p>
+  </div>
+</section>
 
 <section class="band">
   <div class="wrap band-grid">
@@ -354,6 +372,58 @@
   }
   cycle('cycler','dots',3000);
   cycle('cycler2',null,3600);
+
+  // the career grid — one square per shift, nights in mint
+  (function(){
+    var cv = document.getElementById('grid');
+    if(!cv || !cv.getContext) return;
+    var SHIFTS=740, NIGHTS=296, CELL=9, GAP=3, PITCH=CELL+GAP;
+    var dpr = Math.min(2, window.devicePixelRatio||1);
+    var cols, rows, w, h;
+    function layout(){
+      w = cv.parentElement.clientWidth;
+      cols = Math.max(10, Math.floor((w+GAP)/PITCH));
+      rows = Math.ceil(SHIFTS/cols);
+      h = rows*PITCH-GAP;
+      cv.width = w*dpr; cv.height = h*dpr;
+      cv.style.height = h+'px';
+    }
+    function draw(frac){
+      var ctx = cv.getContext('2d');
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.clearRect(0,0,w,h);
+      var nightEvery = SHIFTS/NIGHTS, placed = 0;
+      var shown = Math.ceil(SHIFTS*frac);
+      for(var i=0;i<SHIFTS;i++){
+        var night = placed < Math.floor(i/nightEvery)+1 && placed < NIGHTS;
+        if(night) placed++;
+        if(i>=shown) continue;
+        ctx.fillStyle = night ? 'rgba(155,199,189,.9)' : 'rgba(255,182,92,.85)';
+        var x=(i%cols)*PITCH, y=Math.floor(i/cols)*PITCH, r=1.8;
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(x,y,CELL,CELL,r) : ctx.rect(x,y,CELL,CELL);
+        ctx.fill();
+      }
+    }
+    layout(); window.addEventListener('resize', function(){ layout(); draw(1); });
+    if(reduced){ draw(1); return; }
+    draw(0);
+    var went=false;
+    var gio = new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(!e.isIntersecting || went) return;
+        went=true; gio.unobserve(cv);
+        var t0=null, dur=1500;
+        (function tick(ts){
+          if(!t0) t0=ts;
+          var p=Math.min((ts-t0)/dur,1);
+          draw(1-Math.pow(1-p,3));
+          if(p<1) requestAnimationFrame(tick);
+        })(performance.now());
+      });
+    },{threshold:.25});
+    gio.observe(cv);
+  })();
 
   // reveal on scroll
   var io = new IntersectionObserver(function(es){

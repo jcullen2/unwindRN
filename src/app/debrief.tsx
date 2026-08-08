@@ -95,12 +95,15 @@ function Waveform() {
 
 /** Live chips — detected facts ignite beneath the teleprompter. */
 function LiveChips({ facts }: { facts: Facts }) {
+  // The extracted text itself, truncated — proof the partner is listening,
+  // not an announcement that a slot was filled.
+  const clip = (s: string) => (s.length > 26 ? `${s.slice(0, 26).trimEnd()}…` : s);
   const chips: string[] = [
     ...facts.tags,
     ...(facts.hours != null ? [`${facts.hours}h`] : []),
-    ...(facts.win ? ['Win, caught'] : []),
-    ...(facts.weight ? ['The weight, named'] : []),
-    ...(facts.lesson ? ['Lesson, kept'] : []),
+    ...(facts.win ? [clip(facts.win)] : []),
+    ...(facts.weight ? [clip(facts.weight)] : []),
+    ...(facts.lesson ? [clip(facts.lesson)] : []),
   ];
   if (chips.length === 0) return null;
   return (

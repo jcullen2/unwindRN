@@ -23,9 +23,9 @@ export const palette = {
 export const ink = {
   text: palette.ink,
   secondary: palette.moss,
-  dim: 'rgba(234,241,236,.4)',
-  faint: 'rgba(234,241,236,.3)',
-  whisper: 'rgba(234,241,236,.28)',
+  dim: 'rgba(234,241,236,.55)',
+  faint: 'rgba(234,241,236,.46)',
+  whisper: 'rgba(234,241,236,.42)',
   hairline: 'rgba(234,241,236,.06)',
 } as const;
 

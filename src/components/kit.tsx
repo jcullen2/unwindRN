@@ -245,8 +245,11 @@ const styles = StyleSheet.create({
   chip: {
     borderRadius: radius.md,
     paddingVertical: space(2),
-    paddingHorizontal: space(3),
+    paddingHorizontal: space(3.5),
     overflow: 'hidden',
+    backgroundColor: glass.fill,
+    minHeight: 44,
+    justifyContent: 'center',
   },
   chipOn: {
     borderWidth: 1,

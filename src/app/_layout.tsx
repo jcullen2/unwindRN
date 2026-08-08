@@ -6,11 +6,16 @@ import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 
+import { LogBox } from 'react-native';
+
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { fonts, ink, palette } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync();
 SystemUI.setBackgroundColorAsync(palette.night);
+
+// Dev-only: keep the yellow LogBox toast out of simulator captures.
+if (__DEV__) LogBox.ignoreAllLogs();
 
 const queryClient = new QueryClient();
 

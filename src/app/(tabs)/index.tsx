@@ -11,6 +11,7 @@ import { Glass, Lockup, Rise, T } from '@/components/kit';
 import { Sky } from '@/components/sky';
 import { localToday } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { LOAD_LABELS } from '@/lib/constants';
 import { useCareerTotals, useShifts } from '@/lib/queries';
 import { supabase } from '@/lib/supabase';
 import { glass, heat, ink, palette, space } from '@/theme/tokens';

@@ -184,8 +184,10 @@ export default function LogbookScreen() {
                 <View style={styles.memory}>
                   <LinearGradient colors={[warmRow.from, warmRow.to]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
                   <View style={styles.topLight} />
-                  <T style={styles.memoryOver}>{memory ? 'One year ago' : 'The month writes itself'}</T>
-                  {memoryQuote ? <T style={styles.memoryQuote}>{memoryQuote}</T> : null}
+                  <T style={styles.memoryOver}>{memory ? 'One year ago' : 'This month'}</T>
+                  <T style={styles.memoryQuote}>
+                    {memoryQuote ?? `${monthShifts.length} shifts · ${Math.round(monthHours)}h so far.`}
+                  </T>
                   {memory && (
                     <T style={styles.memoryMeta}>
                       {meta(memory)}

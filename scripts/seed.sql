@@ -1,6 +1,6 @@
--- Seed: Maria (Peds Onc, 3 yrs, 3/wk, est ~468 shifts / ~5600 hrs) + 16
--- realistic July shifts with varied load/tags/nights, so every screen has
--- real data to render.
+-- Seed: Maria — THE demo persona (Peds Onc, 5 yrs, rotating twelves,
+-- est ~740 shifts / ~8,880 hrs / ~296 nights). The same nurse the marketing
+-- site quotes; keep app demos, screenshots, and unwindrn.com consistent.
 --
 -- Usage: sign in once in the app (creates the auth user), grab the user id
 -- from Authentication → Users, then run in the SQL editor:
@@ -11,7 +11,7 @@ insert into public.profiles
   (id, display_name, specialty, years_in, shifts_per_week, usual_shift_hours,
    est_career_shifts, est_career_hours)
 values
-  (:'uid', 'Maria', 'Pediatric Oncology', 3, 3, 12, 468, 5600)
+  (:'uid', 'Maria', 'Pediatric Oncology', 5, 3, 12, 740, 8880)
 on conflict (id) do update set
   display_name = excluded.display_name,
   specialty = excluded.specialty,

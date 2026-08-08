@@ -302,7 +302,7 @@ export default function RecordScreen() {
           <Field label="Lesson" value={lesson} onChange={setLesson} placeholder={fromDebrief ? 'still listening…' : 'Worth remembering'} />
 
           <FlameButton
-            title="That's the shift — save it"
+            title="Save it"
             onPress={save}
             disabled={!validDate || !validHours}
             loading={saving}
