@@ -3,17 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>unwindRN — Log the shift. Watch your career add up.</title>
-<meta name="description" content="Tell it how long you've been a nurse and your logbook opens with ~740 shifts already counted. Every one after takes twenty seconds at clock-out. Built for nurses. iPhone.">
+<title>unwindRN. Clock out. Keep your own records.</title>
+<meta name="description" content="Twenty seconds after a shift. Hours, nights, charge, precepting, in a private file you hold. For nurses. Not hospitals. iPhone.">
 <link rel="canonical" href="https://unwindrn.com/">
-<meta property="og:title" content="unwindRN — Log the shift. Watch your career add up.">
-<meta property="og:description" content="Your logbook opens with ~740 shifts already counted. Every one after takes twenty seconds at clock-out. Built for nurses.">
+<meta property="og:title" content="unwindRN. Clock out. Keep your own records.">
+<meta property="og:description" content="A private file of the shifts you worked. For nurses. Not hospitals. We write when there is something to install.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://unwindrn.com/">
 <meta property="og:image" content="https://unwindrn.com/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="unwindRN. Clock out. Keep your own records.">
+<meta name="twitter:description" content="A private file of the shifts you worked. For nurses. Not hospitals. We write when there is something to install.">
 <meta name="twitter:image" content="https://unwindrn.com/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,11 +34,9 @@
     -webkit-font-smoothing:antialiased; overflow-x:hidden}
   .wrap{max-width:1040px; margin:0 auto; padding:0 24px}
   h1,h2{font-family:"Bricolage Grotesque",sans-serif}
-  /* reveal-on-scroll */
   .rv{opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease}
   .rv.in{opacity:1; transform:none}
   @media (prefers-reduced-motion: reduce){ .rv{opacity:1; transform:none; transition:none} }
-  /* nav */
   nav{position:sticky; top:0; z-index:10; backdrop-filter:blur(14px);
       background:rgba(9,15,14,.82); border-bottom:1px solid var(--line)}
   .nav-in{display:flex; align-items:center; justify-content:space-between; padding:14px 24px; max-width:1040px; margin:0 auto}
@@ -46,15 +46,15 @@
   .lockup .rn{color:var(--amber); font-weight:600; font-size:11px; vertical-align:super}
   .nav-cta{background:linear-gradient(135deg,var(--amber-hi),var(--amber)); color:var(--night);
       font-weight:600; font-size:14px; text-decoration:none; padding:9px 18px; border-radius:16px}
-  /* hero */
   .hero{padding:84px 0 72px; background:
       radial-gradient(ellipse 85% 55% at 72% -12%, rgba(255,182,92,.09), transparent 60%)}
   .hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:56px; align-items:center}
   .eyebrow{color:var(--amber); font-size:12.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase}
   .hero h1{font-weight:600; font-size:52px; line-height:1.07; letter-spacing:-1px; margin:16px 0 20px}
-  .hero .sub{color:var(--ink-dim); font-size:18px; line-height:1.7; max-width:31em}
-  .hero .sub b{color:var(--ink); font-weight:600}
-  .waitlist{margin-top:30px; max-width:440px}
+  .hero .sub{color:var(--ink-dim); font-size:18px; line-height:1.7; max-width:34em}
+  .waitlist{margin-top:30px; max-width:440px; position:relative}
+  .hp{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
+    clip:rect(0,0,0,0); white-space:nowrap; border:0}
   .wl-row{display:flex; gap:10px}
   .wl-row input[type=email]{flex:1; background:rgba(234,241,236,.06); border:1px solid var(--line);
     border-radius:16px; padding:14px 18px; color:var(--ink); font-size:15.5px; outline:none; min-width:0}
@@ -65,56 +65,69 @@
     transition:transform .15s ease}
   .wl-row button:hover{transform:translateY(-1px)}
   .wl-micro{color:var(--ink-faint); font-size:13px; margin-top:11px}
-  .wl-success{display:none; background:rgba(155,199,189,.1); border:1px solid rgba(155,199,189,.3);
+  .wl-success{display:none; background:rgba(155,199,189,.08); border:1px solid rgba(155,199,189,.35);
     border-radius:16px; padding:16px 20px; color:var(--ink); font-size:15px}
-  .wl-success b{color:var(--moon)}
-  /* phone + cycler */
+  .trust{margin-top:28px; display:flex; flex-direction:column; gap:12px; max-width:34em}
+  .trust p{color:var(--ink-dim); font-size:13.5px; line-height:1.5; padding-left:12px;
+    border-left:2px solid var(--line)}
   .hero-visual{display:flex; justify-content:center}
+  .phone-block{display:flex; flex-direction:column; align-items:center}
   .phone{background:#0B1211; border:1.5px solid rgba(234,241,236,.16); border-radius:42px;
     padding:9px; box-shadow:0 34px 90px rgba(0,0,0,.6), 0 0 70px rgba(255,182,92,.06); width:280px}
-  .cycler{position:relative; border-radius:34px; overflow:hidden; aspect-ratio:1179/2556}
-  .cycler img{object-fit:cover}
-  .cycler img{position:absolute; inset:0; width:100%; opacity:0; transition:opacity .8s ease}
-  .cycler img.on{opacity:1}
-  .dots{display:flex; gap:6px; justify-content:center; margin-top:16px}
-  .dots i{width:5px; height:5px; border-radius:3px; background:rgba(234,241,236,.22); transition:all .3s}
-  .dots i.on{width:16px; background:var(--amber)}
-  /* live career grid */
+  .phone-screen{border-radius:34px; overflow:hidden; background:linear-gradient(180deg,#152220 0%, #0D1614 45%, #090F0E 100%);
+    min-height:520px; padding:22px 18px 28px; position:relative}
+  .phone-screen::before{content:""; position:absolute; left:50%; top:10px; transform:translateX(-50%);
+    width:86px; height:22px; border-radius:12px; background:rgba(0,0,0,.45)}
+  .phone-chrome{font-family:"Bricolage Grotesque",sans-serif; font-weight:500; font-size:11px;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-top:28px}
+  .phone-stats{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:22px}
+  .phone-stat{background:rgba(234,241,236,.055); border-radius:14px; padding:14px 8px 12px; text-align:center}
+  .phone-stat b{display:block; font-family:"Bricolage Grotesque",sans-serif; font-weight:600;
+    font-size:22px; letter-spacing:-.6px; line-height:1; font-variant-numeric:tabular-nums}
+  .phone-stat .shifts{color:var(--amber)}
+  .phone-stat .nights{color:var(--moon)}
+  .phone-stat span{display:block; color:var(--ink-faint); font-size:10px; letter-spacing:.06em;
+    text-transform:uppercase; margin-top:7px}
+  .phone-card{margin-top:16px; background:linear-gradient(135deg,rgba(255,201,126,.12),rgba(255,182,92,.16));
+    border-radius:16px; padding:16px 16px; display:flex; align-items:center; justify-content:space-between}
+  .phone-card .verb{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:20px; color:var(--ink)}
+  .phone-cap{color:var(--ink-faint); font-size:13px; margin-top:16px; text-align:center; max-width:22em}
+  .heat{margin-top:22px; display:grid; grid-template-columns:repeat(7,1fr); gap:6px}
+  .heat i{aspect-ratio:1; border-radius:5px; background:rgba(234,241,236,.04); display:block}
+  .heat i.d{background:rgba(255,182,92,.72)}
+  .heat i.n{background:rgba(155,199,189,.88)}
+  .heat i.x{background:transparent}
   .gridband{padding:76px 0 64px; border-top:1px solid var(--line)}
   .gridband h2{margin-bottom:26px}
   #grid{width:100%; display:block}
   .gb-cap{color:var(--ink-dim); font-size:15px; line-height:1.7; margin-top:18px; max-width:44em}
-  .gb-cap .mint{color:var(--moon); font-weight:600}
-  /* steps band */
   .band{border-top:1px solid var(--line); padding:72px 0}
   .band-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:44px}
   .b-step .n{font-family:"Bricolage Grotesque",sans-serif; color:var(--amber); font-weight:600; font-size:14px;
     letter-spacing:.1em}
   .b-step h3{font-family:"Bricolage Grotesque",sans-serif; font-size:21px; font-weight:600; margin:10px 0 8px}
   .b-step p{color:var(--ink-dim); font-size:15px; line-height:1.65}
-  /* strava section */
   .logbook{padding:84px 0; background:linear-gradient(180deg, var(--panel), var(--night) 85%);
     border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
   .lb-grid{display:grid; grid-template-columns:1fr .9fr; gap:60px; align-items:center}
   h2{font-weight:600; font-size:36px; letter-spacing:-.5px; margin:12px 0 16px}
   .lead{color:var(--ink-dim); font-size:17px; max-width:36em; line-height:1.7}
-  .lead b{color:var(--ink)}
-  .bignums{margin-top:38px; display:flex; gap:36px; align-items:flex-end; flex-wrap:wrap}
+  .ex-label{font-family:"Bricolage Grotesque",sans-serif; font-weight:500; font-size:12px;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); margin-top:34px}
+  .bignums{margin-top:12px; display:flex; gap:36px; align-items:flex-end; flex-wrap:wrap}
   .bn .v{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:46px; letter-spacing:-1px;
-    color:var(--ink); line-height:1}
-  .bn .v em{color:var(--amber); font-style:normal}
+    color:var(--ink); line-height:1; font-variant-numeric:tabular-nums}
+  .bn .v.amber{color:var(--amber)}
+  .bn .v.moon{color:var(--moon)}
   .bn .k{color:var(--ink-faint); font-size:13px; margin-top:8px}
-  .bn.dim .v{color:var(--ink-dim); font-size:34px}
-  /* faq */
   .faq-sec{padding:84px 0 60px}
   .faq{max-width:680px; margin-top:24px}
   .faq details{border-bottom:1px solid var(--line); padding:19px 0}
   .faq summary{cursor:pointer; font-weight:600; font-size:16.5px; list-style:none; display:flex; justify-content:space-between; align-items:center}
   .faq summary::after{content:"+"; color:var(--amber); font-size:21px; font-weight:400}
-  .faq details[open] summary::after{content:"–"}
+  .faq details[open] summary::after{content:"-"}
   .faq details p{color:var(--ink-dim); font-size:15px; line-height:1.7; margin-top:11px; max-width:58ch}
   .faq details a{color:var(--amber)}
-  /* final */
   .final{text-align:center; padding:72px 0 96px}
   .final h2{font-size:36px}
   .final p{color:var(--ink-dim); font-size:16.5px}
@@ -152,48 +165,53 @@
       </svg>
       <span>unwind<span class="rn">RN</span></span>
     </a>
-    <a class="nav-cta" href="#waitlist">Get early access</a>
+    <a class="nav-cta" href="#waitlist">Join the list</a>
   </div>
 </nav>
 
 <header class="hero">
   <div class="wrap hero-grid">
     <div>
-      <div class="eyebrow">Built for nurses · iPhone</div>
-      <h1>Log the shift.<br>Watch your career add&nbsp;up.</h1>
-      <p class="sub">
-        Tell it how long you've been a nurse and your logbook opens with
-        <b>~740 shifts already counted.</b> Every one after that takes
-        twenty seconds at clock-out.
-      </p>
+      <div class="eyebrow">Built for nurses · iPhone · Not a hospital product</div>
+      <h1>Clock out. Keep your own records.</h1>
+      <p class="sub">Twenty seconds after a shift. Hours, nights, charge, precepting. A private file, for your eyes only. Nothing you enter is sent to a manager, a unit, or a health system.</p>
 
       <div class="waitlist" id="waitlist">
         <form name="waitlist" method="POST" action="/" data-netlify="true" netlify-honeypot="bot-field" id="wl-form">
           <input type="hidden" name="form-name" value="waitlist">
-          <p style="display:none"><label>Don't fill this out: <input name="bot-field"></label></p>
+          <input class="hp" type="text" name="bot-field" aria-hidden="true" tabindex="-1" autocomplete="off">
           <div class="wl-row">
             <input type="email" name="email" required placeholder="Your email" autocomplete="email" aria-label="Email address">
-            <button type="submit">Get early access</button>
+            <button type="submit">Join the list</button>
           </div>
         </form>
-        <div class="wl-success" id="wl-success">
-          <b>You're in.</b> We'll email you when it's your turn — that's the only email you'll get.
-        </div>
-        <p class="wl-micro">One email when it's your turn. No spam.</p>
+        <div class="wl-success" id="wl-success">You're on the list. One email when there is a build. That's it.</div>
+        <p class="wl-micro">We write when there is something to install. Product mail only. Not sold. Not shared with any employer.</p>
+      </div>
+
+      <div class="trust">
+        <p>No manager seat. No UKG, Epic, or Workday.</p>
+        <p>Do not put patient names, rooms, or record numbers in it. Not a second chart.</p>
+        <p>unwindRN LLC, Michigan. For nurses. Not hospitals.</p>
       </div>
     </div>
 
     <div class="hero-visual rv">
-      <div>
+      <div class="phone-block">
         <div class="phone">
-          <div class="cycler" id="cycler">
-            <img src="/screens/home.jpg" class="on" alt="unwindRN home — this week, milestones, and career totals">
-            <img src="/screens/logbook.jpg" alt="The logbook — August filling in, shift by shift">
-            <img src="/screens/miles.jpg" alt="~2,960 miles on your feet — farther than walking Los Angeles to New York">
-            <img src="/screens/shift741.jpg" alt="Shift #741 is the first one you keep">
+          <div class="phone-screen" aria-label="Example log. 740 shifts, 8,880 hours, 296 nights.">
+            <div class="phone-chrome">Example log</div>
+            <div class="phone-stats">
+              <div class="phone-stat"><b class="shifts">740</b><span>shifts</span></div>
+              <div class="phone-stat"><b>8,880</b><span>hours</span></div>
+              <div class="phone-stat"><b class="nights">296</b><span>nights</span></div>
+            </div>
+            <div class="phone-card">
+              <div class="verb">Clock out</div>
+            </div>
           </div>
         </div>
-        <div class="dots" id="dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
+        <p class="phone-cap">Example. Five years of rotating twelves.</p>
       </div>
     </div>
   </div>
@@ -202,11 +220,9 @@
 <section class="gridband">
   <div class="wrap">
     <div class="eyebrow rv">One square, one shift</div>
-    <h2 class="rv">Five years looks like this.</h2>
-    <canvas id="grid" aria-label="740 squares, one per shift; 296 in mint were nights"></canvas>
-    <p class="gb-cap">740 squares. The <b class="mint">mint ones</b> were nights — 296 of them.
-    Drawn from five years of rotating twelves, before a single shift is logged.
-    Everything you log after this is exact.</p>
+    <h2 class="rv">Five years, as an example.</h2>
+    <canvas id="grid" aria-label="Example. 740 squares. The mint ones are nights: 296."></canvas>
+    <p class="gb-cap">Example. 740 squares. The mint ones are nights: 296. Five years of rotating twelves, drawn as a picture. Not a real nurse. Not your file. Yours starts empty.</p>
   </div>
 </section>
 
@@ -214,22 +230,18 @@
   <div class="wrap band-grid">
     <div class="b-step rv">
       <div class="n">01</div>
-      <h3>Clock out in the app</h3>
-      <p>How long, how heavy, what happened. Ten taps on your worst night —
-      fewer on a good one.</p>
+      <h3>Clock out</h3>
+      <p>Twenty seconds. How long, which kind of shift, charge or precepting if it was that kind of night. Talk only if you want to. Skip it if you don't.</p>
     </div>
     <div class="b-step rv" style="transition-delay:.1s">
       <div class="n">02</div>
-      <h3>Vent if you need to</h3>
-      <p>Some nights need more than taps. The debrief listens like a coworker
-      who was there — it knows what a 1:5 with two codes means. Totally
-      optional. Nothing you say gets stored.</p>
+      <h3>Keep the hours</h3>
+      <p>Nights, weekends, charge, precepting. The same things a ladder packet asks for. Not a journal. Not a vent.</p>
     </div>
     <div class="b-step rv" style="transition-delay:.2s">
       <div class="n">03</div>
-      <h3>Your log builds itself</h3>
-      <p>Months fill in. Numbers climb. Milestones hit. It's all there when
-      you want to look back — or prove it.</p>
+      <h3>Hold the file</h3>
+      <p>For your eyes only. You hold the proof. This is not the hospital personnel file.</p>
     </div>
   </div>
 </section>
@@ -237,26 +249,30 @@
 <section class="logbook">
   <div class="wrap lb-grid">
     <div class="rv">
-      <div class="eyebrow">The log</div>
-      <h2>Think Strava, for shifts.</h2>
-      <p class="lead">Runners don't run more because an app counts their miles —
-      but they love watching the miles add up. Your work deserves the same.
-      Five years in, rotating twelves? Your logbook opens like this, before
-      you've tapped a thing.</p>
+      <div class="eyebrow">The file</div>
+      <h2>A private portfolio of the shifts you worked.</h2>
+      <p class="lead">Nurses already keep binders, packets, and CE records because the employer file does not travel. Clock out, and the hours stay in a file you hold.</p>
+      <div class="ex-label">Example</div>
       <div class="bignums">
-        <div class="bn"><div class="v" data-count="740"><em>740</em></div><div class="k">shifts</div></div>
-        <div class="bn dim"><div class="v" data-count="8880">8,880</div><div class="k">hours</div></div>
-        <div class="bn dim"><div class="v" data-count="296">296</div><div class="k">nights</div></div>
+        <div class="bn"><div class="v amber">740</div><div class="k">Example shifts</div></div>
+        <div class="bn"><div class="v">8,880</div><div class="k">Example hours</div></div>
+        <div class="bn"><div class="v moon">296</div><div class="k">Example nights</div></div>
       </div>
-      <p class="lead" style="margin-top:20px; font-size:15px">That's about a
-      year of your life, at the bedside. Then every shift you log makes the
-      picture more exactly yours.</p>
+      <p class="lead" style="margin-top:20px; font-size:15px">Five years of rotating twelves, as a picture. About a year of a life at the bedside. Yours starts at zero until you log.</p>
     </div>
     <div class="hero-visual rv">
-      <div class="phone" style="width:262px; transform:rotate(-1.5deg)">
-        <div class="cycler" id="cycler2">
-          <img src="/screens/logbook.jpg" class="on" alt="The logbook heatfield — a month of shifts">
-          <img src="/screens/home.jpg" alt="Career totals on the home screen">
+      <div class="phone-block">
+        <div class="phone" style="width:262px">
+          <div class="phone-screen" aria-label="Example log. Month heatfield.">
+            <div class="phone-chrome">Example log</div>
+            <div class="heat" aria-hidden="true">
+              <i class="x"></i><i class="x"></i><i class="d"></i><i class="d"></i><i class="n"></i><i></i><i></i>
+              <i class="d"></i><i class="d"></i><i class="n"></i><i></i><i></i><i class="d"></i><i class="d"></i>
+              <i class="n"></i><i class="d"></i><i></i><i></i><i class="d"></i><i class="n"></i><i class="d"></i>
+              <i class="d"></i><i></i><i></i><i class="n"></i><i class="d"></i><i class="d"></i><i class="n"></i>
+              <i></i><i class="d"></i><i class="d"></i><i class="n"></i><i></i><i></i><i class="d"></i>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -266,44 +282,39 @@
 <section class="faq-sec">
   <div class="wrap">
     <div class="eyebrow">Fair questions</div>
-    <h2>What nurses ask us.</h2>
+    <h2>What a nurse needs to know.</h2>
     <div class="faq">
       <details>
-        <summary>How long does logging actually take?</summary>
-        <p>About twenty seconds if you just tap through. There's always a
-        one-tap "just save it" — no guilt, no follow-up
-        questions.</p>
+        <summary>Can I install this tonight?</summary>
+        <p>No. There is no app in the store tonight. Leave an email. We write when there is a build you can install.</p>
       </details>
       <details>
-        <summary>Do I have to talk to the AI thing?</summary>
-        <p>No. Plenty of people will only ever tap and go. The debrief is
-        there for the nights you walk out carrying something — use it then,
-        skip it otherwise.</p>
+        <summary>Can my hospital see this?</summary>
+        <p>No. There is no manager seat, no hospital login, and no connection to UKG, Epic, or Workday. Nothing entered here is sent to a manager, a unit, or a health system. There is no employer API.</p>
       </details>
       <details>
-        <summary>Can my hospital see my log?</summary>
-        <p>No. There's no employer version, no manager dashboard, and we don't
-        sell data. Your log is yours — export it or delete it whenever you
-        want.</p>
+        <summary>What do you actually log?</summary>
+        <p>The shift you just worked: hours, nights, charge, precepting. Professional evidence. Not gratitude, not sleep, not a second chart. Do not put patient names, rooms, or record numbers in it.</p>
       </details>
       <details>
-        <summary>What if I mention a patient?</summary>
-        <p>The app is built to keep patient details out. It never asks about
-        patients, and anything identifying — names, rooms, record numbers —
-        gets stripped before an entry is saved. Your log is about your
-        night, not their chart.</p>
+        <summary>Do I have to talk?</summary>
+        <p>No. Voice is optional after a hard night. Most nights you tap and save. Speech is turned into text on the phone. Audio is never uploaded. The conversation is not stored. Only the entry you approve is saved.</p>
       </details>
       <details>
-        <summary>What happens to my voice?</summary>
-        <p>Speech is turned into text right on your phone — the audio never
-        leaves it. The conversation isn't stored either; only the entry you
-        approve gets saved. The whole thing is in the
-        <a href="/privacy">privacy policy</a> in plain English.</p>
+        <summary>Who operates this?</summary>
+        <p>unwindRN LLC, a Michigan company. For nurses. Not hospitals. We do not contact your employer. There is no manager dashboard.</p>
+      </details>
+      <details>
+        <summary>What happens to my email?</summary>
+        <p>Product mail only. Not sold. Not shared with any employer. To remove the address, write <a href="mailto:support@unwindrn.com">support@unwindrn.com</a>.</p>
       </details>
       <details>
         <summary>Is it free? Is there Android?</summary>
-        <p>Free right now, while it's in beta. iPhone first — Android is
-        coming, and joining the list is the best way to hear when.</p>
+        <p>Free in beta. iPhone first. Android later.</p>
+      </details>
+      <details>
+        <summary>Can I delete this?</summary>
+        <p>The waitlist address: write <a href="mailto:support@unwindrn.com">support@unwindrn.com</a>. When an account exists, delete will exist; the <a href="/privacy">privacy policy</a> is the rule. We do not promise a file you can take with you until export ships.</p>
       </details>
     </div>
   </div>
@@ -311,20 +322,19 @@
 
 <section class="final">
   <div class="wrap rv">
-    <h2>Get in early.</h2>
-    <p>First invites go out soon. One email, that's it.</p>
+    <h2>Leave an email.</h2>
+    <p>We write when there is something to install. One email. That's it.</p>
     <div class="waitlist" style="max-width:440px">
       <form name="waitlist" method="POST" action="/" data-netlify="true" netlify-honeypot="bot-field" id="wl-form-2">
         <input type="hidden" name="form-name" value="waitlist">
-        <p style="display:none"><label>Don't fill this out: <input name="bot-field"></label></p>
+        <input class="hp" type="text" name="bot-field" aria-hidden="true" tabindex="-1" autocomplete="off">
         <div class="wl-row">
           <input type="email" name="email" required placeholder="Your email" autocomplete="email" aria-label="Email address">
-          <button type="submit">Get early access</button>
+          <button type="submit">Join the list</button>
         </div>
       </form>
-      <div class="wl-success" id="wl-success-2">
-        <b>You're in.</b> We'll email you when it's your turn — that's the only email you'll get.
-      </div>
+      <div class="wl-success" id="wl-success-2">You're on the list. One email when there is a build. That's it.</div>
+      <p class="wl-micro">We write when there is something to install. Product mail only. Not sold. Not shared with any employer.</p>
     </div>
   </div>
 </section>
@@ -334,11 +344,10 @@
     <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> ·
     <a href="mailto:support@unwindrn.com">support@unwindrn.com</a>
   </div>
-  <div>© 2026 unwindRN LLC</div>
+  <div>© 2026 unwindRN LLC · Michigan · Nurses only</div>
 </footer>
 
 <script>
-  // waitlist forms
   function wireForm(formId, successId){
     var form = document.getElementById(formId);
     var ok = document.getElementById(successId);
@@ -355,25 +364,6 @@
   wireForm('wl-form','wl-success');
   wireForm('wl-form-2','wl-success-2');
 
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // screenshot cyclers
-  function cycle(id, dotsId, ms){
-    var el = document.getElementById(id);
-    if(!el || reduced) return;
-    var imgs = el.querySelectorAll('img');
-    var dots = dotsId ? document.querySelectorAll('#'+dotsId+' i') : null;
-    var i = 0;
-    setInterval(function(){
-      imgs[i].classList.remove('on'); if(dots) dots[i].classList.remove('on');
-      i = (i+1) % imgs.length;
-      imgs[i].classList.add('on'); if(dots) dots[i].classList.add('on');
-    }, ms);
-  }
-  cycle('cycler','dots',3000);
-  cycle('cycler2',null,3600);
-
-  // the career grid — one square per shift, nights in mint
   (function(){
     var cv = document.getElementById('grid');
     if(!cv || !cv.getContext) return;
@@ -388,16 +378,14 @@
       cv.width = w*dpr; cv.height = h*dpr;
       cv.style.height = h+'px';
     }
-    function draw(frac){
+    function draw(){
       var ctx = cv.getContext('2d');
       ctx.setTransform(dpr,0,0,dpr,0,0);
       ctx.clearRect(0,0,w,h);
       var nightEvery = SHIFTS/NIGHTS, placed = 0;
-      var shown = Math.ceil(SHIFTS*frac);
       for(var i=0;i<SHIFTS;i++){
         var night = placed < Math.floor(i/nightEvery)+1 && placed < NIGHTS;
         if(night) placed++;
-        if(i>=shown) continue;
         ctx.fillStyle = night ? 'rgba(155,199,189,.9)' : 'rgba(255,182,92,.85)';
         var x=(i%cols)*PITCH, y=Math.floor(i/cols)*PITCH, r=1.8;
         ctx.beginPath();
@@ -405,57 +393,15 @@
         ctx.fill();
       }
     }
-    layout(); window.addEventListener('resize', function(){ layout(); draw(1); });
-    if(reduced){ draw(1); return; }
-    draw(0);
-    var went=false;
-    var gio = new IntersectionObserver(function(es){
-      es.forEach(function(e){
-        if(!e.isIntersecting || went) return;
-        went=true; gio.unobserve(cv);
-        var t0=null, dur=1500;
-        (function tick(ts){
-          if(!t0) t0=ts;
-          var p=Math.min((ts-t0)/dur,1);
-          draw(1-Math.pow(1-p,3));
-          if(p<1) requestAnimationFrame(tick);
-        })(performance.now());
-      });
-    },{threshold:.25});
-    gio.observe(cv);
+    layout();
+    draw();
+    window.addEventListener('resize', function(){ layout(); draw(); });
   })();
 
-  // reveal on scroll
   var io = new IntersectionObserver(function(es){
     es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
   }, {threshold:.15});
   document.querySelectorAll('.rv').forEach(function(el){ io.observe(el); });
-
-  // count-up on the big numbers
-  function fmt(n){ return n.toLocaleString('en-US'); }
-  var counted = false;
-  var nums = document.querySelectorAll('.bn .v');
-  var io2 = new IntersectionObserver(function(es){
-    es.forEach(function(e){
-      if(!e.isIntersecting || counted) return;
-      counted = true;
-      nums.forEach(function(el){
-        var target = parseInt(el.getAttribute('data-count'),10);
-        var isEm = el.querySelector('em');
-        if(reduced){ (isEm||el).textContent = fmt(target); return; }
-        var t0 = null, dur = 1400;
-        function tick(ts){
-          if(!t0) t0 = ts;
-          var p = Math.min((ts-t0)/dur, 1);
-          var eased = 1 - Math.pow(1-p, 3);
-          (isEm||el).textContent = fmt(Math.round(target*eased));
-          if(p < 1) requestAnimationFrame(tick);
-        }
-        requestAnimationFrame(tick);
-      });
-    });
-  }, {threshold:.4});
-  if(nums.length) io2.observe(nums[0]);
 </script>
 </body>
 </html>
