@@ -34,9 +34,6 @@
     -webkit-font-smoothing:antialiased; overflow-x:hidden}
   .wrap{max-width:1040px; margin:0 auto; padding:0 24px}
   h1,h2{font-family:"Bricolage Grotesque",sans-serif}
-  .rv{opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease}
-  .rv.in{opacity:1; transform:none}
-  @media (prefers-reduced-motion: reduce){ .rv{opacity:1; transform:none; transition:none} }
   nav{position:sticky; top:0; z-index:10; backdrop-filter:blur(14px);
       background:rgba(9,15,14,.82); border-bottom:1px solid var(--line)}
   .nav-in{display:flex; align-items:center; justify-content:space-between; padding:14px 24px; max-width:1040px; margin:0 auto}
@@ -196,7 +193,7 @@
       </div>
     </div>
 
-    <div class="hero-visual rv">
+    <div class="hero-visual">
       <div class="phone-block">
         <div class="phone">
           <div class="phone-screen" aria-label="Example log. 740 shifts, 8,880 hours, 296 nights.">
@@ -219,8 +216,8 @@
 
 <section class="gridband">
   <div class="wrap">
-    <div class="eyebrow rv">One square, one shift</div>
-    <h2 class="rv">Five years, as an example.</h2>
+    <div class="eyebrow">One square, one shift</div>
+    <h2>Five years, as an example.</h2>
     <canvas id="grid" aria-label="Example. 740 squares. The mint ones are nights: 296."></canvas>
     <p class="gb-cap">Example. 740 squares. The mint ones are nights: 296. Five years of rotating twelves, drawn as a picture. Not a real nurse. Not your file. Yours starts empty.</p>
   </div>
@@ -228,17 +225,17 @@
 
 <section class="band">
   <div class="wrap band-grid">
-    <div class="b-step rv">
+    <div class="b-step">
       <div class="n">01</div>
       <h3>Clock out</h3>
       <p>Twenty seconds. How long, which kind of shift, charge or precepting if it was that kind of night. Talk only if you want to. Skip it if you don't.</p>
     </div>
-    <div class="b-step rv" style="transition-delay:.1s">
+    <div class="b-step">
       <div class="n">02</div>
       <h3>Keep the hours</h3>
       <p>Nights, weekends, charge, precepting. The same things a ladder packet asks for. Not a journal. Not a vent.</p>
     </div>
-    <div class="b-step rv" style="transition-delay:.2s">
+    <div class="b-step">
       <div class="n">03</div>
       <h3>Hold the file</h3>
       <p>For your eyes only. You hold the proof. This is not the hospital personnel file.</p>
@@ -248,7 +245,7 @@
 
 <section class="logbook">
   <div class="wrap lb-grid">
-    <div class="rv">
+    <div>
       <div class="eyebrow">The file</div>
       <h2>A private portfolio of the shifts you worked.</h2>
       <p class="lead">Nurses already keep binders, packets, and CE records because the employer file does not travel. Clock out, and the hours stay in a file you hold.</p>
@@ -260,7 +257,7 @@
       </div>
       <p class="lead" style="margin-top:20px; font-size:15px">Five years of rotating twelves, as a picture. About a year of a life at the bedside. Yours starts at zero until you log.</p>
     </div>
-    <div class="hero-visual rv">
+    <div class="hero-visual">
       <div class="phone-block">
         <div class="phone" style="width:262px">
           <div class="phone-screen" aria-label="Example log. Month heatfield.">
@@ -321,7 +318,7 @@
 </section>
 
 <section class="final">
-  <div class="wrap rv">
+  <div class="wrap">
     <h2>Leave an email.</h2>
     <p>We write when there is something to install. One email. That's it.</p>
     <div class="waitlist" style="max-width:440px">
@@ -397,11 +394,6 @@
     draw();
     window.addEventListener('resize', function(){ layout(); draw(); });
   })();
-
-  var io = new IntersectionObserver(function(es){
-    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-  }, {threshold:.15});
-  document.querySelectorAll('.rv').forEach(function(el){ io.observe(el); });
 </script>
 </body>
 </html>
