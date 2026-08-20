@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>unwindRN. Clock out. Keep your own records.</title>
-<meta name="description" content="Twenty seconds after a shift. Hours, nights, charge, precepting, in a private file you hold. For nurses. Not hospitals. iPhone.">
+<meta name="description" content="Twenty seconds after a shift. Hours, nights, charge, precepting, in a private file you hold. For nurses. Not hospitals.">
 <link rel="canonical" href="https://unwindrn.com/">
 <meta property="og:title" content="unwindRN. Clock out. Keep your own records.">
 <meta property="og:description" content="A private file of the shifts you worked. For nurses. Not hospitals. We write when there is something to install.">
@@ -49,7 +49,8 @@
   .eyebrow{color:var(--amber); font-size:12.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase}
   .hero h1{font-weight:600; font-size:52px; line-height:1.07; letter-spacing:-1px; margin:16px 0 20px}
   .hero .sub{color:var(--ink-dim); font-size:18px; line-height:1.7; max-width:34em}
-  .waitlist{margin-top:30px; max-width:440px; position:relative}
+  .honest{color:var(--ink); font-size:17px; line-height:1.6; margin-top:18px; max-width:34em}
+  .waitlist{margin-top:22px; max-width:440px; position:relative}
   .hp{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden;
     clip:rect(0,0,0,0); white-space:nowrap; border:0}
   .wl-row{display:flex; gap:10px}
@@ -72,7 +73,7 @@
   .phone{background:#0B1211; border:1.5px solid rgba(234,241,236,.16); border-radius:42px;
     padding:9px; box-shadow:0 34px 90px rgba(0,0,0,.6), 0 0 70px rgba(255,182,92,.06); width:280px}
   .phone-screen{border-radius:34px; overflow:hidden; background:linear-gradient(180deg,#152220 0%, #0D1614 45%, #090F0E 100%);
-    min-height:520px; padding:22px 18px 28px; position:relative}
+    min-height:380px; padding:22px 18px 28px; position:relative}
   .phone-screen::before{content:""; position:absolute; left:50%; top:10px; transform:translateX(-50%);
     width:86px; height:22px; border-radius:12px; background:rgba(0,0,0,.45)}
   .phone-chrome{font-family:"Bricolage Grotesque",sans-serif; font-weight:500; font-size:11px;
@@ -85,10 +86,7 @@
   .phone-stat .nights{color:var(--moon)}
   .phone-stat span{display:block; color:var(--ink-faint); font-size:10px; letter-spacing:.06em;
     text-transform:uppercase; margin-top:7px}
-  .phone-card{margin-top:16px; background:linear-gradient(135deg,rgba(255,201,126,.12),rgba(255,182,92,.16));
-    border-radius:16px; padding:16px 16px; display:flex; align-items:center; justify-content:space-between}
-  .phone-card .verb{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:20px; color:var(--ink)}
-  .phone-cap{color:var(--ink-faint); font-size:13px; margin-top:16px; text-align:center; max-width:22em}
+  .phone-cap{color:var(--ink-faint); font-size:13px; margin-top:16px; text-align:center; max-width:24em}
   .heat{margin-top:22px; display:grid; grid-template-columns:repeat(7,1fr); gap:6px}
   .heat i{aspect-ratio:1; border-radius:5px; background:rgba(234,241,236,.04); display:block}
   .heat i.d{background:rgba(255,182,92,.72)}
@@ -133,6 +131,7 @@
     color:var(--ink-faint); font-size:13.5px; line-height:2}
   footer a{color:var(--ink-dim); text-decoration:none}
   footer a:hover{color:var(--amber)}
+  footer .crisis{color:var(--ink-dim); margin-bottom:6px}
   @media (max-width:900px){
     .hero-grid{grid-template-columns:1fr; gap:48px}
     .hero h1{font-size:40px}
@@ -169,9 +168,10 @@
 <header class="hero">
   <div class="wrap hero-grid">
     <div>
-      <div class="eyebrow">Built for nurses · iPhone · Not a hospital product</div>
+      <div class="eyebrow">Built for nurses · Not a hospital product</div>
       <h1>Clock out. Keep your own records.</h1>
       <p class="sub">Twenty seconds after a shift. Hours, nights, charge, precepting. A private file, for your eyes only. Nothing you enter is sent to a manager, a unit, or a health system.</p>
+      <p class="honest">There is no app in the store tonight. This page is a list.</p>
 
       <div class="waitlist" id="waitlist">
         <form name="waitlist" method="POST" action="/" data-netlify="true" netlify-honeypot="bot-field" id="wl-form">
@@ -196,19 +196,16 @@
     <div class="hero-visual">
       <div class="phone-block">
         <div class="phone">
-          <div class="phone-screen" aria-label="Example log. 740 shifts, 8,880 hours, 296 nights.">
+          <div class="phone-screen" aria-label="Example picture. Not a live app. 740 shifts, 8,880 hours, 296 nights.">
             <div class="phone-chrome">Example log</div>
             <div class="phone-stats">
               <div class="phone-stat"><b class="shifts">740</b><span>shifts</span></div>
               <div class="phone-stat"><b>8,880</b><span>hours</span></div>
               <div class="phone-stat"><b class="nights">296</b><span>nights</span></div>
             </div>
-            <div class="phone-card">
-              <div class="verb">Clock out</div>
-            </div>
           </div>
         </div>
-        <p class="phone-cap">Example. Five years of rotating twelves.</p>
+        <p class="phone-cap">Not a live app. Example: five years of rotating twelves.</p>
       </div>
     </div>
   </div>
@@ -296,6 +293,7 @@
       <details>
         <summary>Do I have to talk?</summary>
         <p>No. Voice is optional after a hard night. Most nights you tap and save. Speech is turned into text on the phone. Audio is never uploaded. The conversation is not stored. Only the entry you approve is saved.</p>
+        <p>If you are in crisis, <a href="tel:988">call</a> or <a href="sms:988">text</a> 988. That is the US Suicide and Crisis Lifeline. It is not gated.</p>
       </details>
       <details>
         <summary>Who operates this?</summary>
@@ -306,8 +304,8 @@
         <p>Product mail only. Not sold. Not shared with any employer. To remove the address, write <a href="mailto:support@unwindrn.com">support@unwindrn.com</a>.</p>
       </details>
       <details>
-        <summary>Is it free? Is there Android?</summary>
-        <p>Free in beta. iPhone first. Android later.</p>
+        <summary>Is there an app I can open?</summary>
+        <p>No. There is no store listing tonight. This page is a waitlist. We write when there is a build.</p>
       </details>
       <details>
         <summary>Can I delete this?</summary>
@@ -337,6 +335,7 @@
 </section>
 
 <footer>
+  <div class="crisis">In crisis, <a href="tel:988">call</a> or <a href="sms:988">text</a> 988.</div>
   <div>
     <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> ·
     <a href="mailto:support@unwindrn.com">support@unwindrn.com</a>
