@@ -1,0 +1,38 @@
+# The build gate. Two jobs:
+#   app — lint (zero warnings), strict tsc, the vitest suite, legal parity.
+#   db  — spins the Supabase local stack in Docker, applies every migration
+#         (both hardening stages), runs the pgTAP proof suite.
+# Runs on every PR and on pushes to main.
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  app:
+    name: app checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: node scripts/gen-legal.mjs --check
+
+  db:
+    name: database proof (pgTAP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase db start
+      - run: supabase test db

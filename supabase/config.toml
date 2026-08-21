@@ -1,0 +1,9 @@
+# Supabase CLI project config — enough for the local stack that runs the
+# pgTAP suite (`supabase db start` + `supabase test db`), locally and in CI.
+# The live project is fucstcfrpxlmqzzpfped (unwindRN-v1); nothing here
+# deploys anywhere.
+project_id = "unwindrn"
+
+[db]
+port = 54322
+major_version = 17
