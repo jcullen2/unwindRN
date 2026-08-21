@@ -17,6 +17,7 @@ import { Sky } from '@/components/sky';
 import { requestAccountDeletion } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useCareerTotals, useShifts } from '@/lib/queries';
+import { clearLocalQueue } from '@/lib/queue';
 import { glass, ink, palette, space } from '@/theme/tokens';
 
 const SIGNALS_KEY = 'unwindrn_signals_on';
@@ -38,7 +39,7 @@ const Hairline = () => <View style={styles.hairline} />;
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { profile, signOut } = useAuth();
+  const { session, profile, signOut } = useAuth();
   const totals = useCareerTotals();
   const { data: shifts } = useShifts();
   const [deleting, setDeleting] = useState(false);
@@ -117,7 +118,11 @@ export default function ProfileScreen() {
   const runDelete = async () => {
     setDeleting(true);
     try {
+      const userId = session?.user.id;
       await requestAccountDeletion();
+      // "Delete means delete" includes this phone: the local queue partition
+      // and any quarantined blobs go too, not just the server rows.
+      if (userId) await clearLocalQueue(userId);
       await signOut();
     } catch {
       Alert.alert("Couldn't delete the account", 'Give it another try in a moment.');
@@ -192,7 +197,7 @@ export default function ProfileScreen() {
           {record.topWord && (
             <View style={styles.recRow}>
               <T v="caption" style={{ color: palette.moss }}>Word you write most</T>
-              <T v="caption" style={{ color: palette.amber }}>"{record.topWord}"</T>
+              <T v="caption" style={{ color: palette.amber }}>“{record.topWord}”</T>
             </View>
           )}
           {record.topTag && (

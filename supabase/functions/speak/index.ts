@@ -4,6 +4,9 @@
 // silently and the debrief never blocks.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
+import { logFailure } from '../_shared/log.ts';
+import { consumeUsage } from '../_shared/usage.ts';
+
 // Default voice: "Sarah" (ElevenLabs premade) — calm, warm. Swap via secret.
 const DEFAULT_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
 const MODEL_ID = 'eleven_flash_v2_5';
@@ -24,10 +27,9 @@ Deno.serve(async (req: Request) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return json({ error: 'unauthorized' }, 401);
 
-    // Per-user daily budget — 200 spoken replies/day is far above real use.
-    // Fail-open on RPC hiccups; the client already degrades to text on any error.
-    const { data: allowed } = await supabase.rpc('bump_usage', { p_fn: 'speak', p_cap: 200 });
-    if (allowed === false) return json({ error: 'rate_limited' }, 429);
+    // Per-user daily budget (caps fixed in SQL — 200 spoken replies/day is far
+    // above real use). Fail-open; the client already degrades to text on error.
+    if (!(await consumeUsage(user.id, 'speak'))) return json({ error: 'rate_limited' }, 429);
 
     let text = '';
     if (req.method === 'POST') {
@@ -56,7 +58,7 @@ Deno.serve(async (req: Request) => {
       }
     );
     if (!upstream.ok || !upstream.body) {
-      console.error('elevenlabs failed', upstream.status);
+      logFailure('speak', 'upstream', { status: upstream.status });
       return json({ error: 'tts_unavailable' }, 503);
     }
 
@@ -64,7 +66,7 @@ Deno.serve(async (req: Request) => {
       headers: { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-store' },
     });
   } catch (err) {
-    console.error('speak failed', err);
+    logFailure('speak', 'unknown', err);
     return json({ error: 'tts_unavailable' }, 503);
   }
 });

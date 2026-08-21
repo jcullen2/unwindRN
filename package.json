@@ -34,13 +34,19 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "typescript": "~6.0.3"
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "^10.0.0",
+    "typescript": "~6.0.3",
+    "vitest": "^3.2.0"
   },
   "scripts": {
     "start": "expo start",
     "ios": "expo run:ios",
-    "lint": "expo lint",
-    "typecheck": "tsc --noEmit"
+    "lint": "expo lint --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "gen:legal": "node scripts/gen-legal.mjs",
+    "check": "npm run lint && npm run typecheck && npm run test && node scripts/gen-legal.mjs --check"
   },
   "private": true
 }

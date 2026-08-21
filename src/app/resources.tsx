@@ -48,7 +48,7 @@ export default function ResourcesScreen() {
         </Glass>
 
         <T v="whisper" style={{ textAlign: 'center', marginTop: space(2) }}>
-          {NOT_THERAPY_COPY} If you're in crisis, reach out to the resources above.
+          {NOT_THERAPY_COPY} If you’re in crisis, reach out to the resources above.
         </T>
       </ScrollView>
     </Sky>

@@ -1,7 +1,13 @@
-// delete-account — the only service-role function.
-// Verifies the caller's JWT, then removes every row belonging to the user and
-// finally the auth user itself. Full data wipe per the Apple requirement.
+// delete-account — the only function whose job needs the service role.
+// Verifies the caller's JWT, then deletes the auth user ONCE. Every table
+// FKs auth.users ON DELETE CASCADE, so that single delete removes profile,
+// shifts, debrief sessions, and cached lines atomically — one authority, no
+// partial-failure states. (An older version deleted table-by-table first;
+// any one table hiccup 500'd the whole wipe that the cascade would have
+// finished cleanly.) Full data wipe per the Apple requirement.
 import { createClient } from 'npm:@supabase/supabase-js@2';
+
+import { logFailure } from '../_shared/log.ts';
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -24,35 +30,19 @@ Deno.serve(async (req: Request) => {
     } = await caller.auth.getUser();
     if (!user) return json({ error: 'unauthorized' }, 401);
 
-    // Service role for the actual wipe. Every table FKs auth.users ON DELETE
-    // CASCADE, so deleting the auth user removes all rows atomically — that is
-    // the source of truth for a full wipe. We also delete the known rows first
-    // as belt-and-suspenders (and so a deleteUser hiccup can't strand data),
-    // using the REAL v3 schema: shifts · debrief_sessions · daily_lines ·
-    // month_captions · profiles. (The old messages/debriefs tables were dropped
-    // in the v3 rebuild — deleting them here is what silently broke deletion.)
     const admin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
-
-    // Order respects FKs (debrief_sessions references shifts). Missing rows are
-    // a no-op; a truly missing table would error, so we only name real ones.
-    const byUser = ['debrief_sessions', 'shifts', 'daily_lines', 'month_captions'] as const;
-    for (const table of byUser) {
-      const { error } = await admin.from(table).delete().eq('user_id', user.id);
-      if (error) throw error;
+    const { error } = await admin.auth.admin.deleteUser(user.id);
+    if (error) {
+      logFailure('delete-account', 'db', error);
+      return json({ error: 'delete_failed' }, 500);
     }
-    const { error: profileError } = await admin.from('profiles').delete().eq('id', user.id);
-    if (profileError) throw profileError;
-
-    // Final authority: delete the auth user; cascade sweeps anything missed.
-    const { error: authError } = await admin.auth.admin.deleteUser(user.id);
-    if (authError) throw authError;
 
     return json({ deleted: true });
   } catch (err) {
-    console.error('delete-account failed', err);
+    logFailure('delete-account', 'unknown', err);
     return json({ error: 'delete_failed' }, 500);
   }
 });

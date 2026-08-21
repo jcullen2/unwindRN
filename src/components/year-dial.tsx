@@ -22,7 +22,7 @@ type Props = {
 };
 
 export function YearDial({ value, onChange, max = MAX_YEARS }: Props) {
-  const [width, setWidth] = useState(0);
+  const [, setWidth] = useState(0);
   const widthRef = useRef(0);
   const valueRef = useRef(value);
   valueRef.current = value;

@@ -9,16 +9,19 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { z } from 'npm:zod@3';
+
+import { logFailure } from '../_shared/log.ts';
+import { consumeUsage } from '../_shared/usage.ts';
+import { scrubPHI } from './scrub.ts';
 import { SYSTEM_PROMPT_TEMPLATE } from './system-prompt.ts';
 
 const CONVERSATION_MODEL = 'claude-sonnet-4-6';
 const UTILITY_MODEL = 'claude-haiku-4-5-20251001';
 const MAX_PARTNER_TURNS = 12;
 const MAX_CONTEXT_CHARS = 32_000; // ~8k tokens
-// Per-user daily budget (bump_usage RPC). 80 turns ≈ six full debriefs — far
-// above real use, a hard ceiling on abuse. Fail-open on RPC hiccups: a nurse
-// post-shift is never blocked by our rate-limit plumbing failing.
-const DAILY_TURN_CAP = 80;
+// Per-user daily budget: consume_usage (service-role-only RPC, caps fixed in
+// SQL — 80 turns/day ≈ six full debriefs, far above real use). Fail-open on
+// plumbing hiccups: a nurse post-shift is never blocked by our rate limiter.
 
 const CANONICAL_TAGS = [
   'Short-staffed', 'Code', 'A loss', 'Good save', 'Hard family',
@@ -40,27 +43,9 @@ const EMPTY_UTILITY: Utility = {
   win: null, weight: null, lesson: null,
 };
 
-/**
- * Deterministic PHI backstop (CLAUDE.md law). The haiku prompt is instructed to
- * strip identifiers, but the model is not trusted as the only line of defense:
- * this strips structured identifiers (room/bed/MRN/unit numbers, long digit
- * runs) from the extracted fields before they can be persisted. Names are left
- * to the prompt — a name regex can't run without unacceptable false positives —
- * but structured identifiers are exactly what a regex catches reliably.
- */
-function scrubPHI(text: string | null): string | null {
-  if (!text) return text;
-  let out = text
-    // room 12 / rm 4B / bed 3 / MRN 00482 / med record 12345 / unit 7
-    .replace(/\b(?:room|rm|bed|mrn|medical\s+record(?:\s+number)?|unit)\s*#?\s*[\w-]+/gi, '')
-    // bare 4+ digit runs (MRNs, account numbers)
-    .replace(/\b\d{4,}\b/g, '')
-    .replace(/\s{2,}/g, ' ')
-    .replace(/\s+([.,;:])/g, '$1')
-    .trim();
-  return out.length ? out : null;
-}
-
+// Deterministic PHI backstop (CLAUDE.md law): ./scrub.ts, the edge twin of
+// src/lib/scrub.ts — same-directory import so the eszip bundle carries it,
+// exactly like system-prompt.ts.
 function scrubUtility(u: Utility): Utility {
   return { ...u, win: scrubPHI(u.win), weight: scrubPHI(u.weight), lesson: scrubPHI(u.lesson) };
 }
@@ -128,7 +113,7 @@ async function runUtility(anthropic: Anthropic, userTurn: string, priorPartnerLi
     if (!block || block.type !== 'text') return EMPTY_UTILITY;
     return scrubUtility(utilitySchema.parse(JSON.parse(block.text)));
   } catch (err) {
-    console.error('utility call failed', err);
+    logFailure('debrief-turn.utility', 'upstream', err);
     return EMPTY_UTILITY;
   }
 }
@@ -145,8 +130,7 @@ Deno.serve(async (req: Request) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return json({ error: 'unauthorized' }, 401);
 
-    const { data: allowed } = await supabase.rpc('bump_usage', { p_fn: 'debrief-turn', p_cap: DAILY_TURN_CAP });
-    if (allowed === false) return json({ error: 'rate_limited' }, 429);
+    if (!(await consumeUsage(user.id, 'debrief-turn'))) return json({ error: 'rate_limited' }, 429);
 
     const body = await req.json().catch(() => null);
     const userTurn: string = typeof body?.userTurn === 'string' ? body.userTurn.slice(0, 4000) : '';
@@ -259,7 +243,7 @@ Deno.serve(async (req: Request) => {
           sse(controller, 'done', { capped: false });
           controller.close();
         } catch (err) {
-          console.error('debrief-turn stream failed', err);
+          logFailure('debrief-turn', 'stream', err);
           try {
             sse(controller, 'error', { error: 'turn_failed' });
             controller.close();
@@ -278,7 +262,7 @@ Deno.serve(async (req: Request) => {
       },
     });
   } catch (err) {
-    console.error('debrief-turn failed', err);
+    logFailure('debrief-turn', 'unknown', err);
     return json({ error: 'turn_failed' }, 500);
   }
 });

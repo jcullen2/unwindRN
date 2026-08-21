@@ -42,6 +42,7 @@ import { Sky } from '@/components/sky';
 import { localToday, RecordDraft } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { CRISIS_COPY, LOAD_LABELS, TAGS } from '@/lib/constants';
+import { scrubField } from '@/lib/scrub';
 import { useCareerTotals, useInvalidateShiftData } from '@/lib/queries';
 import { saveShift } from '@/lib/queue';
 import { supabase } from '@/lib/supabase';
@@ -144,6 +145,7 @@ export default function DebriefScreen() {
   const [flags, setFlags] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [note, setNote] = useState('');
+  const [noteScrubbed, setNoteScrubbed] = useState(false);
   const [isNight] = useState(params.night === '1');
   const [savingTaps, setSavingTaps] = useState(false);
   const loadTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -342,19 +344,41 @@ export default function DebriefScreen() {
 
   const keepIt = async () => {
     if (!userId || savingTaps) return;
+
+    // PHI backstop: if the scrub changed her line, show the edited text and
+    // ask for one more tap. The original wording is never stored.
+    const sNote = scrubField(note);
+    if (sNote.changed) {
+      setNote(sNote.text);
+      setNoteScrubbed(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      return;
+    }
+
     setSavingTaps(true);
-    const { synced } = await saveShift({
+    const { queued, synced } = await saveShift({
       user_id: userId,
       shift_date: localToday(),
       hours: hours ?? usual,
       load,
       tags,
       is_night: isNight,
-      win: note.trim() || null,
+      win: sNote.text || null,
       started_at: startedAt,
       ended_at: endedAt,
       source: 'taps',
     });
+
+    // Neither the phone nor the network took it — never imply it saved.
+    if (!queued) {
+      setSavingTaps(false);
+      Alert.alert(
+        "Couldn't save on this phone",
+        'Storage refused the write, so this shift is not saved yet. Free up a little space and try again.'
+      );
+      return;
+    }
+
     if (synced) await invalidate();
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     const newTotal = totals.shifts + 1;
@@ -532,7 +556,10 @@ export default function DebriefScreen() {
                   <View style={styles.noteField}>
                     <TextInput
                       value={note}
-                      onChangeText={setNote}
+                      onChangeText={(v) => {
+                        setNote(v);
+                        setNoteScrubbed(false);
+                      }}
                       placeholder="Even three words."
                       placeholderTextColor={ink.faint}
                       keyboardAppearance="dark"
@@ -541,6 +568,12 @@ export default function DebriefScreen() {
                       maxLength={200}
                     />
                   </View>
+                  {noteScrubbed && (
+                    <T v="caption" style={{ color: palette.amber, marginTop: space(2.5), lineHeight: 17 }}>
+                      We took out what looked like patient-identifying details. Check it reads
+                      right, then log again.
+                    </T>
+                  )}
                   <FlameButton title="Log it" onPress={keepIt} loading={savingTaps} style={{ marginTop: space(5.5) }} />
                   <Pressable accessibilityRole="button" onPress={() => setStage('talk')} style={{ paddingVertical: space(3), alignItems: 'center' }}>
                     <T v="secondary" style={{ color: palette.moon }}>

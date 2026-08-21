@@ -12,7 +12,7 @@ import { PageTitle, T } from '@/components/kit';
 import { Sky } from '@/components/sky';
 import { LOAD_LABELS } from '@/lib/constants';
 import { useShift } from '@/lib/queries';
-import { glass, ink, palette, space } from '@/theme/tokens';
+import { glass, palette, space } from '@/theme/tokens';
 
 function Pill({ children, tone = 'amber' }: { children: string; tone?: 'amber' | 'moon' }) {
   const amber = tone === 'amber';

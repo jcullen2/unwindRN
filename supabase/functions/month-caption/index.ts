@@ -3,6 +3,9 @@
 import Anthropic from 'npm:@anthropic-ai/sdk';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
+import { logFailure } from '../_shared/log.ts';
+import { consumeUsage, serviceClient } from '../_shared/usage.ts';
+
 const MODEL = 'claude-haiku-4-5-20251001';
 
 const json = (body: unknown, status = 200) =>
@@ -38,9 +41,9 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
     if (cached?.caption) return json({ caption: cached.caption, cached: true });
 
-    // Per-user daily budget on generation (cache hits above are free).
-    const { data: allowed } = await supabase.rpc('bump_usage', { p_fn: 'month-caption', p_cap: 15 });
-    if (allowed === false) return json({ caption: null }, 200);
+    // Per-user daily budget on generation (cache hits above are free; caps
+    // fixed in SQL).
+    if (!(await consumeUsage(user.id, 'month-caption'))) return json({ caption: null }, 200);
 
     const first = `${month}-01`;
     const [y, m] = month.split('-').map(Number);
@@ -77,11 +80,17 @@ Deno.serve(async (req: Request) => {
     const caption =
       block && block.type === 'text' ? block.text.trim().replace(/\s+/g, ' ') : null;
     if (caption) {
-      await supabase.from('month_captions').insert({ user_id: user.id, month, caption });
+      // Cache write via service role, scoped to the verified user id — clients
+      // never write AI cache tables directly (their INSERT policies retire in
+      // the cleanup migration).
+      await serviceClient().from('month_captions').upsert(
+        { user_id: user.id, month, caption },
+        { onConflict: 'user_id,month', ignoreDuplicates: true }
+      );
     }
     return json({ caption, cached: false });
   } catch (err) {
-    console.error('month-caption failed', err);
+    logFailure('month-caption', 'unknown', err);
     return json({ caption: null }, 200);
   }
 });

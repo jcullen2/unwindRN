@@ -13,7 +13,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Heatfield } from '@/components/heatfield';
 import { Lockup, PageTitle, T } from '@/components/kit';
 import { Sky } from '@/components/sky';
-import { localToday } from '@/lib/api';
 import { LOAD_LABELS } from '@/lib/constants';
 import { useCareerTotals, useShifts } from '@/lib/queries';
 import { Shift, supabase } from '@/lib/supabase';

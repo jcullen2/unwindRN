@@ -6,7 +6,7 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Canvas, Path, Skia } from '@shopify/react-native-skia';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -76,7 +76,6 @@ export default function InsightsScreen() {
   const { data: shifts, isPending } = useShifts();
   const totals = useCareerTotals();
   const logged = shifts?.length ?? 0;
-  const usual = Number(profile?.usual_shift_hours ?? 12);
 
   const [signalsOn, setSignalsOn] = useState(true);
   useEffect(() => {

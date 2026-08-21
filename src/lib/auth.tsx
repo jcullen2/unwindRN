@@ -67,7 +67,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = useCallback(() => loadProfile(userId), [loadProfile, userId]);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    // Local scope: signing out is a this-device action. Global scope would
+    // revoke her session on every device — and it errors outright when the
+    // token is already stale, leaving her stuck on a sign-out that "fails".
+    await supabase.auth.signOut({ scope: 'local' });
     // Never let one account's cached data survive into the next sign-in
     // (shared devices are the norm on a unit).
     queryClient.clear();
