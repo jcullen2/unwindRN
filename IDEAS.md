@@ -2,6 +2,12 @@
 
 Captured per CLAUDE.md workflow. None of this ships in v1.
 
+- **"On the Record" grafts onto Deep Ward** (from the lost 8/20 brand draft;
+  D5 decided Deep Ward 2026-08-21) — evidence labels on derived numbers
+  (what's logged vs ~estimated, stated at the point of display) and a
+  sequential shift index as a first-class identity element ("Shift #741"
+  beyond the debrief pill). Consider per feature; never a re-skin.
+
 - **Wrapped** — data is being captured (shifts/load/tags/nights); the feature
   ships at Nurses Week. No UI exists and none should yet.
 - **Record export** (PDF/CSV of the career record) — Profile sheet says

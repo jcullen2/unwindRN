@@ -131,30 +131,50 @@ proving the Aug 20 set was lost — so the set was rebuilt in the cloud instead
       `review/aug20-hardening` branch (its content equals old main; nothing
       is lost by deleting it).
 
-### Gate 1 — Prove and harden the backend  `← WE ARE HERE (awaiting John's go)`
-- [x] Execute the pgTAP suite in GitHub Actions (done — 61 assertions green on
-      PR #5; it already caught and fixed a real gap: fresh stacks have no
-      ambient table grants, now stated explicitly in the expansion migration).
-- [ ] Logical backup of prod DB before any mutation.
-- [ ] Apply expansion migration → deploy the 5 reviewed functions → smoke-test →
-      cleanup migration. Each step behind a John go.
-- [ ] Re-verify delete-account end to end with a throwaway user (Apple requires it).
-- [ ] Auth config pass (dashboard — click-by-click guide provided): Site URL →
-      https://unwindrn.com, redirect allowlist, leaked-password ON, rate limits.
-- [ ] Secrets: dedupe Anthropic keys; no keys in client (re-confirm).
-- [ ] **John:** upgrade Supabase to Pro before beta (kills auto-pause; adds backups).
-- **Done when:** pgTAP green, advisors clean or accepted, functions redeployed and
-  smoke-tested, deletion proven, backup exists.
+### Gate 1 — Prove and harden the backend  `✔ TECHNICAL BODY DONE 2026-08-21 (John's clicks remain)`
+Executed on John's "start gate 1", in safety order, all against production:
+- [x] pgTAP suite green in CI (61 assertions; caught the missing-grants gap).
+- [x] Logical backup BEFORE mutation — full export of every table + 13 auth
+      identities, delivered to John as a file (his durable copy).
+- [x] Pre-flight: zero existing rows violate any new constraint.
+- [x] Expansion migration applied + verified in SQL: 7/7 constraints live,
+      consume_usage service-role-only, anon table grants = 0, debrief
+      ownership-on-update enforced.
+- [x] All 5 reviewed functions deployed (nested `_shared` layout proven):
+      **debrief-turn v7 · delete-account v5 · speak v3 · daily-line v3 ·
+      month-caption v3**. Bonus finding: live v6 predated the 7/24 injection
+      fixes (asData + server-side tag validation) — v7 finally ships them.
+- [x] End-to-end smoke on a throwaway anonymous account via a temporary
+      pg_net rig (container egress is proxy-blocked; requests ran from inside
+      Supabase, rig dropped after): daily-line 200 with a real haiku line +
+      service-role cache write; speak 503 (correct — no ElevenLabs key, D3);
+      month-caption 200; **debrief-turn full SSE turn** — deltas + utility
+      {crisis:false, tags [Code, Good save], hours 12, win/weight extracted,
+      "room 12" absent from every persisted field} + done; usage counters
+      genuinely ticking (not fail-open).
+- [x] **delete-account re-verified end to end** (the Apple requirement):
+      {"deleted":true}, zero rows left in auth.users/profiles/shifts/
+      counters/cache.
+- [x] Cleanup migration applied: bump_usage dropped, client cache-write
+      policies retired.
+- [x] Advisor re-scan: **all 4 exposed-SECURITY-DEFINER WARNs GONE.**
+      Remaining, accepted: 5 anon-policy WARNs (dev bypass stays ON until the
+      launch config flip), leaked-password toggle (John's click below),
+      usage_counters INFO (deliberate deny-all).
+- [ ] **John (dashboard clicks):** Auth → URL Configuration: Site URL →
+      https://unwindrn.com, add `unwindrn://**` to redirect allowlist ·
+      Auth → Providers/Security: enable leaked-password protection ·
+      Settings → check for duplicate ANTHROPIC secret names and delete extras.
+- [ ] **John:** upgrade Supabase to Pro before beta (kills auto-pause; adds
+      real automated backups).
+- **Done when:** the two John-click items above are done. Everything else is.
 
-### Gate 2 — Decide the brand (one sitting, runs parallel to Gate 1)
-⚠️ 2026-08-21: On the Record's seven draft surfaces were LOST with the Aug 20
-sandbox — only its written concept survives (record-led, shift index, evidence
-labels, smaller Nightingale role). The decision is now:
-- [ ] **John:** either (a) recommit to Deep Ward as the ship brand — fastest,
-      it's built and already passed your taste once — grafting On the Record's
-      best written ideas onto it, or (b) ask Claude to draft a fresh
-      record-led direction as real visuals first. Recommendation: (a).
-- **Done when:** one line in §6 Decision log; kept ideas → IDEAS.md.
+### Gate 2 — Decide the brand  `✔ CLOSED 2026-08-21`
+**John decided: Deep Ward is the ship brand** ("we keep deepward"). On the
+Record's surviving written ideas (evidence labels, sequential shift index)
+are filed in IDEAS.md as graft candidates onto Deep Ward — considered per
+feature, never as a re-skin. The website overhaul (Gate 6) and store assets
+now build on Deep Ward with no blocking design decision ahead of them.
 
 ### Gate 3 — Device truth
 - [ ] First EAS build on John's physical iPhone.
@@ -231,13 +251,13 @@ on evidence, not slides.**
       leave the US storefront (launch US-only).
 
 ## 5. Now / Next
-**Now:** Gate 1 production hardening — waiting on John's "start Gate 1" (each
-hot step gets its own go): backup → apply expansion migration → deploy the 5
-reviewed functions → smoke test → apply cleanup → auth-config pass → re-verify
-deletion. John's parallel moves: Supabase Pro upgrade · Apple Membership
-screenshot (D2) · the five decisions in §6.
-**Next:** Gate 2 brand sitting (one decision, reshaped — On the Record visuals
-lost) ∥ Claude drafts the device-QA script for Gate 3 so it's waiting.
+**Now:** Gate 1's technical body is DONE (2026-08-21) and Gate 2 is decided
+(Deep Ward). Open on John's desk: the Gate 1 dashboard clicks (Site URL,
+redirect allowlist, leaked-password toggle, secret dedupe) · Supabase Pro
+upgrade · Apple Membership screenshot (D2) · decisions D1/D3/D4.
+**Next:** Gate 3 device truth — Claude drafts the physical-iPhone QA script
+and the first EAS build steps ∥ Gate 6 website overhaul can start any time
+(brand is decided; no blocker).
 
 ## 6. Decisions
 | # | Decision | Status | Call |
@@ -246,12 +266,27 @@ lost) ∥ Claude drafts the device-QA script for Gate 3 so it's waiting.
 | D2 | Apple entity path if account is Individual | Open — blocked on Membership screenshot | Reposition as journaling/lifestyle (already the metadata stance) vs convert to org |
 | D3 | Voice-out at beta (ElevenLabs key + cost) | **Recommended ON, awaiting John** | It's the soul of the product; caps bound the spend |
 | D4 | Minimal first-party events table (no 3rd-party SDKs) | **Recommended, awaiting John** | Without it, no retention read at the go/no-go |
-| D5 | Ship-now brand: Deep Ward vs On the Record | Open — Gate 2 sitting | Bias Deep Ward; graft OTR's best ideas |
+| D5 | Ship-now brand | **DECIDED — Deep Ward** (John, 2026-08-21) | OTR's written ideas filed in IDEAS.md as grafts |
 | — | The Kept Light | **Rejected (final)** — 2026-08-20 | Never propagate |
 | — | B2C first, no hospital sales at launch | **Decided** — John | Trust architecture over check size |
 | — | Legacy carve: react-query + date-fns stay | **Decided** — whitelist formally | Load-bearing since v1; ripping out is overcoding |
 
 ## 7. Evidence log (newest first)
+- **2026-08-21 (Gate 1 executed + Gate 2 decided)** — On John's "start gate 1"
+  + "we keep deepward": backup exported (all tables + 13 auth users, file
+  delivered to John) → pre-flight clean (0 constraint violations in 13
+  shifts/8 profiles) → expansion migration applied + SQL-verified → 5
+  functions deployed as **debrief-turn v7 · delete-account v5 · speak v3 ·
+  daily-line v3 · month-caption v3** (nested _shared layout; v7 also finally
+  ships the 7/24 injection fixes that live v6 never got) → end-to-end smoke
+  via temporary pg_net rig on a throwaway anon account (daily-line real line
+  200; speak 503-correct; debrief-turn full SSE with clean extraction, no
+  "room 12" persisted; counters genuinely ticking) → **deletion re-verified:
+  {"deleted":true}, zero rows anywhere** → pg_net rig dropped → cleanup
+  migration applied (bump_usage gone, cache-write policies retired) →
+  advisor re-scan: 4 SECURITY DEFINER WARNs eliminated; remaining = 5
+  anon-policy WARNs (dev bypass, launch flip), leaked-password toggle
+  (John click), usage_counters INFO (deliberate). D5 DECIDED: Deep Ward.
 - **2026-08-21 (Gate 0 closed)** — PR #5 merged to main (`ca12d43`) with both
   CI jobs green: app checks (lint 0-warnings, strict tsc, 44 vitest) and the
   database proof (61 pgTAP assertions on the fully migrated local stack). CI
