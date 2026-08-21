@@ -119,19 +119,22 @@ The brand decision gates the website overhaul and store assets — see Gate 2.
 
 ## 3. The path — gates, not dates
 
-### Gate 0 — Reunify the work  `← CLOSING`
+### Gate 0 — Reunify the work  `✔ CLOSED 2026-08-21`
 Resolved differently than planned: the Mac's push surfaced an EMPTY branch,
 proving the Aug 20 set was lost — so the set was rebuilt in the cloud instead
-(see §1 and the 2026-08-21 evidence entry). Remaining to close this gate:
+(see §1 and the 2026-08-21 evidence entries).
 - [x] Branches distilled to main + archives (mini deleted the three stale ones).
-- [x] Hardening set rebuilt with tests (commits `f3bebbd` + `bc15394`).
-- [ ] **Claude:** PR to main with CI green (app + db jobs), then merge.
+- [x] Hardening set rebuilt with tests (commits `f3bebbd` + `bc15394` + `7bd13eb`).
+- [x] **PR #5 merged to main with both CI jobs green** (app checks + the
+      61-assertion database proof).
 - [ ] Desktop, whenever convenient: delete the now-empty
-      `review/aug20-hardening` branch.
-- **Done when:** main holds the rebuilt set with checks green in CI.
+      `review/aug20-hardening` branch (its content equals old main; nothing
+      is lost by deleting it).
 
-### Gate 1 — Prove and harden the backend
-- [ ] Execute the 58-assertion pgTAP suite in GitHub Actions (Docker lives there).
+### Gate 1 — Prove and harden the backend  `← WE ARE HERE (awaiting John's go)`
+- [x] Execute the pgTAP suite in GitHub Actions (done — 61 assertions green on
+      PR #5; it already caught and fixed a real gap: fresh stacks have no
+      ambient table grants, now stated explicitly in the expansion migration).
 - [ ] Logical backup of prod DB before any mutation.
 - [ ] Apply expansion migration → deploy the 5 reviewed functions → smoke-test →
       cleanup migration. Each step behind a John go.
@@ -228,9 +231,13 @@ on evidence, not slides.**
       leave the US storefront (launch US-only).
 
 ## 5. Now / Next
-**Now:** Gate 0 (John's push → Claude's review-and-merge). Nothing else builds.
-**Next:** Gate 1 backend proof ∥ Gate 2 brand sitting ∥ Claude drafts the device-QA
-script and the brand side-by-side so both are waiting when Gate 0 merges.
+**Now:** Gate 1 production hardening — waiting on John's "start Gate 1" (each
+hot step gets its own go): backup → apply expansion migration → deploy the 5
+reviewed functions → smoke test → apply cleanup → auth-config pass → re-verify
+deletion. John's parallel moves: Supabase Pro upgrade · Apple Membership
+screenshot (D2) · the five decisions in §6.
+**Next:** Gate 2 brand sitting (one decision, reshaped — On the Record visuals
+lost) ∥ Claude drafts the device-QA script for Gate 3 so it's waiting.
 
 ## 6. Decisions
 | # | Decision | Status | Call |
@@ -245,6 +252,14 @@ script and the brand side-by-side so both are waiting when Gate 0 merges.
 | — | Legacy carve: react-query + date-fns stay | **Decided** — whitelist formally | Load-bearing since v1; ripping out is overcoding |
 
 ## 7. Evidence log (newest first)
+- **2026-08-21 (Gate 0 closed)** — PR #5 merged to main (`ca12d43`) with both
+  CI jobs green: app checks (lint 0-warnings, strict tsc, 44 vitest) and the
+  database proof (61 pgTAP assertions on the fully migrated local stack). CI
+  round 1 caught a real defect — a fresh stack grants `authenticated` nothing
+  (hosted works only via Supabase's out-of-band defaults) — fixed by stating
+  the grant surface explicitly in the expansion migration (`7bd13eb`). Repo
+  now: main + 2 archives + the session's working branch (synced to main) +
+  the empty `review/aug20-hardening` (desktop deletes when convenient).
 - **2026-08-21 (rebuild)** — Established the Aug 20 set was LOST (empty
   review/aug20-hardening; mini's clean clone + full-home search negative; the
   set only ever existed in the Aug 20 agent's sandbox). Rebuilt it in the
