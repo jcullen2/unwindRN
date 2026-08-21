@@ -100,10 +100,10 @@ The brand decision gates the website overhaul and store assets — see Gate 2.
    site publishes, store submission: proposed → John approves → executed →
    evidence logged in §7.
 3a. **One branch.** `main` is the only long-lived branch — everything alive
-   converges there. Historical snapshots live as `archive/*` tags, never
-   branches. Working branches (`claude/*`, `review/*`) are ephemeral: merged via
-   PR, then deleted. If the branch list ever has more than main + one active
-   working branch, something is wrong.
+   converges there. Historical snapshots live under the `archive/*` prefix and
+   are never merged or built on. Working branches (`claude/*`, `review/*`) are
+   ephemeral: merged via PR, then deleted. If the branch list ever holds more
+   than main + archives + one active working branch, something is wrong.
 4. **No new build work until Gate 0 merges.** Nothing gets re-implemented that the
    Mac set already contains. Don't overcode: smallest change that clears the gate.
 5. **Lanes run in parallel when independent** (brand review ∥ backend proof ∥
@@ -115,9 +115,12 @@ The brand decision gates the website overhaul and store assets — see Gate 2.
 
 ### Gate 0 — Reunify the work  `← WE ARE HERE`
 The Mac pushes the 8/20 review set to a branch; it gets reviewed, CI'd, merged.
-- [ ] **John:** on the Mac, tell local Claude: *"Commit the full review set —
-      including command-center/ and the new docs — to a branch named
-      `review/aug20-hardening` and push it to origin. Don't touch main."*
+- [ ] **John:** on the Mac, tell local Claude: *"Pull the latest main first. Then
+      commit the full August 20 review set — including command-center/ and the
+      new docs — to a branch named `review/aug20-hardening` and push it to
+      origin. Don't touch main. Then delete these three remote branches (their
+      content is archived or merged): cursor/marketing-site-cycle-2-6fc1,
+      claude/app-from-scratch-jgngvv, claude/new-session-hbi505."*
 - [ ] **Claude:** code-review the branch; run `npm run check` in Actions; reconcile
       docs into this file; merge to main via PR.
 - **Done when:** main holds all work, checks green in CI, one SoR in repo.
@@ -235,16 +238,19 @@ script and the brand side-by-side so both are waiting when Gate 0 merges.
 | — | Legacy carve: react-query + date-fns stay | **Decided** — whitelist formally | Load-bearing since v1; ripping out is overcoding |
 
 ## 7. Evidence log (newest first)
-- **2026-08-21 (later)** — Branch distillation to main. Inspected all remotes:
-  `cursor/marketing-site-cycle-2-6fc1` (4 commits off 9fd7dce) confirmed
-  do-not-merge with own eyes — deletes web/screens/*.jpg, rewrites legal HTML
-  into a second master, hero claims no app exists; salvaged its three
+- **2026-08-21 (later)** — Branch distillation to main (PR #3 merged). Inspected
+  all remotes: `cursor/marketing-site-cycle-2-6fc1` (4 commits off 9fd7dce)
+  confirmed do-not-merge with own eyes — deletes web/screens/*.jpg, rewrites
+  legal HTML into a second master, hero claims no app exists; salvaged its three
   design-independent goods (web/404.html, netlify.toml redirects+404 routing,
-  robots.txt /screens/ disallow) → tagged `archive/marketing-site-cycle`,
-  branch deleted. `claude/app-from-scratch-jgngvv` = pre-rebuild snapshot,
-  disjoint history → tagged `archive/app-from-scratch`, branch deleted.
-  `claude/new-session-hbi505` fully merged via PR #1 → deleted. Mac hardening
-  set STILL not pushed (no review/aug20-hardening on origin).
+  robots.txt /screens/ disallow). Archives secured as branches via API —
+  `archive/marketing-site-cycle` (40a0510) + `archive/app-from-scratch`
+  (9e6920e, disjoint pre-rebuild snapshot) — because cloud-session git can push
+  only its own claude/* branch (403 on tags and deletions). Deletion of the
+  three stale originals (`cursor/marketing-site-cycle-2-6fc1`,
+  `claude/app-from-scratch-jgngvv`, `claude/new-session-hbi505` — last one
+  fully merged via PR #1) is queued for the desktop. Mac hardening set STILL
+  not pushed (no review/aug20-hardening on origin).
 - **2026-08-21** — Cloud session verified live prod: project ACTIVE_HEALTHY; 6
   functions (delete-account v4, debrief-turn v6, ...); 8 migrations, repo parity by
   name; security advisors: 4 WARNs on exposed SECURITY DEFINER fns, 5 anon-policy
