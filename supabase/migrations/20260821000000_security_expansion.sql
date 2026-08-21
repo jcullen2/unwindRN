@@ -113,6 +113,18 @@ revoke all on function public.consume_usage(uuid, text) from public, anon, authe
 grant execute on function public.consume_usage(uuid, text) to service_role;
 
 -- 5 ▸ Reproducible grants ----------------------------------------------------
+-- State the grant surface explicitly instead of inheriting the hosted
+-- platform's ambient default privileges (which a fresh local/CI stack does
+-- not have — the pgTAP run proved it). Table grants are capabilities only;
+-- RLS remains the row gate on every table, and usage_counters stays
+-- invisible via its deliberate zero-policy RLS.
+grant usage on schema public to authenticated, service_role;
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant all on all tables in schema public to service_role;
+alter default privileges in schema public
+  grant select, insert, update, delete on tables to authenticated;
+alter default privileges in schema public grant all on tables to service_role;
+
 -- The signed-out role needs no table access at all: every client query runs
 -- as `authenticated` (anonymous sign-ins included — they carry the
 -- authenticated role), and edge functions use service_role. Future objects
