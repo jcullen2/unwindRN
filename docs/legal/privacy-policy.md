@@ -14,10 +14,11 @@ scavenger hunt.
 
 - **Your voice never leaves your phone.** Speech is transcribed on-device by
   iOS. We never receive or store audio.
-- **Debrief conversations are not stored.** The words you speak in a debrief
-  live in your phone's memory during the session and are gone when it ends.
-  Only the shift record you approve — win, weight, lesson, hours, tags — is
-  saved.
+- **Debrief conversations are not saved to your record.** The words you speak
+  are processed in memory to generate the partner's reply — we do not write
+  them to our database. (Our AI provider briefly retains API traffic for abuse
+  monitoring; details below.) Only the shift record you approve — win, weight,
+  lesson, hours, tags — is saved.
 - **We don't want patient information, and we actively strip it.** The app's
   design, prompts, and an automated scrubber all work to keep patient
   identifiers out of your record.
@@ -50,10 +51,13 @@ When you talk in a debrief, the on-device transcript text (not audio) is sent
 over an encrypted connection to our server, which forwards it to Anthropic
 (the AI provider) to generate your debrief partner's reply and to extract the
 shift-record fields. Transcript text is processed in memory to produce the
-reply and is not stored on our servers. Anthropic processes this data as our
-service provider; it is not used to train their models. An automated scrubber
-removes structured identifiers (room numbers, bed numbers, record numbers)
-from any extracted field before it can be saved.
+reply and is not written to our database. Anthropic processes this data as
+our service provider: it is not used to train their models, and per their API
+data policy it is retained briefly (up to about 30 days) for abuse monitoring
+before deletion. An automated scrubber removes identifying details (room and
+bed numbers, record numbers, phone numbers, patient-anchored names) from any
+field before it can be saved — and if it changes your words, the app shows
+you the edited text and asks you to approve it again.
 
 If voice replies are enabled, the partner's reply text (never yours) is sent
 to ElevenLabs, a speech-synthesis provider, to generate the spoken audio.
@@ -77,8 +81,10 @@ only.
 
 - **Export** — coming during the beta; your records are yours to take.
 - **Deletion** — Profile → Delete account removes your auth account, profile,
-  and every shift record immediately. There is no retention window and no
-  backup we quietly keep.
+  and every shift record from our live database immediately, and clears the
+  app's local storage on your phone. Encrypted infrastructure backups (kept
+  for disaster recovery) roll off automatically within about 30 days and are
+  never used to restore deleted accounts.
 - **Skipping** — every question in onboarding and every debrief is optional.
   "Save without another word" stores only what you tapped.
 

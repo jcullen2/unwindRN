@@ -16,7 +16,9 @@ type SpeechModule = typeof import('expo-speech-recognition');
 
 let speech: SpeechModule | null = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  // Deliberate require: the native module may be absent (Expo Go, web) and a
+  // static import would crash at bundle time instead of degrading to quiet mode.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   speech = require('expo-speech-recognition') as SpeechModule;
 } catch {
   speech = null; // native module absent — quiet mode only

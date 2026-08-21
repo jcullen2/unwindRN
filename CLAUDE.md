@@ -133,14 +133,27 @@ evidence log. Every session starts there; CLAUDE.md stays the law for HOW we bui
   stale. delete-account: live v4 + the 7/22 end-to-end deletion verification
   suggest it works; the 7/24 "STILL not redeployed" line below is likely stale —
   re-verify at Gate 1 regardless.
-- ⚠️ **The 2026-08-20 Mac hardening set is UNCOMMITTED on John's desktop** (per
-  the 8/20 progress report): 17 vitest tests, offline-queue rebuild (client
-  UUIDs/upserts/per-account partition), unified OTP door (kills enumeration
-  leak), expanded PHI scrubber + re-approve flow, redacted edge logging,
-  `npm run check` + Actions workflow, 2 staged Supabase migrations + 58 pgTAP
-  assertions, corrected legal/site copy, command-center/ + docs records.
-  **Push as `review/aug20-hardening` before ANY new build work** — do not
-  re-implement any of it.
+- **The 2026-08-20 Mac hardening set was LOST — and REBUILT 2026-08-21.** It
+  never touched disk (died with its agent sandbox; mini's full-home search
+  negative). Rebuilt in the cloud from the report inventory (spec:
+  docs/reports/2026-08-20-progress-report.md): offline queue with client-UUID
+  upserts (idempotent retries) + per-account partitions + quarantine + honest
+  failures + Home waiting-to-sync row; ONE unified OTP door (enumeration
+  oracle gone); PHI scrubber as client+edge twins (src/lib/scrub.ts ↔
+  supabase/functions/debrief-turn/scrub.ts — keep them identical, the parity
+  test fails otherwise) with a scrub-and-reapprove save flow; content-free
+  edge logging (_shared/log.ts); service-role-only consume_usage (caps fixed
+  in SQL, fail-open) via _shared/usage.ts; atomic delete-account; dead
+  Realtime subscription removed (publication verified empty in prod).
+  **44 vitest tests + lint + strict tsc = `npm run check`** (also runs legal
+  parity). Staged migrations 20260821000000/000001 (expansion → deploy
+  reviewed functions → cleanup — NOT applied to prod yet, Gate 1) + a
+  61-assertion pgTAP suite (supabase/tests/) run by .github/workflows/
+  checks.yml (db job; local Docker image pulls are blocked in cloud sessions
+  — CI is the db-proof path). Legal: docs/legal/*.md is authoritative,
+  scripts/gen-legal.mjs generates web/privacy+terms deterministically
+  (never hand-edit those), absolute claims corrected. Casualty with no
+  inventory: "On the Record" draft visuals (Gate 2 decision adjusted).
 - **Brand:** "The Kept Light" REJECTED (final, 8/20). "On the Record" drafted on
   the Mac, unapproved. Deep Ward remains as-built and live. Decision = Gate 2.
 - **Branch policy: main is the only long-lived branch.** Archives live under

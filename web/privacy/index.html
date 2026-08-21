@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privacy Policy — unwindRN</title>
-<meta name="description" content="unwindRN privacy policy: your voice never leaves your phone, debriefs are never stored, no ads, no tracking, delete means delete.">
+<meta name="description" content="unwindRN privacy policy: your voice never leaves your phone, debrief words are not written to our database, no ads, no tracking, delete means delete.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700&display=swap" rel="stylesheet">
@@ -38,56 +38,25 @@
 <article>
   <h1>unwindRN Privacy Policy</h1>
   <p class="date">Effective date: July 22, 2026</p>
-
-  <p>unwindRN (“the app,” “we,” “us”) is a post-shift debrief and career logbook
-  for nurses, operated by unwindRN LLC (Michigan, USA). This policy explains what
-  we collect, why, and what we will never do. It is written to be read — no legal
-  scavenger hunt.</p>
-
+  <p>unwindRN ("the app," "we," "us") is a post-shift debrief and career logbook for nurses, operated by unwindRN LLC (Michigan, USA). This policy explains what we collect, why, and what we will never do. It is written to be read — no legal scavenger hunt.</p>
   <h2>The short version</h2>
   <ul>
     <li><strong>Your voice never leaves your phone.</strong> Speech is transcribed on-device by iOS. We never receive or store audio.</li>
-    <li><strong>Debrief conversations are not stored.</strong> The words you speak in a debrief live in your phone’s memory during the session and are gone when it ends. Only the shift record you approve — win, weight, lesson, hours, tags — is saved.</li>
-    <li><strong>We don’t want patient information, and we actively strip it.</strong> The app’s design, prompts, and an automated scrubber all work to keep patient identifiers out of your record.</li>
+    <li><strong>Debrief conversations are not saved to your record.</strong> The words you speak are processed in memory to generate the partner's reply — we do not write them to our database. (Our AI provider briefly retains API traffic for abuse monitoring; details below.) Only the shift record you approve — win, weight, lesson, hours, tags — is saved.</li>
+    <li><strong>We don't want patient information, and we actively strip it.</strong> The app's design, prompts, and an automated scrubber all work to keep patient identifiers out of your record.</li>
     <li><strong>No ads, no tracking, no selling data.</strong> Ever.</li>
     <li><strong>Delete means delete.</strong> In-app account deletion removes your account and every record, immediately and permanently.</li>
   </ul>
-
   <h2>What we collect</h2>
-  <p><strong>Account.</strong> Your email address (or, if you use Sign in with
-  Apple, the identifier Apple shares). Used to sign you in and nothing else.</p>
-  <p><strong>Profile you choose to give us.</strong> First name, specialty, years
-  at the bedside, shift pattern, usual shift length, and optionally your
-  hospital, city, and unit role. These personalize your debrief partner and your
-  career statistics. All optional; skipping onboarding is always allowed.</p>
-  <p><strong>Shift records.</strong> What you save when you clock out: date,
-  hours, load, tags (e.g., “Short-staffed”), and the win / weight / lesson lines
-  you approve. This is your logbook — it exists so you have a record of your
-  career.</p>
-  <p><strong>What we deliberately do NOT collect:</strong> audio recordings,
-  debrief transcripts, patient information, location data, contacts, photos,
-  advertising identifiers, or analytics profiles. The app contains no ad SDKs
-  and no third-party trackers.</p>
-
+  <p><strong>Account.</strong> Your email address (or, if you use Sign in with Apple, the identifier Apple shares). Used to sign you in and nothing else.</p>
+  <p><strong>Profile you choose to give us.</strong> First name, specialty, years at the bedside, shift pattern, usual shift length, and optionally your hospital, city, and unit role. These personalize your debrief partner and your career statistics. All optional; skipping onboarding is always allowed.</p>
+  <p><strong>Shift records.</strong> What you save when you clock out: date, hours, load, tags (e.g., "Short-staffed"), and the win / weight / lesson lines you approve. This is your logbook — it exists so you have a record of your career.</p>
+  <p><strong>What we deliberately do NOT collect:</strong> audio recordings, debrief transcripts, patient information, location data, contacts, photos, advertising identifiers, or analytics profiles. The app contains no ad SDKs and no third-party trackers.</p>
   <h2>How the AI works with your words</h2>
-  <p>When you talk in a debrief, the on-device transcript text (not audio) is
-  sent over an encrypted connection to our server, which forwards it to
-  Anthropic (the AI provider) to generate your debrief partner’s reply and to
-  extract the shift-record fields. Transcript text is processed in memory to
-  produce the reply and is not stored on our servers. Anthropic processes this
-  data as our service provider; it is not used to train their models. An
-  automated scrubber removes structured identifiers (room numbers, bed numbers,
-  record numbers) from any extracted field before it can be saved.</p>
-  <p>If voice replies are enabled, the partner’s reply text (never yours) is
-  sent to ElevenLabs, a speech-synthesis provider, to generate the spoken
-  audio.</p>
-
+  <p>When you talk in a debrief, the on-device transcript text (not audio) is sent over an encrypted connection to our server, which forwards it to Anthropic (the AI provider) to generate your debrief partner's reply and to extract the shift-record fields. Transcript text is processed in memory to produce the reply and is not written to our database. Anthropic processes this data as our service provider: it is not used to train their models, and per their API data policy it is retained briefly (up to about 30 days) for abuse monitoring before deletion. An automated scrubber removes identifying details (room and bed numbers, record numbers, phone numbers, patient-anchored names) from any field before it can be saved — and if it changes your words, the app shows you the edited text and asks you to approve it again.</p>
+  <p>If voice replies are enabled, the partner's reply text (never yours) is sent to ElevenLabs, a speech-synthesis provider, to generate the spoken audio.</p>
   <h2>Where your data lives</h2>
-  <p>Your account, profile, and shift records are stored with Supabase (hosted
-  on AWS in the United States), encrypted in transit. Access is enforced
-  per-account at the database level: your records are readable by your account
-  only.</p>
-
+  <p>Your account, profile, and shift records are stored with Supabase (hosted on AWS in the United States), encrypted in transit. Access is enforced per-account at the database level: your records are readable by your account only.</p>
   <h2>What we will never do</h2>
   <ul>
     <li>Sell or rent your data.</li>
@@ -96,29 +65,18 @@
     <li>Contact your employer.</li>
     <li>Use your debrief content for anything other than producing your own record.</li>
   </ul>
-
   <h2>Your controls</h2>
   <ul>
     <li><strong>Export</strong> — coming during the beta; your records are yours to take.</li>
-    <li><strong>Deletion</strong> — Profile → Delete account removes your auth account, profile, and every shift record immediately. There is no retention window and no backup we quietly keep.</li>
-    <li><strong>Skipping</strong> — every question in onboarding and every debrief is optional. “Save without another word” stores only what you tapped.</li>
+    <li><strong>Deletion</strong> — Profile → Delete account removes your auth account, profile, and every shift record from our live database immediately, and clears the app's local storage on your phone. Encrypted infrastructure backups (kept for disaster recovery) roll off automatically within about 30 days and are never used to restore deleted accounts.</li>
+    <li><strong>Skipping</strong> — every question in onboarding and every debrief is optional. "Save without another word" stores only what you tapped.</li>
   </ul>
-
   <h2>What this app is not</h2>
-  <p>unwindRN is not therapy, medical care, or a medical device, and it is not a
-  system of record for patient care. If you are in crisis, call or text 988
-  (Suicide &amp; Crisis Lifeline, US) — the app surfaces this resource and never
-  gates it.</p>
-
+  <p>unwindRN is not therapy, medical care, or a medical device, and it is not a system of record for patient care. If you are in crisis, call or text 988 (Suicide &amp; Crisis Lifeline, US) — the app surfaces this resource and never gates it.</p>
   <h2>Age</h2>
-  <p>unwindRN is for working professionals and is rated 17+. It is not directed
-  at children under 13, and we do not knowingly collect their data.</p>
-
+  <p>unwindRN is for working professionals and is rated 17+. It is not directed at children under 13, and we do not knowingly collect their data.</p>
   <h2>Changes</h2>
-  <p>If this policy changes materially, we will note it in the app before the
-  change takes effect. The current version always lives at
-  <a href="https://unwindrn.com/privacy">unwindrn.com/privacy</a>.</p>
-
+  <p>If this policy changes materially, we will note it in the app before the change takes effect. The current version always lives at <a href="https://unwindrn.com/privacy">unwindrn.com/privacy</a>.</p>
   <h2>Contact</h2>
   <p>Questions or requests: <a href="mailto:support@unwindrn.com">support@unwindrn.com</a></p>
 </article>

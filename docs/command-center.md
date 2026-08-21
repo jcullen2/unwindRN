@@ -45,9 +45,15 @@ first. Launch iOS + overhauled website + App Store as soon as the gates clear.
 - **Company** — LLC exists. Apple Developer account entity type **unverified**
   (individual vs organization — this matters, see §4).
 
-### Stranded on the Mac — the #1 operational fact
-A full hardening set sits **uncommitted** at base `9fd7dce`, never pushed (per the
-2026-08-20 progress report):
+### The Aug 20 hardening set — LOST, then REBUILT (resolved 2026-08-21)
+**Resolution:** the set below was never written to any disk — it lived and died
+inside the Aug 20 agent's sandbox. The Mac mini's full-home search found no
+trace; both machines' clones were clean. It was **rebuilt from the report's
+inventory** (spec preserved at docs/reports/2026-08-20-progress-report.md) in
+commits `f3bebbd` + `bc15394`, proven by 44 vitest tests + a 61-assertion pgTAP
+suite in CI. **Do not search for the original again.** One casualty has no
+inventory to rebuild from: the "On the Record" brand draft's seven visual
+surfaces — see Gate 2. Original loss description, kept for the record:
 - `npm run check` quality gate: ESLint clean, strict tsc, **17 vitest tests**
   (queue durability, PHI scrubbing, safe logging), legal-page parity, iOS
   production export (~5.4 MB bundle) + a GitHub Actions workflow.
@@ -113,17 +119,16 @@ The brand decision gates the website overhaul and store assets — see Gate 2.
 
 ## 3. The path — gates, not dates
 
-### Gate 0 — Reunify the work  `← WE ARE HERE`
-The Mac pushes the 8/20 review set to a branch; it gets reviewed, CI'd, merged.
-- [ ] **John:** on the Mac, tell local Claude: *"Pull the latest main first. Then
-      commit the full August 20 review set — including command-center/ and the
-      new docs — to a branch named `review/aug20-hardening` and push it to
-      origin. Don't touch main. Then delete these three remote branches (their
-      content is archived or merged): cursor/marketing-site-cycle-2-6fc1,
-      claude/app-from-scratch-jgngvv, claude/new-session-hbi505."*
-- [ ] **Claude:** code-review the branch; run `npm run check` in Actions; reconcile
-      docs into this file; merge to main via PR.
-- **Done when:** main holds all work, checks green in CI, one SoR in repo.
+### Gate 0 — Reunify the work  `← CLOSING`
+Resolved differently than planned: the Mac's push surfaced an EMPTY branch,
+proving the Aug 20 set was lost — so the set was rebuilt in the cloud instead
+(see §1 and the 2026-08-21 evidence entry). Remaining to close this gate:
+- [x] Branches distilled to main + archives (mini deleted the three stale ones).
+- [x] Hardening set rebuilt with tests (commits `f3bebbd` + `bc15394`).
+- [ ] **Claude:** PR to main with CI green (app + db jobs), then merge.
+- [ ] Desktop, whenever convenient: delete the now-empty
+      `review/aug20-hardening` branch.
+- **Done when:** main holds the rebuilt set with checks green in CI.
 
 ### Gate 1 — Prove and harden the backend
 - [ ] Execute the 58-assertion pgTAP suite in GitHub Actions (Docker lives there).
@@ -139,12 +144,14 @@ The Mac pushes the 8/20 review set to a branch; it gets reviewed, CI'd, merged.
   smoke-tested, deletion proven, backup exists.
 
 ### Gate 2 — Decide the brand (one sitting, runs parallel to Gate 1)
-- [ ] **Claude:** side-by-side package — Deep Ward as-built vs On the Record's
-      seven surfaces (they land with Gate 0).
-- [ ] **John:** decide the ship-now brand. Recommendation: bias to Deep Ward
-      unless On the Record is decisively better — its best ideas (evidence
-      labels, shift index) can graft onto Deep Ward without a re-skin cycle.
-- **Done when:** one line in §6 Decision log; the loser's good ideas → IDEAS.md.
+⚠️ 2026-08-21: On the Record's seven draft surfaces were LOST with the Aug 20
+sandbox — only its written concept survives (record-led, shift index, evidence
+labels, smaller Nightingale role). The decision is now:
+- [ ] **John:** either (a) recommit to Deep Ward as the ship brand — fastest,
+      it's built and already passed your taste once — grafting On the Record's
+      best written ideas onto it, or (b) ask Claude to draft a fresh
+      record-led direction as real visuals first. Recommendation: (a).
+- **Done when:** one line in §6 Decision log; kept ideas → IDEAS.md.
 
 ### Gate 3 — Device truth
 - [ ] First EAS build on John's physical iPhone.
@@ -238,6 +245,21 @@ script and the brand side-by-side so both are waiting when Gate 0 merges.
 | — | Legacy carve: react-query + date-fns stay | **Decided** — whitelist formally | Load-bearing since v1; ripping out is overcoding |
 
 ## 7. Evidence log (newest first)
+- **2026-08-21 (rebuild)** — Established the Aug 20 set was LOST (empty
+  review/aug20-hardening; mini's clean clone + full-home search negative; the
+  set only ever existed in the Aug 20 agent's sandbox). Rebuilt it in the
+  cloud from the report's inventory: offline queue (client-UUID upserts =
+  idempotent retries, per-account partitions, quarantine, honest failures,
+  Home waiting-to-sync + Retry), unified OTP door (enumeration oracle gone),
+  PHI scrubber client+edge twins with parity tests + re-approve flow,
+  content-free edge logging, service-role consume_usage (caps in SQL),
+  atomic delete-account, dead Realtime removed (publication verified empty),
+  **44 vitest tests**, lint+strict-tsc clean, `npm run check`, staged
+  expansion+cleanup migrations (NOT applied — Gate 1), **61-assertion pgTAP
+  suite**, CI workflow (app + db jobs; local Docker pulls are proxy-blocked,
+  CI carries the db proof), legal markdown→HTML generation with drift check +
+  corrected absolute claims, site export/Android copy fixed. Casualty with no
+  inventory: On the Record's seven visual surfaces (Gate 2 adjusted).
 - **2026-08-21 (later)** — Branch distillation to main (PR #3 merged). Inspected
   all remotes: `cursor/marketing-site-cycle-2-6fc1` (4 commits off 9fd7dce)
   confirmed do-not-merge with own eyes — deletes web/screens/*.jpg, rewrites

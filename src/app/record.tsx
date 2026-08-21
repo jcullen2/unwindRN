@@ -23,10 +23,11 @@ import { Sky } from '@/components/sky';
 import { localToday, RecordDraft } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { LOAD_LABELS, TAGS } from '@/lib/constants';
+import { scrubField } from '@/lib/scrub';
 import { useCareerTotals, useInvalidateShiftData } from '@/lib/queries';
 import { saveShift } from '@/lib/queue';
 import { supabase } from '@/lib/supabase';
-import { glass, heat, heatFlipsText, ink, palette, space, type } from '@/theme/tokens';
+import { glass, heat, ink, palette, space, type } from '@/theme/tokens';
 
 const MILESTONES = [1, 5, 10, 25, 50, 100, 250, 500, 750, 1000, 1500, 2000];
 
@@ -152,6 +153,7 @@ export default function RecordScreen() {
   const [weight, setWeight] = useState(initial.weight ?? '');
   const [lesson, setLesson] = useState(initial.lesson ?? '');
   const [saving, setSaving] = useState(false);
+  const [scrubNotice, setScrubNotice] = useState(false);
 
   const validDate = /^\d{4}-\d{2}-\d{2}$/.test(shiftDate);
   const parsedHours = Number(hours.replace(',', '.'));
@@ -159,22 +161,49 @@ export default function RecordScreen() {
 
   const save = async () => {
     if (!session || !validDate || !validHours || saving) return;
+
+    // PHI backstop before anything persists: if the scrub changed her words,
+    // show the edited text and ask for one more explicit save. The original
+    // wording never leaves this screen and is never stored.
+    const sWin = scrubField(win);
+    const sWeight = scrubField(weight);
+    const sLesson = scrubField(lesson);
+    if (sWin.changed || sWeight.changed || sLesson.changed) {
+      setWin(sWin.text);
+      setWeight(sWeight.text);
+      setLesson(sLesson.text);
+      setScrubNotice(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      return;
+    }
+
     setSaving(true);
     // Local-first: the queue keeps the record even in a dead zone.
-    const { synced, shiftId } = await saveShift({
+    const { queued, synced, shiftId } = await saveShift({
       user_id: session.user.id,
       shift_date: shiftDate,
       hours: parsedHours,
       load,
       tags,
       is_night: isNight,
-      win: win.trim() || null,
-      weight: weight.trim() || null,
-      lesson: lesson.trim() || null,
+      win: sWin.text || null,
+      weight: sWeight.text || null,
+      lesson: sLesson.text || null,
       started_at: initial.started_at ?? null,
       ended_at: initial.ended_at ?? null,
       source: initial.source ?? (fromDebrief ? 'voice' : 'taps'),
     });
+
+    // The phone's own storage refused the write AND the network failed —
+    // the record is not safe anywhere. Say so; never imply it saved.
+    if (!queued) {
+      setSaving(false);
+      Alert.alert(
+        "Couldn't save on this phone",
+        'Storage refused the write, so this shift is not saved yet. Free up a little space and try again.'
+      );
+      return;
+    }
 
     if (synced && params.sessionId && shiftId) {
       const end = () =>
@@ -297,9 +326,40 @@ export default function RecordScreen() {
             </T>
           </Pressable>
 
-          <Field label="Win" value={win} onChange={setWin} placeholder={fromDebrief ? 'still listening…' : 'One thing that went right'} />
-          <Field label="The weight" value={weight} onChange={setWeight} placeholder={fromDebrief ? 'still listening…' : 'What you’re still carrying'} />
-          <Field label="Lesson" value={lesson} onChange={setLesson} placeholder={fromDebrief ? 'still listening…' : 'Worth remembering'} />
+          <Field
+            label="Win"
+            value={win}
+            onChange={(s) => {
+              setWin(s);
+              setScrubNotice(false);
+            }}
+            placeholder={fromDebrief ? 'still listening…' : 'One thing that went right'}
+          />
+          <Field
+            label="The weight"
+            value={weight}
+            onChange={(s) => {
+              setWeight(s);
+              setScrubNotice(false);
+            }}
+            placeholder={fromDebrief ? 'still listening…' : 'What you’re still carrying'}
+          />
+          <Field
+            label="Lesson"
+            value={lesson}
+            onChange={(s) => {
+              setLesson(s);
+              setScrubNotice(false);
+            }}
+            placeholder={fromDebrief ? 'still listening…' : 'Worth remembering'}
+          />
+
+          {scrubNotice && (
+            <T v="caption" style={{ color: palette.amber, marginTop: space(3), lineHeight: 17 }}>
+              We took out what looked like patient-identifying details. Check it still reads
+              right, then save again. The original wording was never kept.
+            </T>
+          )}
 
           <FlameButton
             title="Save it"

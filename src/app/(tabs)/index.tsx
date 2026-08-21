@@ -11,8 +11,7 @@ import { Glass, Lockup, Rise, T } from '@/components/kit';
 import { Sky } from '@/components/sky';
 import { localToday } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { LOAD_LABELS } from '@/lib/constants';
-import { useCareerTotals, useShifts } from '@/lib/queries';
+import { useCareerTotals, usePendingShifts, useShifts } from '@/lib/queries';
 import { supabase } from '@/lib/supabase';
 import { glass, heat, ink, palette, space } from '@/theme/tokens';
 
@@ -72,6 +71,7 @@ export default function HomeScreen() {
   const { data: shifts } = useShifts();
   const { data: dailyLine } = useDailyLine(totals.loggedShifts > 0);
   const active = useActiveShift();
+  const pending = usePendingShifts();
 
   const usual = Number(profile?.usual_shift_hours ?? 12);
   const approx = totals.estimated ? '~' : '';
@@ -277,6 +277,21 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
+        {pending.count > 0 && (
+          <View style={styles.pendingRow}>
+            <T v="caption" style={{ color: ink.dim, flex: 1 }}>
+              {pending.count === 1
+                ? '1 shift saved on this phone, waiting to sync.'
+                : `${pending.count} shifts saved on this phone, waiting to sync.`}
+            </T>
+            <Pressable accessibilityRole="button" onPress={pending.retry} hitSlop={8}>
+              <T v="caption" style={{ color: palette.amber }}>
+                Retry
+              </T>
+            </Pressable>
+          </View>
+        )}
+
         {presenceLine && (
           <View style={styles.presence}>
             <View style={{ marginTop: 1 }}>
@@ -309,4 +324,14 @@ const styles = StyleSheet.create({
   tiles: { flexDirection: 'row', gap: space(2), marginTop: space(4) },
   tile: { flex: 1, backgroundColor: glass.fill, borderRadius: 14, padding: space(3), overflow: 'hidden' },
   presence: { flexDirection: 'row', gap: space(2), marginTop: space(4), paddingRight: space(1.5) },
+  pendingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space(3),
+    marginTop: space(3.5),
+    backgroundColor: glass.fill,
+    borderRadius: 12,
+    paddingVertical: space(2.5),
+    paddingHorizontal: space(3.5),
+  },
 });

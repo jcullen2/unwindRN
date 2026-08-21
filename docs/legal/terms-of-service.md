@@ -45,7 +45,9 @@ your record and can edit or discard any of it.
 
 Your shift records belong to you. You grant us only the license needed to
 store, process, and display them back to you — nothing more. Deleting your
-account ends that license and removes the content immediately.
+account ends that license and removes the content from our live systems
+immediately; encrypted disaster-recovery backups roll off within about 30
+days.
 
 ## 5. Availability and changes
 

@@ -1,9 +1,13 @@
 /**
- * Sign-in — explicit create-account / log-in split, passwordless.
- * Email OTP is the primary door: we send a six-digit code, she types it, done.
- * No password to invent at 7am after a night shift, and no browser round-trip
- * (the old confirmation-link flow dead-ended the app). Apple stays as the
+ * Sign-in — ONE passwordless email door, new or returning.
+ * We send a six-digit code, she types it, done. No password to invent at 7am
+ * after a night shift, and no browser round-trip. Apple stays as the
  * secondary door; a __DEV__-only anonymous bypass keeps simulator work moving.
+ *
+ * Deliberately unified: the old create-account/log-in split answered "does an
+ * account exist under this email?" out loud ("No record under this email
+ * yet") — an enumeration oracle on a product adjacent to nurse mental health.
+ * One door, one behavior, no tell.
  */
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useEffect, useRef, useState } from 'react';
@@ -18,13 +22,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FlameButton, GlassField, QuietButton, T } from '@/components/kit';
+import { FlameButton, GlassField, T } from '@/components/kit';
 import { PulsingLantern } from '@/components/lantern';
 import { Sky } from '@/components/sky';
 import { supabase } from '@/lib/supabase';
 import { ink, palette, space, type } from '@/theme/tokens';
 
-type Mode = 'create' | 'login';
 type Stage = 'landing' | 'email' | 'code';
 
 const RESEND_SECONDS = 60;
@@ -32,11 +35,9 @@ const RESEND_SECONDS = 60;
 export default function SignInScreen() {
   const insets = useSafeAreaInsets();
   const [stage, setStage] = useState<Stage>('landing');
-  const [mode, setMode] = useState<Mode>('create');
   const [busy, setBusy] = useState(false);
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
-  const [noRecord, setNoRecord] = useState(false);
   const [codeError, setCodeError] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
   const codeRef = useRef<TextInput>(null);
@@ -50,26 +51,22 @@ export default function SignInScreen() {
 
   const addr = email.trim().toLowerCase();
 
-  const sendCode = async (asMode: Mode = mode) => {
+  const sendCode = async () => {
     if (busy) return;
     if (!/^\S+@\S+\.\S+$/.test(addr)) {
       Alert.alert('Almost', 'That email doesn’t look complete.');
       return;
     }
     setBusy(true);
-    setNoRecord(false);
     try {
+      // One door for everyone: the request behaves identically whether or not
+      // an account exists under this email, so nothing on this screen can be
+      // used to probe who has a record.
       const { error } = await supabase.auth.signInWithOtp({
         email: addr,
-        // The one behavioral difference between the two doors: logging in
-        // never quietly creates an account under a typo'd email.
-        options: { shouldCreateUser: asMode === 'create' },
+        options: { shouldCreateUser: true },
       });
       if (error) {
-        if (/signups not allowed|otp_disabled/i.test(error.message) || error.code === 'otp_disabled') {
-          setNoRecord(true); // log-in path, no record under this email
-          return;
-        }
         if (error.status === 429 || /rate limit/i.test(error.message)) {
           Alert.alert('One moment', 'Codes can only be sent about once a minute. Give it a beat and try again.');
           return;
@@ -144,7 +141,6 @@ export default function SignInScreen() {
   };
 
   const back = () => {
-    setNoRecord(false);
     if (stage === 'code') setStage('email');
     else setStage('landing');
   };
@@ -164,20 +160,9 @@ export default function SignInScreen() {
         {stage === 'landing' && (
           <View style={styles.paneWrap}>
             <FlameButton
-              title="Start your logbook"
-              onPress={() => {
-                setMode('create');
-                setStage('email');
-              }}
+              title="Continue with email"
+              onPress={() => setStage('email')}
               style={{ width: '100%' }}
-            />
-            <QuietButton
-              title="Log in"
-              onPress={() => {
-                setMode('login');
-                setStage('email');
-              }}
-              style={{ width: '100%', marginTop: space(2.5) }}
             />
             <AppleAuthentication.AppleAuthenticationButton
               buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
@@ -192,18 +177,15 @@ export default function SignInScreen() {
         {stage === 'email' && (
           <View style={styles.paneWrap}>
             <T v="ask" style={{ fontSize: 22, textAlign: 'center' }}>
-              {mode === 'create' ? 'Start your logbook.' : 'Welcome back.'}
+              Your email.
             </T>
             <T v="secondary" style={{ marginTop: space(2), textAlign: 'center' }}>
-              We’ll email you a six-digit code.{'\n'}No password to remember.
+              We’ll send a six-digit code.{'\n'}New here or coming back — same door.
             </T>
             <GlassField style={{ marginTop: space(5), width: '100%' }}>
               <TextInput
                 value={email}
-                onChangeText={(v) => {
-                  setEmail(v);
-                  setNoRecord(false);
-                }}
+                onChangeText={setEmail}
                 placeholder="Email"
                 // The placeholder is otherwise the field's only accessible
                 // name, and a placeholder disappears the moment she types.
@@ -220,29 +202,12 @@ export default function SignInScreen() {
                 onSubmitEditing={() => sendCode()}
               />
             </GlassField>
-            {noRecord ? (
-              <View style={{ width: '100%' }}>
-                <T v="whisper" style={{ marginTop: space(3), textAlign: 'center' }}>
-                  No record under this email yet.
-                </T>
-                <FlameButton
-                  title="Start one instead"
-                  onPress={() => {
-                    setMode('create');
-                    sendCode('create');
-                  }}
-                  loading={busy}
-                  style={{ marginTop: space(3), width: '100%' }}
-                />
-              </View>
-            ) : (
-              <FlameButton
-                title="Send the code"
-                onPress={() => sendCode()}
-                loading={busy}
-                style={{ marginTop: space(3.5), width: '100%' }}
-              />
-            )}
+            <FlameButton
+              title="Send the code"
+              onPress={() => sendCode()}
+              loading={busy}
+              style={{ marginTop: space(3.5), width: '100%' }}
+            />
             <Pressable accessibilityRole="button" onPress={back} hitSlop={8} style={styles.quietLink}>
               <T v="caption" style={{ color: ink.dim, textAlign: 'center' }}>
                 Back

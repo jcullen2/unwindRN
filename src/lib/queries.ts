@@ -1,6 +1,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useAuth } from '@/lib/auth';
+import { flushShiftQueue, onQueueChanged, pendingShiftCount } from '@/lib/queue';
 import { Shift, supabase } from '@/lib/supabase';
 
 export function useShifts() {
@@ -74,4 +76,41 @@ export function useCareerTotals() {
 export function useInvalidateShiftData() {
   const queryClient = useQueryClient();
   return () => queryClient.invalidateQueries({ queryKey: ['shifts'] });
+}
+
+/**
+ * Shifts saved on this phone that haven't reached Supabase yet — surfaced on
+ * Home so a dead-zone save is visibly safe, with a manual retry.
+ */
+export function usePendingShifts() {
+  const { session } = useAuth();
+  const userId = session?.user.id;
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!userId) {
+      setCount(0);
+      return;
+    }
+    let alive = true;
+    const refresh = () => {
+      pendingShiftCount(userId)
+        .then((n) => {
+          if (alive) setCount(n);
+        })
+        .catch(() => {});
+    };
+    refresh();
+    const unsub = onQueueChanged(refresh);
+    return () => {
+      alive = false;
+      unsub();
+    };
+  }, [userId]);
+
+  const retry = useCallback(() => {
+    flushShiftQueue().catch(() => {});
+  }, []);
+
+  return { count, retry };
 }
