@@ -143,13 +143,15 @@ evidence log. Every session starts there; CLAUDE.md stays the law for HOW we bui
   re-implement any of it.
 - **Brand:** "The Kept Light" REJECTED (final, 8/20). "On the Record" drafted on
   the Mac, unapproved. Deep Ward remains as-built and live. Decision = Gate 2.
-- **Branch policy: main is the only long-lived branch.** Archives are tags:
-  `archive/app-from-scratch` (pre-rebuild snapshot, disjoint history),
-  `archive/marketing-site-cycle` (Cursor cycle-2..6 site rewrite — dispositioned
-  DO-NOT-MERGE: deleted real screenshots, second legal master). Salvaged from it
-  into main: web/404.html, netlify.toml redirects + 404 routing, robots.txt
-  /screens/ disallow (404 goes live at next site deploy). Working branches are
-  ephemeral — merge via PR, delete.
+- **Branch policy: main is the only long-lived branch.** Archives live under
+  `archive/*` (never merge, never build on them): `archive/app-from-scratch`
+  (pre-rebuild snapshot, disjoint history), `archive/marketing-site-cycle`
+  (Cursor cycle-2..6 site rewrite — dispositioned DO-NOT-MERGE: deleted real
+  screenshots, second legal master). Salvaged from it into main: web/404.html,
+  netlify.toml redirects + 404 routing, robots.txt /screens/ disallow (404 goes
+  live at next site deploy). Working branches are ephemeral — merge via PR,
+  delete. ⚠️ Cloud sessions can push only their own claude/* branch (403 on
+  tags/deletions/main) — ref cleanup happens from the desktop or GitHub UI.
 
 ## State of the build — 2026-08-08 (previous)
 
