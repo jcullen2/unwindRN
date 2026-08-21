@@ -1,3 +1,28 @@
 # unwindrn.com — static marketing + legal pages. No build step; publish web/ as-is.
 [build]
   publish = "web"
+
+[[redirects]]
+  from = "/app"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/app/"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/waitlist"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/waitlist/"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404

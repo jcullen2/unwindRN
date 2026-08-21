@@ -120,7 +120,38 @@ IDEAS.md with anything cut, DESIGN-DEBT.md with anything shipped as a fallback.
 Never echo secrets. Keep §State of the build current — it exists so future
 sessions never pay to rediscover the codebase.
 
-## State of the build — 2026-08-08 (keep current; the map, not the territory)
+## State of the build — 2026-08-21 (command center established; branches distilled)
+
+**docs/command-center.md is now the system of record** — gates, decisions, owners,
+evidence log. Every session starts there; CLAUDE.md stays the law for HOW we build.
+- **Verified live prod (read-only MCP):** ACTIVE_HEALTHY; 6 functions live
+  (delete-account v4 · health v5 · debrief-turn v6 · speak v2 · daily-line v2 ·
+  month-caption v2); 8 migrations, repo parity by name. Security advisors NOW
+  FLAG: bump_usage + rls_auto_enable exposed as SECURITY DEFINER to anon+authed
+  (4 WARN), anon-access policies on all 5 tables (5 WARN, dev-bypass side
+  effect), leaked-password protection off. Older "0 findings" notes below are
+  stale. delete-account: live v4 + the 7/22 end-to-end deletion verification
+  suggest it works; the 7/24 "STILL not redeployed" line below is likely stale —
+  re-verify at Gate 1 regardless.
+- ⚠️ **The 2026-08-20 Mac hardening set is UNCOMMITTED on John's desktop** (per
+  the 8/20 progress report): 17 vitest tests, offline-queue rebuild (client
+  UUIDs/upserts/per-account partition), unified OTP door (kills enumeration
+  leak), expanded PHI scrubber + re-approve flow, redacted edge logging,
+  `npm run check` + Actions workflow, 2 staged Supabase migrations + 58 pgTAP
+  assertions, corrected legal/site copy, command-center/ + docs records.
+  **Push as `review/aug20-hardening` before ANY new build work** — do not
+  re-implement any of it.
+- **Brand:** "The Kept Light" REJECTED (final, 8/20). "On the Record" drafted on
+  the Mac, unapproved. Deep Ward remains as-built and live. Decision = Gate 2.
+- **Branch policy: main is the only long-lived branch.** Archives are tags:
+  `archive/app-from-scratch` (pre-rebuild snapshot, disjoint history),
+  `archive/marketing-site-cycle` (Cursor cycle-2..6 site rewrite — dispositioned
+  DO-NOT-MERGE: deleted real screenshots, second legal master). Salvaged from it
+  into main: web/404.html, netlify.toml redirects + 404 routing, robots.txt
+  /screens/ disallow (404 goes live at next site deploy). Working branches are
+  ephemeral — merge via PR, delete.
+
+## State of the build — 2026-08-08 (previous)
 
 **2026-08-08 — deadpan copy pass shipped app-wide + site visibly redesigned.**
 - The §3.3 rewrite from the review doc is now LIVE in code: Home ("Logged.
