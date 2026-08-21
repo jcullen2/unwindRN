@@ -22,6 +22,18 @@ Then paste into the mini's Claude Code (in `~/Desktop/unwindRN/app`):
 Keep Metro's terminal visible during the whole checklist — items 7 and 13
 read from it.
 
+**Phone-side gotchas (normal, not errors):**
+- **Trust This Computer?** appears on the phone when first plugged in →
+  tap Trust, enter the passcode.
+- **Developer Mode** — iOS requires it for direct builds. If the build stalls
+  saying the device isn't ready: Settings → Privacy & Security → Developer
+  Mode → ON → the phone restarts → confirm. Then tell the mini's Claude to
+  try again.
+- **"Untrusted Developer" when opening the app** → Settings → General →
+  VPN & Device Management → tap the developer entry → Trust. (May not
+  appear at all with the paid developer team — only if it blocks you.)
+- First build takes 10–20 minutes. Later ones are fast.
+
 ## B · The checklist (John, phone in hand)
 
 Each item: **Do** → **Expect**. Anything else = FAIL + a one-line note.
