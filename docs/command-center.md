@@ -176,15 +176,15 @@ are filed in IDEAS.md as graft candidates onto Deep Ward — considered per
 feature, never as a re-skin. The website overhaul (Gate 6) and store assets
 now build on Deep Ward with no blocking design decision ahead of them.
 
-### Gate 3 — Device truth
-- [ ] First EAS build on John's physical iPhone.
-- [ ] Full device QA script (Claude writes, John runs, ~an hour): OTP on a real
-      inbox · SIWA · mic/speech permission flow · **STT in a car with road noise**
-      (that's where debriefs happen) · voice-to-voice latency print (<1.5s) ·
-      airplane-mode queue → sync · crisis card on test phrase · 988 links dial ·
-      deletion · cold start · DESIGN.md §8.
-- [ ] Fix cycle per findings; re-run until clean.
-- **Done when:** every line checked on-device, evidence noted here.
+### Gate 3 — Device truth  `← READY TO RUN (needs the Mac + John's iPhone)`
+- [x] **QA script written: docs/device-qa.md** — 17 items with expected
+      results, including the car test, the dead-zone save, scrub-and-reapprove,
+      the crisis card, and the first-ever real-device Sign in with Apple. The
+      build paste for the mini's Claude is at the top of that file.
+- [ ] **John:** plug the iPhone into the mini, paste section A to its Claude,
+      then walk section B with the phone (about an hour).
+- [ ] Fill the results table, push it; cloud Claude triages FAILs into fixes.
+- **Done when:** every line PASS on-device, results committed.
 
 ### Gate 4 — Private beta
 - [ ] TestFlight internal: John + Maria. Then external: 10–25 nurses (Maria's
@@ -213,11 +213,21 @@ now build on Deep Ward with no blocking design decision ahead of them.
 - **Done when:** submitted. One rejection cycle is normal, not failure — answer
   within hours and resubmit.
 
-### Gate 6 — Website overhaul + launch (starts after Gate 2)
-- [ ] Rebuild unwindrn.com on the chosen brand: keep what works (real captures,
-      career-grid canvas, waitlist), corrected factual copy, trust-forward FAQ
-      ("your voice never leaves your phone; your hospital never sees this"),
-      About page with the real founder story.
+### Gate 6 — Website overhaul + launch  `← OVERHAUL BUILT, DEPLOY QUEUED`
+- [x] Overhaul built on Deep Ward (2026-08-21), keeping everything that worked
+      (real captures, career-grid canvas, waitlist): NEW trust band ("Built to
+      be on your side" — on-device voice / no employer version / delete means
+      delete, each stated plainly), NEW founder band ("Built at a kitchen
+      table in Detroit" — fiancée unnamed until John+she decide), precise
+      debrief copy, a marked LAUNCH FLIP point for the App Store badge.
+      Rendered and eyeballed headless; screenshots sent to John.
+- [ ] **DEPLOY** — from the desktop (this cloud session's egress can't reach
+      Netlify): paste to the mini's Claude: *"Pull latest main. Deploy web/ to
+      Netlify per the CLAUDE.md runbook — zip the web/ contents plus a
+      netlify.toml that keeps the repo's redirect rules but sets publish='.',
+      request the deploy command via the Netlify MCP for a fresh proxy token,
+      POST the zip. Then verify unwindrn.com shows the 'Built to be on your
+      side' and founder sections, and that a bogus URL serves the 404 page."*
 - [ ] Content bank BEFORE launch: 20–30 short-form pieces (scripts + cuts),
       r/nursing post drafts, nurse-creator outreach list. John/Maria decide the
       on-camera face early — the couple-founder story is the differentiated one.
@@ -251,13 +261,15 @@ on evidence, not slides.**
       leave the US storefront (launch US-only).
 
 ## 5. Now / Next
-**Now:** Gate 1's technical body is DONE (2026-08-21) and Gate 2 is decided
-(Deep Ward). Open on John's desk: the Gate 1 dashboard clicks (Site URL,
-redirect allowlist, leaked-password toggle, secret dedupe) · Supabase Pro
-upgrade · Apple Membership screenshot (D2) · decisions D1/D3/D4.
-**Next:** Gate 3 device truth — Claude drafts the physical-iPhone QA script
-and the first EAS build steps ∥ Gate 6 website overhaul can start any time
-(brand is decided; no blocker).
+**Now — all three lanes are John-side actions:**
+1. **Gate 3 run:** iPhone into the mini → paste docs/device-qa.md §A → walk
+   §B (~an hour). This is the critical path to beta.
+2. **Gate 6 deploy:** one paste to the mini's Claude (in the Gate 6 section)
+   puts the overhauled site live.
+3. **Desk items:** Gate 1 dashboard clicks + Supabase Pro · Apple Membership
+   screenshot (D2) · decisions D1/D3/D4.
+**Next (cloud):** triage Gate 3 FAILs into fixes · content bank drafts
+(scripts for 20–30 short-form pieces) · store metadata/screenshot prep.
 
 ## 6. Decisions
 | # | Decision | Status | Call |
@@ -272,6 +284,12 @@ and the first EAS build steps ∥ Gate 6 website overhaul can start any time
 | — | Legacy carve: react-query + date-fns stay | **Decided** — whitelist formally | Load-bearing since v1; ripping out is overcoding |
 
 ## 7. Evidence log (newest first)
+- **2026-08-21 (Gates 3+6 prepared)** — docs/device-qa.md written (17-item
+  physical-iPhone script + the mini's build paste). Site overhaul built on
+  Deep Ward: trust band + founder band + precise debrief copy + launch-flip
+  marker; HTML validated, rendered headless, sections screenshot-verified,
+  full check gate green. Deploy queued for the desktop (cloud egress can't
+  reach Netlify).
 - **2026-08-21 (Gate 1 executed + Gate 2 decided)** — On John's "start gate 1"
   + "we keep deepward": backup exported (all tables + 13 auth users, file
   delivered to John) → pre-flight clean (0 constraint violations in 13
