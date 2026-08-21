@@ -124,15 +124,20 @@ sessions never pay to rediscover the codebase.
 
 **docs/command-center.md is now the system of record** — gates, decisions, owners,
 evidence log. Every session starts there; CLAUDE.md stays the law for HOW we build.
-- **Verified live prod (read-only MCP):** ACTIVE_HEALTHY; 6 functions live
-  (delete-account v4 · health v5 · debrief-turn v6 · speak v2 · daily-line v2 ·
-  month-caption v2); 8 migrations, repo parity by name. Security advisors NOW
-  FLAG: bump_usage + rls_auto_enable exposed as SECURITY DEFINER to anon+authed
-  (4 WARN), anon-access policies on all 5 tables (5 WARN, dev-bypass side
-  effect), leaked-password protection off. Older "0 findings" notes below are
-  stale. delete-account: live v4 + the 7/22 end-to-end deletion verification
-  suggest it works; the 7/24 "STILL not redeployed" line below is likely stale —
-  re-verify at Gate 1 regardless.
+- **GATE 1 EXECUTED 2026-08-21 (live prod, verified):** backup exported to
+  John first; expansion + cleanup migrations APPLIED (10 migrations live, repo
+  parity); functions now **debrief-turn v7 · delete-account v5 · speak v3 ·
+  daily-line v3 · month-caption v3 · health v5** — deployed via MCP with
+  nested paths (entrypoint `<fn>/index.ts`, `_shared/*` alongside — this
+  layout resolves `../_shared/` imports; flat layouts can't). Smoke-tested
+  end to end on a throwaway anon user (SSE debrief turn with clean PHI-free
+  extraction; **deletion re-verified: zero rows left**; consume_usage caps
+  genuinely enforcing). Advisors after: the 4 SECURITY DEFINER WARNs are
+  GONE; remaining accepted = 5 anon-policy WARNs (dev bypass until launch
+  flip), leaked-password toggle (John dashboard click), usage_counters INFO
+  (deliberate deny-all). Older function-version/advisor notes below are
+  historical. **Brand D5 DECIDED: Deep Ward ships;** "On the Record" written
+  ideas filed in IDEAS.md as grafts.
 - **The 2026-08-20 Mac hardening set was LOST — and REBUILT 2026-08-21.** It
   never touched disk (died with its agent sandbox; mini's full-home search
   negative). Rebuilt in the cloud from the report inventory (spec:
