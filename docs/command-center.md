@@ -284,6 +284,18 @@ on evidence, not slides.**
 | — | Legacy carve: react-query + date-fns stay | **Decided** — whitelist formally | Load-bearing since v1; ripping out is overcoding |
 
 ## 7. Evidence log (newest first)
+- **2026-08-21 (security sweep + dependency fixes)** — Post-deploy health:
+  production function logs show exactly the five smoke calls, zero errors, no
+  stray traffic. Full-repo secret sweep clean (no .env tracked, no keys, no
+  JWTs). Performance advisor clean (one INFO: an as-yet-unused index, kept
+  for scale). Non-breaking `npm audit fix`: 20 → 15 findings, every remaining
+  one a build-tool DoS advisory (brace-expansion / image-size / js-yaml /
+  nanoid in the Metro–Expo chain) — runs on the build machine, never in the
+  shipped app; accepted until the next SDK upgrade (PR #10, CI green).
+  Device-QA script gained the phone-side gotchas (Trust, Developer Mode,
+  untrusted-developer, first-build time — PR #9). Awaiting John: the four
+  dashboard clicks + Pro upgrade (guide delivered in chat); on "clicks done"
+  the advisor re-scan verifies the leaked-password toggle from here.
 - **2026-08-21 (Gates 3+6 prepared)** — docs/device-qa.md written (17-item
   physical-iPhone script + the mini's build paste). Site overhaul built on
   Deep Ward: trust band + founder band + precise debrief copy + launch-flip
