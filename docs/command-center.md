@@ -289,6 +289,20 @@ on evidence, not slides.**
 | — | Legacy carve: react-query + date-fns stay | **Decided** — whitelist formally | Load-bearing since v1; ripping out is overcoding |
 
 ## 7. Evidence log (newest first)
+- **2026-08-22 (site v6 — the real overhaul + Maria purge)** — John's
+  feedback on the first deploy: not enough of an overhaul, and "Maria"
+  everywhere. Root cause: the demo account's display name was Maria, baked
+  into every app-screenshot JPG on the page. Fixed at the source: persona
+  renamed Maria → Jordan in the live DB (both profiles) and scripts/seed.sql
+  — no future capture can leak a real name. Site fully redesigned (PR #13,
+  CI green): section nav, the Home screen recreated in pure HTML/CSS
+  ("Evening, Jordan."), step vignettes, a staged debrief exchange from the
+  real smoke test, an August heatfield mock, upgraded footer with the 988
+  line; ALL capture JPGs removed from the page; og.png verified name-free;
+  canvas grid/count-ups/waitlist/launch-flip kept. Rendered + screenshot-
+  verified; fresh unwindrn-site.zip delivered to John for drag-and-drop.
+  NOTE for future capture regeneration (mini): sim account now greets
+  "Jordan" — recapture before captures return to the site or the store.
 - **2026-08-22 (website lane)** — Cloud deploy attempt: Netlify MCP issued a
   proxy token but the container egress blocks the upload host (CONNECT 403),
   same policy as Supabase/Docker. Pivoted to the zero-terminal path: built
