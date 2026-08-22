@@ -221,13 +221,18 @@ now build on Deep Ward with no blocking design decision ahead of them.
       table in Detroit" — fiancée unnamed until John+she decide), precise
       debrief copy, a marked LAUNCH FLIP point for the App Store badge.
       Rendered and eyeballed headless; screenshots sent to John.
-- [ ] **DEPLOY** — from the desktop (this cloud session's egress can't reach
-      Netlify): paste to the mini's Claude: *"Pull latest main. Deploy web/ to
-      Netlify per the CLAUDE.md runbook — zip the web/ contents plus a
-      netlify.toml that keeps the repo's redirect rules but sets publish='.',
-      request the deploy command via the Netlify MCP for a fresh proxy token,
-      POST the zip. Then verify unwindrn.com shows the 'Built to be on your
-      side' and founder sections, and that a bogus URL serves the 404 page."*
+- [ ] **DEPLOY — drag-and-drop path (no mini needed):** Claude built and sent
+      John `unwindrn-site.zip` (web/ contents + netlify.toml publish='.' +
+      belt-and-suspenders `_redirects`). John: app.netlify.com → sign in →
+      project **unwindrn** → **Deploys** tab → drag the zip onto the
+      drag-and-drop area → it publishes to production. Then say "deployed" —
+      Claude verifies unwindrn.com (new sections + 404 routing) from the
+      cloud. (Fallback stays: the mini can deploy per the CLAUDE.md runbook.)
+- [x] Content bank v1 BANKED: docs/marketing/content-bank.md — channel
+      thesis, hard rules (no patients ever, John speaks as founder not nurse,
+      no guilt/streak/therapy voice), 3 repeatable formats, 12 scripts,
+      the r/nursing beta post draft, creator-outreach criteria + DM template,
+      production notes. Face decision (John and/or Maria) stays open.
 - [ ] Content bank BEFORE launch: 20–30 short-form pieces (scripts + cuts),
       r/nursing post drafts, nurse-creator outreach list. John/Maria decide the
       on-camera face early — the couple-founder story is the differentiated one.
@@ -284,6 +289,13 @@ on evidence, not slides.**
 | — | Legacy carve: react-query + date-fns stay | **Decided** — whitelist formally | Load-bearing since v1; ripping out is overcoding |
 
 ## 7. Evidence log (newest first)
+- **2026-08-22 (website lane)** — Cloud deploy attempt: Netlify MCP issued a
+  proxy token but the container egress blocks the upload host (CONNECT 403),
+  same policy as Supabase/Docker. Pivoted to the zero-terminal path: built
+  `unwindrn-site.zip` (17 files + `_redirects`) and delivered it to John for
+  Netlify drag-and-drop. Content bank v1 written and merged (12 scripts,
+  3 formats, r/nursing draft, outreach kit). Phone build deferred — John is
+  on the laptop, Xcode lives on the mini.
 - **2026-08-21 (security sweep + dependency fixes)** — Post-deploy health:
   production function logs show exactly the five smoke calls, zero errors, no
   stray traffic. Full-repo secret sweep clean (no .env tracked, no keys, no
