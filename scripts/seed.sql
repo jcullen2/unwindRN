@@ -1,4 +1,4 @@
--- Seed: Maria — THE demo persona (Peds Onc, 5 yrs, rotating twelves,
+-- Seed: Jordan — THE demo persona (neutral name; never use a real person's) (Peds Onc, 5 yrs, rotating twelves,
 -- est ~740 shifts / ~8,880 hrs / ~296 nights). The same nurse the marketing
 -- site quotes; keep app demos, screenshots, and unwindrn.com consistent.
 --
@@ -11,7 +11,7 @@ insert into public.profiles
   (id, display_name, specialty, years_in, shifts_per_week, usual_shift_hours,
    est_career_shifts, est_career_hours)
 values
-  (:'uid', 'Maria', 'Pediatric Oncology', 5, 3, 12, 740, 8880)
+  (:'uid', 'Jordan', 'Pediatric Oncology', 5, 3, 12, 740, 8880)
 on conflict (id) do update set
   display_name = excluded.display_name,
   specialty = excluded.specialty,

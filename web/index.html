@@ -21,140 +21,270 @@
 <link rel="icon" type="image/png" href="/icon-256.png">
 <style>
   :root{
-    --night:#090F0E; --panel:#0D1514; --ink:#EAF1EC; --ink-dim:rgba(234,241,236,.64);
-    --ink-faint:rgba(234,241,236,.38); --amber:#FFB65C; --amber-hi:#FFC97E;
-    --line:rgba(234,241,236,.09); --moon:#9BC7BD;
+    --night:#090F0E; --panel:#0D1514; --deep:#0B1211; --ink:#EAF1EC;
+    --ink-dim:rgba(234,241,236,.66); --ink-faint:rgba(234,241,236,.4);
+    --amber:#FFB65C; --amber-hi:#FFC97E; --moon:#9BC7BD; --moss:#7E9B90;
+    --line:rgba(234,241,236,.09); --line-soft:rgba(234,241,236,.055);
+    --glass:rgba(234,241,236,.045); --glass-hi:rgba(234,241,236,.085);
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{background:var(--night); color:var(--ink);
     font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     -webkit-font-smoothing:antialiased; overflow-x:hidden}
-  .wrap{max-width:1040px; margin:0 auto; padding:0 24px}
-  h1,h2{font-family:"Bricolage Grotesque",sans-serif}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 28px}
+  h1,h2,h3{font-family:"Bricolage Grotesque",sans-serif; text-wrap:balance}
+  h2{font-weight:600; font-size:40px; letter-spacing:-.7px; line-height:1.12; margin:14px 0 16px}
+  .eyebrow{color:var(--amber); font-size:12.5px; font-weight:600; letter-spacing:.15em; text-transform:uppercase}
+  .lead{color:var(--ink-dim); font-size:17.5px; max-width:37em; line-height:1.72}
+  .lead b{color:var(--ink); font-weight:600}
+  .num{font-variant-numeric:tabular-nums}
   /* reveal-on-scroll */
-  .rv{opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease}
+  .rv{opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease}
   .rv.in{opacity:1; transform:none}
   @media (prefers-reduced-motion: reduce){ .rv{opacity:1; transform:none; transition:none} }
-  /* nav */
-  nav{position:sticky; top:0; z-index:10; backdrop-filter:blur(14px);
-      background:rgba(9,15,14,.82); border-bottom:1px solid var(--line)}
-  .nav-in{display:flex; align-items:center; justify-content:space-between; padding:14px 24px; max-width:1040px; margin:0 auto}
+
+  /* ── nav ─────────────────────────────────────────── */
+  nav{position:sticky; top:0; z-index:20; backdrop-filter:blur(16px);
+      background:rgba(9,15,14,.84); border-bottom:1px solid var(--line)}
+  .nav-in{display:flex; align-items:center; justify-content:space-between; gap:24px;
+      padding:15px 28px; max-width:1080px; margin:0 auto}
   .lockup{display:flex; align-items:center; gap:9px; text-decoration:none}
   .lockup svg{width:20px}
   .lockup span{font-family:"Bricolage Grotesque",sans-serif; font-weight:500; font-size:19px; color:var(--ink)}
   .lockup .rn{color:var(--amber); font-weight:600; font-size:11px; vertical-align:super}
+  .nav-links{display:flex; gap:30px}
+  .nav-links a{color:var(--ink-dim); text-decoration:none; font-size:14.5px; transition:color .15s}
+  .nav-links a:hover{color:var(--ink)}
   .nav-cta{background:linear-gradient(135deg,var(--amber-hi),var(--amber)); color:var(--night);
-      font-weight:600; font-size:14px; text-decoration:none; padding:9px 18px; border-radius:16px}
-  /* hero */
-  .hero{padding:84px 0 72px; background:
-      radial-gradient(ellipse 85% 55% at 72% -12%, rgba(255,182,92,.09), transparent 60%)}
-  .hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:56px; align-items:center}
-  .eyebrow{color:var(--amber); font-size:12.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase}
-  .hero h1{font-weight:600; font-size:52px; line-height:1.07; letter-spacing:-1px; margin:16px 0 20px}
-  .hero .sub{color:var(--ink-dim); font-size:18px; line-height:1.7; max-width:31em}
+      font-weight:600; font-size:14px; text-decoration:none; padding:10px 20px; border-radius:16px;
+      transition:transform .15s ease}
+  .nav-cta:hover{transform:translateY(-1px)}
+  @media (max-width:860px){ .nav-links{display:none} }
+
+  /* ── hero ────────────────────────────────────────── */
+  .hero{padding:88px 0 92px; position:relative; overflow:hidden;
+    background:radial-gradient(ellipse 90% 60% at 74% -14%, rgba(255,182,92,.1), transparent 62%)}
+  .hero-grid{display:grid; grid-template-columns:1.02fr .98fr; gap:64px; align-items:center}
+  .hero h1{font-weight:600; font-size:58px; line-height:1.05; letter-spacing:-1.6px; margin:18px 0 20px}
+  .hero .sub{color:var(--ink-dim); font-size:18px; line-height:1.72; max-width:30em}
   .hero .sub b{color:var(--ink); font-weight:600}
-  .waitlist{margin-top:30px; max-width:440px}
+  .ticks{display:flex; gap:22px; flex-wrap:wrap; margin-top:26px}
+  .tick{display:flex; align-items:center; gap:8px; color:var(--ink-faint); font-size:13.5px}
+  .tick i{width:5px; height:5px; border-radius:3px; background:var(--amber); flex:none}
+  .waitlist{margin-top:30px; max-width:460px}
   .wl-row{display:flex; gap:10px}
-  .wl-row input[type=email]{flex:1; background:rgba(234,241,236,.06); border:1px solid var(--line);
-    border-radius:16px; padding:14px 18px; color:var(--ink); font-size:15.5px; outline:none; min-width:0}
+  .wl-row input[type=email]{flex:1; background:var(--glass); border:1px solid var(--line);
+    border-radius:16px; padding:15px 18px; color:var(--ink); font-size:15.5px; outline:none; min-width:0}
   .wl-row input[type=email]:focus{border-color:rgba(255,182,92,.5)}
   .wl-row input::placeholder{color:var(--ink-faint)}
   .wl-row button{background:linear-gradient(135deg,var(--amber-hi),var(--amber)); color:var(--night);
-    font-weight:600; font-size:15.5px; border:none; border-radius:16px; padding:14px 22px; cursor:pointer; white-space:nowrap;
-    transition:transform .15s ease}
+    font-weight:600; font-size:15.5px; border:none; border-radius:16px; padding:15px 24px; cursor:pointer;
+    white-space:nowrap; transition:transform .15s ease}
   .wl-row button:hover{transform:translateY(-1px)}
   .wl-micro{color:var(--ink-faint); font-size:13px; margin-top:11px}
   .wl-success{display:none; background:rgba(155,199,189,.1); border:1px solid rgba(155,199,189,.3);
     border-radius:16px; padding:16px 20px; color:var(--ink); font-size:15px}
   .wl-success b{color:var(--moon)}
-  /* phone + cycler */
-  .hero-visual{display:flex; justify-content:center}
-  .phone{background:#0B1211; border:1.5px solid rgba(234,241,236,.16); border-radius:42px;
-    padding:9px; box-shadow:0 34px 90px rgba(0,0,0,.6), 0 0 70px rgba(255,182,92,.06); width:280px}
-  .cycler{position:relative; border-radius:34px; overflow:hidden; aspect-ratio:1179/2556}
-  .cycler img{object-fit:cover}
-  .cycler img{position:absolute; inset:0; width:100%; opacity:0; transition:opacity .8s ease}
-  .cycler img.on{opacity:1}
-  .dots{display:flex; gap:6px; justify-content:center; margin-top:16px}
-  .dots i{width:5px; height:5px; border-radius:3px; background:rgba(234,241,236,.22); transition:all .3s}
-  .dots i.on{width:16px; background:var(--amber)}
-  /* live career grid */
-  .gridband{padding:76px 0 64px; border-top:1px solid var(--line)}
-  .gridband h2{margin-bottom:26px}
-  #grid{width:100%; display:block}
-  .gb-cap{color:var(--ink-dim); font-size:15px; line-height:1.7; margin-top:18px; max-width:44em}
+
+  /* ── the code-built phone ───────────────────────── */
+  .hero-visual{display:flex; justify-content:center; perspective:1400px}
+  .phone{width:318px; background:#0A100F; border:1.5px solid rgba(234,241,236,.17); border-radius:46px;
+    padding:10px; box-shadow:0 40px 100px rgba(0,0,0,.62), 0 0 90px rgba(255,182,92,.07);
+    transform:rotateY(-7deg) rotateX(2deg); position:relative}
+  @media (prefers-reduced-motion: no-preference){
+    .phone{animation:float 7s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:rotateY(-7deg) rotateX(2deg) translateY(0)}
+                     50%{transform:rotateY(-7deg) rotateX(2deg) translateY(-9px)}}
+  }
+  .screen{background:linear-gradient(180deg,#0C1312,#090F0E 70%); border-radius:37px; overflow:hidden;
+    padding:14px 16px 12px; position:relative}
+  .statusbar{display:flex; justify-content:space-between; align-items:center; padding:2px 8px 10px}
+  .statusbar .t{font-size:13px; font-weight:600}
+  .notch{width:96px; height:24px; background:#000; border-radius:14px; position:absolute; left:50%;
+    transform:translateX(-50%); top:12px}
+  .sbicons{display:flex; gap:5px; align-items:center}
+  .sbicons i{display:block; background:var(--ink); border-radius:1.5px}
+  .sig{width:15px; height:9px; clip-path:polygon(0 70%,25% 70%,25% 45%,50% 45%,50% 25%,75% 25%,75% 0,100% 0,100% 100%,0 100%)}
+  .wifi{width:13px; height:10px; border-radius:50% 50% 0 0}
+  .batt{width:20px; height:10px; border-radius:3px; background:rgba(234,241,236,.35)!important; position:relative}
+  .batt::after{content:""; position:absolute; inset:1.5px 30% 1.5px 1.5px; background:var(--moon); border-radius:1.5px}
+  .apphead{display:flex; justify-content:space-between; align-items:center; padding:8px 2px 2px}
+  .apphead .lk{display:flex; align-items:center; gap:6px}
+  .apphead .lk svg{width:13px}
+  .apphead .lk b{font-family:"Bricolage Grotesque",sans-serif; font-weight:500; font-size:14px}
+  .apphead .lk .r{color:var(--amber); font-size:8px; font-weight:600; vertical-align:super}
+  .apphead .date{font-size:9.5px; color:var(--moss)}
+  .greet{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:25px; letter-spacing:-.4px;
+    margin:12px 2px 2px}
+  .greet-sub{color:var(--ink-dim); font-size:12px; margin:2px 2px 0}
+  .pcard{background:var(--glass); border-radius:15px; padding:13px 14px; margin-top:13px;
+    display:flex; justify-content:space-between; align-items:center}
+  .pcard .ov{font-size:8.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint)}
+  .pcard .big{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:19px; margin-top:2px}
+  .pcard .cap{font-size:9.5px; color:var(--ink-faint); margin-top:2px}
+  .chip-ghost{background:var(--glass-hi); border-radius:11px; padding:8px 13px; font-size:10.5px}
+  .oldshift{font-size:10px; color:var(--ink-faint); margin:9px 2px 0}
+  .weekhead{display:flex; justify-content:space-between; align-items:baseline; margin:13px 2px 6px}
+  .weekhead .ov{font-size:8.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint)}
+  .weekhead .k{font-size:9.5px; color:var(--ink-dim)}
+  .week{display:flex; gap:5px}
+  .wc{flex:1; border-radius:9px; padding:6px 0 7px; text-align:center; background:rgba(234,241,236,.035)}
+  .wc .d{font-size:7px; letter-spacing:.5px; color:var(--ink-faint)}
+  .wc .n{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:11px; margin-top:1px}
+  .wc.h2x{background:#8A6636}
+  .wc.h3x{background:#5C4A2B}
+  .wc.today{background:var(--amber)}
+  .wc.today .d,.wc.today .n{color:var(--night)}
+  .ms{background:var(--glass); border-radius:12px; padding:9px 12px 11px; margin-top:11px}
+  .ms .row{display:flex; justify-content:space-between; align-items:baseline}
+  .ms .ov{font-size:8.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint)}
+  .ms .k{font-size:9.5px; color:var(--amber)}
+  .ms .track{height:3px; border-radius:2px; background:rgba(255,182,92,.14); margin-top:7px; overflow:hidden}
+  .ms .fill{height:100%; width:75%; background:var(--amber); border-radius:2px}
+  .tiles{display:flex; gap:6px; margin-top:11px}
+  .tile{flex:1; background:var(--glass); border-radius:12px; padding:10px 10px 9px}
+  .tile .v{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:16px}
+  .tile .v.am{color:var(--amber)} .tile .v.mn{color:var(--moon)}
+  .tile .k{font-size:7.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); margin-top:2px}
+  .presence{display:flex; gap:7px; margin:12px 2px 4px; align-items:flex-start}
+  .presence svg{width:9px; flex:none; margin-top:2px}
+  .presence p{font-size:9.5px; line-height:1.55; color:var(--ink-dim); font-style:italic}
+  .navpill{display:flex; justify-content:space-around; align-items:center; background:rgba(234,241,236,.06);
+    border-radius:20px; padding:10px 8px; margin:12px 6px 2px}
+  .navpill svg{width:15px; height:15px; stroke:var(--ink-faint); fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+  .navpill svg.on{stroke:var(--ink)}
+
+  /* ── how it works ───────────────────────────────── */
+  .band{border-top:1px solid var(--line); padding:84px 0}
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:34px}
+  .step{border:1px solid var(--line-soft); border-radius:20px; padding:26px 24px 24px; background:var(--glass)}
+  .step .n{font-family:"Bricolage Grotesque",sans-serif; color:var(--amber); font-weight:600; font-size:13px; letter-spacing:.12em}
+  .step h3{font-size:20px; font-weight:600; margin:10px 0 8px}
+  .step p{color:var(--ink-dim); font-size:14.5px; line-height:1.65}
+  .vig{margin-top:18px; background:var(--deep); border:1px solid var(--line-soft); border-radius:14px; padding:14px}
+  .vchips{display:flex; gap:6px; flex-wrap:wrap}
+  .vchip{font-size:10.5px; padding:6px 10px; border-radius:11px; background:var(--glass-hi); color:var(--ink-dim)}
+  .vchip.on{background:rgba(255,182,92,.16); border:1px solid rgba(255,182,92,.4); color:var(--amber-hi)}
+  .vload{display:flex; gap:4px; margin-top:8px}
+  .vload i{flex:1; height:12px; border-radius:4px; background:var(--glass-hi)}
+  .vload i.f1{background:#6B5330}.vload i.f2{background:#8A6636}.vload i.f3{background:#B98A44}.vload i.f4{background:#E3A854}
+  .vtele{font-size:11.5px; color:var(--ink-dim); line-height:1.6}
+  .vpart{display:flex; gap:7px; margin-top:9px; align-items:flex-start}
+  .vpart svg{width:9px; flex:none; margin-top:3px}
+  .vpart p{font-size:11.5px; color:var(--ink); font-style:italic; line-height:1.55}
+  .vgrid{display:grid; grid-template-columns:repeat(7,1fr); gap:4px}
+  .vgrid i{aspect-ratio:1; border-radius:3.5px; background:rgba(234,241,236,.05)}
+  .vgrid i.a1{background:rgba(255,182,92,.35)}.vgrid i.a2{background:rgba(255,182,92,.6)}
+  .vgrid i.a3{background:rgba(255,182,92,.85)}.vgrid i.m{background:rgba(155,199,189,.75)}
+
+  /* ── career grid band ───────────────────────────── */
+  .gridband{padding:84px 0 70px; border-top:1px solid var(--line)}
+  #grid{width:100%; display:block; margin-top:28px}
+  .gb-cap{color:var(--ink-dim); font-size:15px; line-height:1.7; margin-top:20px; max-width:44em}
   .gb-cap .mint{color:var(--moon); font-weight:600}
-  /* steps band */
-  .band{border-top:1px solid var(--line); padding:72px 0}
-  .band-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:44px}
-  .b-step .n{font-family:"Bricolage Grotesque",sans-serif; color:var(--amber); font-weight:600; font-size:14px;
-    letter-spacing:.1em}
-  .b-step h3{font-family:"Bricolage Grotesque",sans-serif; font-size:21px; font-weight:600; margin:10px 0 8px}
-  .b-step p{color:var(--ink-dim); font-size:15px; line-height:1.65}
-  /* trust band */
-  .trust{border-top:1px solid var(--line); padding:76px 0;
-    background:radial-gradient(ellipse 70% 60% at 50% 115%, rgba(255,182,92,.05), transparent 60%)}
-  .trust-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:30px}
-  .plank{border:1px solid var(--line); border-radius:18px; padding:26px 24px;
-    background:rgba(234,241,236,.025)}
-  .plank h3{font-family:"Bricolage Grotesque",sans-serif; font-size:20px; font-weight:600;
-    line-height:1.3; margin-bottom:10px}
-  .plank p{color:var(--ink-dim); font-size:15px; line-height:1.65}
-  .plank .tick{color:var(--amber); font-size:13px; font-weight:600; letter-spacing:.08em;
-    text-transform:uppercase; display:block; margin-bottom:12px}
-  .trust-foot{color:var(--ink-faint); font-size:14px; margin-top:22px}
-  .trust-foot a{color:var(--amber)}
-  /* founder band */
-  .founder{border-top:1px solid var(--line); padding:80px 0}
-  .founder-in{max-width:640px}
-  .founder p{color:var(--ink-dim); font-size:17px; line-height:1.8; margin-top:14px}
-  .founder p b{color:var(--ink)}
-  .founder .sig{color:var(--ink-faint); font-size:14.5px; margin-top:20px}
-  /* strava section */
-  .logbook{padding:84px 0; background:linear-gradient(180deg, var(--panel), var(--night) 85%);
-    border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
-  .lb-grid{display:grid; grid-template-columns:1fr .9fr; gap:60px; align-items:center}
-  h2{font-weight:600; font-size:36px; letter-spacing:-.5px; margin:12px 0 16px}
-  .lead{color:var(--ink-dim); font-size:17px; max-width:36em; line-height:1.7}
-  .lead b{color:var(--ink)}
-  .bignums{margin-top:38px; display:flex; gap:36px; align-items:flex-end; flex-wrap:wrap}
-  .bn .v{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:46px; letter-spacing:-1px;
+
+  /* ── debrief section ────────────────────────────── */
+  .debrief{border-top:1px solid var(--line); padding:88px 0;
+    background:linear-gradient(180deg,var(--panel),var(--night) 88%)}
+  .db-grid{display:grid; grid-template-columns:.9fr 1.1fr; gap:64px; align-items:center}
+  .db-stage{border:1px solid var(--line-soft); border-radius:22px; background:var(--deep); padding:34px 34px 30px}
+  .db-you{font-family:"Bricolage Grotesque",sans-serif; font-weight:500; font-size:22px; line-height:1.42;
+    color:var(--ink-dim); letter-spacing:-.2px}
+  .db-part{display:flex; gap:11px; margin-top:22px; align-items:flex-start}
+  .db-part svg{width:14px; flex:none; margin-top:5px}
+  .db-part p{font-size:16px; line-height:1.62; font-style:italic}
+  .db-chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:22px}
+  .db-note{color:var(--ink-faint); font-size:13px; margin-top:22px; padding-top:18px; border-top:1px solid var(--line-soft)}
+
+  /* ── numbers band ───────────────────────────────── */
+  .logbook{padding:88px 0; border-top:1px solid var(--line)}
+  .lb-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:64px; align-items:center}
+  .bignums{margin-top:38px; display:flex; gap:38px; align-items:flex-end; flex-wrap:wrap}
+  .bn .v{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:48px; letter-spacing:-1.2px;
     color:var(--ink); line-height:1}
   .bn .v em{color:var(--amber); font-style:normal}
   .bn .k{color:var(--ink-faint); font-size:13px; margin-top:8px}
   .bn.dim .v{color:var(--ink-dim); font-size:34px}
-  /* faq */
-  .faq-sec{padding:84px 0 60px}
-  .faq{max-width:680px; margin-top:24px}
-  .faq details{border-bottom:1px solid var(--line); padding:19px 0}
-  .faq summary{cursor:pointer; font-weight:600; font-size:16.5px; list-style:none; display:flex; justify-content:space-between; align-items:center}
-  .faq summary::after{content:"+"; color:var(--amber); font-size:21px; font-weight:400}
+  .month-mock{border:1px solid var(--line-soft); border-radius:20px; background:var(--deep); padding:26px}
+  .mm-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px}
+  .mm-head b{font-family:"Bricolage Grotesque",sans-serif; font-weight:600; font-size:18px}
+  .mm-head span{font-size:12px; color:var(--ink-faint)}
+  .mm-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:7px}
+  .mm-grid i{aspect-ratio:1; border-radius:7px; background:rgba(234,241,236,.045); position:relative}
+  .mm-grid i.a1{background:rgba(255,182,92,.28)}.mm-grid i.a2{background:rgba(255,182,92,.5)}
+  .mm-grid i.a3{background:rgba(255,182,92,.78)}.mm-grid i.a4{background:var(--amber)}
+  .mm-grid i.n::after{content:""; position:absolute; right:3px; top:3px; width:4px; height:4px;
+    border-radius:2px; background:var(--moon)}
+  .mm-cap{display:flex; gap:8px; margin-top:16px; align-items:flex-start}
+  .mm-cap svg{width:10px; flex:none; margin-top:3px}
+  .mm-cap p{font-size:12px; color:var(--ink-dim); font-style:italic; line-height:1.55}
+
+  /* ── trust ──────────────────────────────────────── */
+  .trust{border-top:1px solid var(--line); padding:84px 0;
+    background:radial-gradient(ellipse 70% 60% at 50% 118%, rgba(255,182,92,.05), transparent 60%)}
+  .trust-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:32px}
+  .plank{border:1px solid var(--line); border-radius:20px; padding:28px 26px;
+    background:var(--glass)}
+  .plank h3{font-size:20px; font-weight:600; line-height:1.3; margin-bottom:10px}
+  .plank p{color:var(--ink-dim); font-size:14.5px; line-height:1.66}
+  .plank .t{color:var(--amber); font-size:12px; font-weight:600; letter-spacing:.1em;
+    text-transform:uppercase; display:block; margin-bottom:12px}
+  .trust-foot{color:var(--ink-faint); font-size:14px; margin-top:24px}
+  .trust-foot a{color:var(--amber)}
+
+  /* ── founder ────────────────────────────────────── */
+  .founder{border-top:1px solid var(--line); padding:88px 0}
+  .founder-in{max-width:640px; margin:0 auto}
+  .founder p{color:var(--ink-dim); font-size:17.5px; line-height:1.82; margin-top:16px}
+  .founder p b{color:var(--ink)}
+  .founder .sig{color:var(--ink-faint); font-size:14.5px; margin-top:22px}
+
+  /* ── faq ────────────────────────────────────────── */
+  .faq-sec{padding:84px 0 64px; border-top:1px solid var(--line)}
+  .faq{max-width:700px; margin-top:26px}
+  .faq details{border-bottom:1px solid var(--line); padding:20px 0}
+  .faq summary{cursor:pointer; font-weight:600; font-size:16.5px; list-style:none;
+    display:flex; justify-content:space-between; align-items:center; gap:16px}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"+"; color:var(--amber); font-size:21px; font-weight:400; flex:none}
   .faq details[open] summary::after{content:"–"}
   .faq details p{color:var(--ink-dim); font-size:15px; line-height:1.7; margin-top:11px; max-width:58ch}
   .faq details a{color:var(--amber)}
-  /* final */
-  .final{text-align:center; padding:72px 0 96px}
-  .final h2{font-size:36px}
+
+  /* ── final + footer ─────────────────────────────── */
+  .final{text-align:center; padding:80px 0 100px; border-top:1px solid var(--line);
+    background:radial-gradient(ellipse 60% 55% at 50% 120%, rgba(255,182,92,.07), transparent 62%)}
+  .final h2{font-size:38px}
   .final p{color:var(--ink-dim); font-size:16.5px}
-  .final .waitlist{margin:26px auto 0}
-  footer{border-top:1px solid var(--line); padding:32px 24px 44px; text-align:center;
-    color:var(--ink-faint); font-size:13.5px; line-height:2}
-  footer a{color:var(--ink-dim); text-decoration:none}
-  footer a:hover{color:var(--amber)}
-  @media (max-width:900px){
-    .hero-grid{grid-template-columns:1fr; gap:48px}
-    .hero h1{font-size:40px}
-    .band-grid{grid-template-columns:1fr; gap:32px}
-    .lb-grid{grid-template-columns:1fr; gap:44px}
-    .bignums{gap:26px}
+  .final .waitlist{margin:28px auto 0}
+  footer{border-top:1px solid var(--line); padding:44px 28px 52px}
+  .foot-in{max-width:1080px; margin:0 auto; display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:40px}
+  .foot-brand p{color:var(--ink-faint); font-size:13.5px; margin-top:12px; max-width:26em; line-height:1.7}
+  .foot-col .h{font-size:11.5px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:14px}
+  .foot-col a{display:block; color:var(--ink-dim); text-decoration:none; font-size:14px; margin-bottom:10px}
+  .foot-col a:hover{color:var(--amber)}
+  .foot-base{max-width:1080px; margin:36px auto 0; padding-top:22px; border-top:1px solid var(--line-soft);
+    color:var(--ink-faint); font-size:12.5px; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap}
+
+  @media (max-width:920px){
+    .hero-grid,.db-grid,.lb-grid{grid-template-columns:1fr; gap:52px}
+    .hero h1{font-size:42px}
+    h2{font-size:32px}
+    .steps,.trust-grid{grid-template-columns:1fr; gap:16px}
+    .phone{transform:none}
+    @media (prefers-reduced-motion: no-preference){
+      .phone{animation:floatFlat 7s ease-in-out infinite}
+      @keyframes floatFlat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+    }
+    .foot-in{grid-template-columns:1fr; gap:28px}
   }
   @media (max-width:480px){
-    .hero{padding-top:52px}
-    .hero h1{font-size:34px}
-    h2{font-size:29px}
+    .hero{padding-top:56px}
+    .hero h1{font-size:35px}
     .wl-row{flex-direction:column}
     .bn .v{font-size:38px}
+    .db-stage{padding:24px 22px}
   }
 </style>
 </head>
@@ -171,6 +301,13 @@
       </svg>
       <span>unwind<span class="rn">RN</span></span>
     </a>
+    <div class="nav-links" aria-label="Sections">
+      <a href="#how">How it works</a>
+      <a href="#debrief">The debrief</a>
+      <a href="#trust">Privacy</a>
+      <a href="#story">Story</a>
+      <a href="#faq">FAQ</a>
+    </div>
     <a class="nav-cta" href="#waitlist">Get early access</a>
   </div>
 </nav>
@@ -178,7 +315,7 @@
 <header class="hero">
   <div class="wrap hero-grid">
     <div>
-      <div class="eyebrow">Built for nurses · iPhone</div>
+      <div class="eyebrow">Built with a peds onc nurse · iPhone</div>
       <h1>Log the shift.<br>Watch your career add&nbsp;up.</h1>
       <p class="sub">
         Tell it how long you've been a nurse and your logbook opens with
@@ -206,23 +343,119 @@
                style="height:52px"></a>
              and update the nav CTA + final-section heading to match. -->
       </div>
+      <div class="ticks" aria-label="Promises">
+        <span class="tick"><i></i>Voice stays on your phone</span>
+        <span class="tick"><i></i>No employer version</span>
+        <span class="tick"><i></i>Delete means delete</span>
+      </div>
     </div>
 
     <div class="hero-visual rv">
-      <div>
-        <div class="phone">
-          <div class="cycler" id="cycler">
-            <img src="/screens/home.jpg" class="on" alt="unwindRN home — this week, milestones, and career totals">
-            <img src="/screens/logbook.jpg" alt="The logbook — August filling in, shift by shift">
-            <img src="/screens/miles.jpg" alt="~2,960 miles on your feet — farther than walking Los Angeles to New York">
-            <img src="/screens/shift741.jpg" alt="Shift #741 is the first one you keep">
+      <div class="phone" aria-hidden="true">
+        <div class="screen">
+          <div class="notch"></div>
+          <div class="statusbar">
+            <span class="t num">9:41</span>
+            <span class="sbicons"><i class="sig"></i><i class="wifi"></i><i class="batt"></i></span>
+          </div>
+          <div class="apphead">
+            <span class="lk">
+              <svg viewBox="32 0 56 104"><g transform="translate(34.4 47) scale(0.4 0.55)"><path d="M60 67C44 52 64 42 64 18C84 35 82 53 60 67Z" fill="#FFB65C"/></g><circle cx="60" cy="18" r="10" fill="none" stroke="#EAF1EC" stroke-width="3.5"/><path d="M52 28 L68 28 L75 38 L45 38 Z" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linejoin="round"/><path d="M47 38 L43 92 M73 38 L77 92 M39 92 H81 M45 92 L47 102 H73 L75 92" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <b>unwind<span class="r">RN</span></b>
+            </span>
+            <span class="date">Sat · Aug 8</span>
+          </div>
+          <div class="greet">Evening, Jordan.</div>
+          <div class="greet-sub">Logged. 12h, brutal.</div>
+          <div class="pcard">
+            <div>
+              <div class="ov">Next shift</div>
+              <div class="big">Not clocked in</div>
+              <div class="cap num">12h · your usual</div>
+            </div>
+            <div class="chip-ghost">Clock in</div>
+          </div>
+          <div class="oldshift">Add an old shift ›</div>
+          <div class="weekhead"><span class="ov">This week</span><span class="k num">4 shifts · 49h ›</span></div>
+          <div class="week num">
+            <div class="wc"><div class="d">S</div><div class="n">02</div></div>
+            <div class="wc h2x"><div class="d">M</div><div class="n">03</div></div>
+            <div class="wc"><div class="d">T</div><div class="n">04</div></div>
+            <div class="wc h3x"><div class="d">W</div><div class="n">05</div></div>
+            <div class="wc"><div class="d">T</div><div class="n">06</div></div>
+            <div class="wc h2x"><div class="d">F</div><div class="n">07</div></div>
+            <div class="wc today"><div class="d">S</div><div class="n">08</div></div>
+          </div>
+          <div class="ms">
+            <div class="row"><span class="ov">Milestone</span><span class="k num">#1,000 · 249 to go ›</span></div>
+            <div class="track"><div class="fill"></div></div>
+          </div>
+          <div class="tiles num">
+            <div class="tile"><div class="v">~751</div><div class="k">Shifts</div></div>
+            <div class="tile"><div class="v am">~9,014</div><div class="k">Hours</div></div>
+            <div class="tile"><div class="v mn">~301</div><div class="k">Nights</div></div>
+          </div>
+          <div class="presence">
+            <svg viewBox="32 0 56 104"><g transform="translate(34.4 47) scale(0.4 0.55)"><path d="M60 67C44 52 64 42 64 18C84 35 82 53 60 67Z" fill="#FFB65C"/></g><circle cx="60" cy="18" r="10" fill="none" stroke="#EAF1EC" stroke-width="3.5"/><path d="M52 28 L68 28 L75 38 L45 38 Z" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linejoin="round"/><path d="M47 38 L43 92 M73 38 L77 92 M39 92 H81 M45 92 L47 102 H73 L75 92" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <p>Three twelves and a quiet Sunday — the record kept all of it.</p>
+          </div>
+          <div class="navpill">
+            <svg class="on" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 9v11h14V9"/></svg>
+            <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>
           </div>
         </div>
-        <div class="dots" id="dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
       </div>
     </div>
   </div>
 </header>
+
+<section class="band" id="how">
+  <div class="wrap">
+    <div class="eyebrow rv">Twenty seconds, honestly</div>
+    <h2 class="rv">Clock out. Tap. Done.</h2>
+    <div class="steps">
+      <div class="step rv">
+        <div class="n">01</div>
+        <h3>Clock out in the app</h3>
+        <p>How long, how heavy, what happened. Ten taps on your worst night —
+        fewer on a good one.</p>
+        <div class="vig" aria-hidden="true">
+          <div class="vchips"><span class="vchip">8h</span><span class="vchip">10h</span><span class="vchip on">12h · usual</span><span class="vchip">14h</span></div>
+          <div class="vload"><i class="f1"></i><i class="f2"></i><i class="f3"></i><i class="f4"></i><i></i></div>
+        </div>
+      </div>
+      <div class="step rv" style="transition-delay:.1s">
+        <div class="n">02</div>
+        <h3>Vent if you need to</h3>
+        <p>Some nights need more than taps. The debrief listens like a coworker
+        who was there. Totally optional — nothing you say goes in your record,
+        only the entry you approve.</p>
+        <div class="vig" aria-hidden="true">
+          <p class="vtele">"Twelve hours. We coded twice and he made it…"</p>
+          <div class="vpart">
+            <svg viewBox="32 0 56 104"><g transform="translate(34.4 47) scale(0.4 0.55)"><path d="M60 67C44 52 64 42 64 18C84 35 82 53 60 67Z" fill="#FFB65C"/></g><circle cx="60" cy="18" r="10" fill="none" stroke="#EAF1EC" stroke-width="3.5"/><path d="M52 28 L68 28 L75 38 L45 38 Z" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linejoin="round"/><path d="M47 38 L43 92 M73 38 L77 92 M39 92 H81 M45 92 L47 102 H73 L75 92" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <p>That's a hell of a shift to carry home.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step rv" style="transition-delay:.2s">
+        <div class="n">03</div>
+        <h3>Your log builds itself</h3>
+        <p>Months fill in. Numbers climb. Milestones hit. It's all there when
+        you want to look back — or prove it.</p>
+        <div class="vig" aria-hidden="true">
+          <div class="vgrid">
+            <i class="a2 m"></i><i></i><i class="a1"></i><i class="a3"></i><i></i><i class="a2"></i><i class="m a1"></i>
+            <i></i><i class="a3 m"></i><i class="a1"></i><i></i><i class="a2"></i><i></i><i class="a3"></i>
+            <i class="a1"></i><i></i><i class="a2 m"></i><i class="a1"></i><i></i><i class="a3"></i><i></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <section class="gridband">
   <div class="wrap">
@@ -235,60 +468,33 @@
   </div>
 </section>
 
-<section class="band">
-  <div class="wrap band-grid">
-    <div class="b-step rv">
-      <div class="n">01</div>
-      <h3>Clock out in the app</h3>
-      <p>How long, how heavy, what happened. Ten taps on your worst night —
-      fewer on a good one.</p>
+<section class="debrief" id="debrief">
+  <div class="wrap db-grid">
+    <div class="rv">
+      <div class="eyebrow">Not a chatbot</div>
+      <h2>A debrief that knows the floor.</h2>
+      <p class="lead">It knows what a 1:5 with two codes means. It asks one
+      question at a time, or none. It never diagnoses you, never lectures,
+      never says "streak." And when you're done, <b>only the record you
+      approve is saved</b> — the conversation itself isn't.</p>
     </div>
-    <div class="b-step rv" style="transition-delay:.1s">
-      <div class="n">02</div>
-      <h3>Vent if you need to</h3>
-      <p>Some nights need more than taps. The debrief listens like a coworker
-      who was there — it knows what a 1:5 with two codes means. Totally
-      optional, and nothing you say goes in your record — only the entry
-      you approve does.</p>
-    </div>
-    <div class="b-step rv" style="transition-delay:.2s">
-      <div class="n">03</div>
-      <h3>Your log builds itself</h3>
-      <p>Months fill in. Numbers climb. Milestones hit. It's all there when
-      you want to look back — or prove it.</p>
-    </div>
-  </div>
-</section>
-
-<section class="trust">
-  <div class="wrap">
-    <div class="eyebrow rv">The part that matters</div>
-    <h2 class="rv">Built to be on your side.</h2>
-    <div class="trust-grid">
-      <div class="plank rv">
-        <span class="tick">On-device</span>
-        <h3>Your voice never leaves your phone.</h3>
-        <p>Speech becomes text on the phone itself, using Apple's on-device
-        recognition. The audio is never sent anywhere and never stored —
-        that's how it's built, not a promise in fine print.</p>
+    <div class="db-stage rv" aria-hidden="true">
+      <p class="db-you">"Twelve hours. We coded twice and he made it to the
+      PICU. I'm wrecked but we got him back."</p>
+      <div class="db-part">
+        <svg viewBox="32 0 56 104"><g transform="translate(34.4 47) scale(0.4 0.55)"><path d="M60 67C44 52 64 42 64 18C84 35 82 53 60 67Z" fill="#FFB65C"/></g><circle cx="60" cy="18" r="10" fill="none" stroke="#EAF1EC" stroke-width="3.5"/><path d="M52 28 L68 28 L75 38 L45 38 Z" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linejoin="round"/><path d="M47 38 L43 92 M73 38 L77 92 M39 92 H81 M45 92 L47 102 H73 L75 92" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <p>That is a hell of a shift to carry home. Two codes, twelve hours,
+        and he's still here — that happened because of what you and your
+        team did.</p>
       </div>
-      <div class="plank rv" style="transition-delay:.1s">
-        <span class="tick">No employer version</span>
-        <h3>Your hospital never sees this.</h3>
-        <p>No manager dashboard, no unit reports, no data sold upstream.
-        There is nothing for an employer to buy. unwindRN answers to the
-        nurse holding the phone, and no one else.</p>
+      <div class="db-chips">
+        <span class="vchip on">Code</span>
+        <span class="vchip on">Good save</span>
+        <span class="vchip on">12h</span>
       </div>
-      <div class="plank rv" style="transition-delay:.2s">
-        <span class="tick">One tap, in the app</span>
-        <h3>Delete means delete.</h3>
-        <p>Deleting your account removes every record and the account
-        itself, immediately. We tested it end to end before writing this
-        sentence — zero rows left.</p>
-      </div>
+      <p class="db-note">Speech becomes text on your phone — audio never
+      leaves it. Identifying details are stripped before anything is saved.</p>
     </div>
-    <p class="trust-foot rv">The whole story is in the
-    <a href="/privacy">privacy policy</a> — written to be read, not scrolled past.</p>
   </div>
 </section>
 
@@ -301,7 +507,7 @@
       but they love watching the miles add up. Your work deserves the same.
       Five years in, rotating twelves? Your logbook opens like this, before
       you've tapped a thing.</p>
-      <div class="bignums">
+      <div class="bignums num">
         <div class="bn"><div class="v" data-count="740"><em>740</em></div><div class="k">shifts</div></div>
         <div class="bn dim"><div class="v" data-count="8880">8,880</div><div class="k">hours</div></div>
         <div class="bn dim"><div class="v" data-count="296">296</div><div class="k">nights</div></div>
@@ -310,18 +516,58 @@
       year of your life, at the bedside. Then every shift you log makes the
       picture more exactly yours.</p>
     </div>
-    <div class="hero-visual rv">
-      <div class="phone" style="width:262px; transform:rotate(-1.5deg)">
-        <div class="cycler" id="cycler2">
-          <img src="/screens/logbook.jpg" class="on" alt="The logbook heatfield — a month of shifts">
-          <img src="/screens/home.jpg" alt="Career totals on the home screen">
+    <div class="rv">
+      <div class="month-mock" aria-hidden="true">
+        <div class="mm-head"><b>August</b><span class="num">11 shifts · 134h · 4 nights</span></div>
+        <div class="mm-grid">
+          <i></i><i></i><i class="a2 n"></i><i></i><i class="a1"></i><i></i><i class="a3"></i>
+          <i class="a4 n"></i><i></i><i></i><i class="a2"></i><i></i><i class="a1 n"></i><i></i>
+          <i></i><i class="a3"></i><i class="a2"></i><i></i><i></i><i class="a4 n"></i><i></i>
+          <i class="a1"></i><i></i><i class="a2"></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i>
+        </div>
+        <div class="mm-cap">
+          <svg viewBox="32 0 56 104"><g transform="translate(34.4 47) scale(0.4 0.55)"><path d="M60 67C44 52 64 42 64 18C84 35 82 53 60 67Z" fill="#FFB65C"/></g><circle cx="60" cy="18" r="10" fill="none" stroke="#EAF1EC" stroke-width="3.5"/><path d="M52 28 L68 28 L75 38 L45 38 Z" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linejoin="round"/><path d="M47 38 L43 92 M73 38 L77 92 M39 92 H81 M45 92 L47 102 H73 L75 92" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <p>A month that asked a lot and got it. The charge nights show.</p>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="founder">
+<section class="trust" id="trust">
+  <div class="wrap">
+    <div class="eyebrow rv">The part that matters</div>
+    <h2 class="rv">Built to be on your side.</h2>
+    <div class="trust-grid">
+      <div class="plank rv">
+        <span class="t">On-device</span>
+        <h3>Your voice never leaves your phone.</h3>
+        <p>Speech becomes text on the phone itself, using Apple's on-device
+        recognition. The audio is never sent anywhere and never stored —
+        that's how it's built, not a promise in fine print.</p>
+      </div>
+      <div class="plank rv" style="transition-delay:.1s">
+        <span class="t">No employer version</span>
+        <h3>Your hospital never sees this.</h3>
+        <p>No manager dashboard, no unit reports, no data sold upstream.
+        There is nothing for an employer to buy. unwindRN answers to the
+        nurse holding the phone, and no one else.</p>
+      </div>
+      <div class="plank rv" style="transition-delay:.2s">
+        <span class="t">One tap, in the app</span>
+        <h3>Delete means delete.</h3>
+        <p>Deleting your account removes every record and the account
+        itself, immediately. We tested it end to end before writing this
+        sentence — zero rows left.</p>
+      </div>
+    </div>
+    <p class="trust-foot rv">The whole story is in the
+    <a href="/privacy">privacy policy</a> — written to be read, not scrolled past.</p>
+  </div>
+</section>
+
+<section class="founder" id="story">
   <div class="wrap founder-in rv">
     <div class="eyebrow">Why this exists</div>
     <h2>Built at a kitchen table in Detroit.</h2>
@@ -336,7 +582,7 @@
   </div>
 </section>
 
-<section class="faq-sec">
+<section class="faq-sec" id="faq">
   <div class="wrap">
     <div class="eyebrow">Fair questions</div>
     <h2>What nurses ask us.</h2>
@@ -386,7 +632,7 @@
   <div class="wrap rv">
     <h2>Get in early.</h2>
     <p>First invites go out soon. One email, that's it.</p>
-    <div class="waitlist" style="max-width:440px">
+    <div class="waitlist" style="max-width:460px">
       <form name="waitlist" method="POST" action="/" data-netlify="true" netlify-honeypot="bot-field" id="wl-form-2">
         <input type="hidden" name="form-name" value="waitlist">
         <p style="display:none"><label>Don't fill this out: <input name="bot-field"></label></p>
@@ -403,11 +649,39 @@
 </section>
 
 <footer>
-  <div>
-    <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> ·
-    <a href="mailto:support@unwindrn.com">support@unwindrn.com</a>
+  <div class="foot-in">
+    <div class="foot-brand">
+      <a class="lockup" href="/">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="32 0 56 104" aria-hidden="true">
+          <g transform="translate(34.4 47) scale(0.4 0.55)"><path d="M60 67C44 52 64 42 64 18C84 35 82 53 60 67Z" fill="#FFB65C"></path></g>
+          <circle cx="60" cy="18" r="10" fill="none" stroke="#EAF1EC" stroke-width="3.5"></circle>
+          <path d="M52 28 L68 28 L75 38 L45 38 Z" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linejoin="round"></path>
+          <path d="M47 38 L43 92 M73 38 L77 92 M39 92 H81 M45 92 L47 102 H73 L75 92" fill="none" stroke="#EAF1EC" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span>unwind<span class="rn">RN</span></span>
+      </a>
+      <p>The career logbook and post-shift debrief for nurses. Built on the
+      nurse's side — and staying there.</p>
+    </div>
+    <div class="foot-col">
+      <div class="h">Product</div>
+      <a href="#how">How it works</a>
+      <a href="#debrief">The debrief</a>
+      <a href="#trust">Privacy promises</a>
+      <a href="#waitlist">Early access</a>
+    </div>
+    <div class="foot-col">
+      <div class="h">Company</div>
+      <a href="#story">The story</a>
+      <a href="/privacy">Privacy policy</a>
+      <a href="/terms">Terms of service</a>
+      <a href="mailto:support@unwindrn.com">support@unwindrn.com</a>
+    </div>
   </div>
-  <div>© 2026 unwindRN LLC</div>
+  <div class="foot-base">
+    <span>© 2026 unwindRN LLC · Detroit, Michigan</span>
+    <span>Not therapy or medical care. In crisis, call or text 988.</span>
+  </div>
 </footer>
 
 <script>
@@ -429,22 +703,6 @@
   wireForm('wl-form-2','wl-success-2');
 
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // screenshot cyclers
-  function cycle(id, dotsId, ms){
-    var el = document.getElementById(id);
-    if(!el || reduced) return;
-    var imgs = el.querySelectorAll('img');
-    var dots = dotsId ? document.querySelectorAll('#'+dotsId+' i') : null;
-    var i = 0;
-    setInterval(function(){
-      imgs[i].classList.remove('on'); if(dots) dots[i].classList.remove('on');
-      i = (i+1) % imgs.length;
-      imgs[i].classList.add('on'); if(dots) dots[i].classList.add('on');
-    }, ms);
-  }
-  cycle('cycler','dots',3000);
-  cycle('cycler2',null,3600);
 
   // the career grid — one square per shift, nights in mint
   (function(){
