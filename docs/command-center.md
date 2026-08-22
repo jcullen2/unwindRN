@@ -12,7 +12,7 @@ and unblocks the next. CLAUDE.md stays the law for *how* we build; this file is
 > PRODUCTION_REMEDIATION, PRODUCT, BRAND_DIRECTION*) fold INTO this file and this
 > repo when the review branch lands. One truth, in git, forever after.
 
-Status date: 2026-08-21 · Owners: **John** (CEO — money, Apple, approvals, brand
+Status date: 2026-08-22 · Owners: **John** (CEO — money, Apple, approvals, brand
 taste, nurses, on-camera) · **Claude** (everything buildable — code, deploys behind
 approval gates, QA, copy, design drafts, store package, marketing drafts).
 
@@ -93,7 +93,11 @@ pushed. **This is Gate 0.**
 **Deep Ward** (petrol/amber, Bricolage, caged lantern) is implemented and live.
 **The Kept Light** was rejected — final. **On the Record** (nurse-owned ledger,
 shift index, evidence labels) is a draft on the Mac: unapproved, zero code.
-The brand decision gates the website overhaul and store assets — see Gate 2.
+**2026-08-22: John reopened the front end** after the first clickable review —
+color scheme, UI/UX, and app structure. That is now **decision D6** (Gate 2
+reopened): three complete directions are on the table; no new UI code lands
+until John picks. The safety laws, the caged lantern, and the copy register
+are not in play.
 
 ---
 
@@ -169,12 +173,32 @@ Executed on John's "start gate 1", in safety order, all against production:
       real automated backups).
 - **Done when:** the two John-click items above are done. Everything else is.
 
-### Gate 2 — Decide the brand  `✔ CLOSED 2026-08-21`
+### Gate 2 — Decide the brand  `✔ CLOSED 2026-08-21 · REOPENED 2026-08-22 as front-end v2 (D6)`
 **John decided: Deep Ward is the ship brand** ("we keep deepward"). On the
 Record's surviving written ideas (evidence labels, sequential shift index)
 are filed in IDEAS.md as graft candidates onto Deep Ward — considered per
-feature, never as a re-skin. The website overhaul (Gate 6) and store assets
-now build on Deep Ward with no blocking design decision ahead of them.
+feature, never as a re-skin.
+
+**Reopened 2026-08-22.** John's verdict after reviewing the clickable preview:
+backend strong; front end, color scheme, and app structure need significant
+work. Delivered as the design-reset artifact: a 10-finding audit with file
+receipts, a new structural spine (Home = the tonight surface; the career grid
+into the daily tabs; the debrief stream becomes **a call, not a thread** — no
+transcript scrollback, John's not-a-chatbot rule written as rendering law),
+and three complete directions with palettes + phone mocks:
+- **A — Deep Ward, second coat** (refine the night; lowest cost)
+- **B — Day ward, night ritual** (record surfaces in daylight, the debrief
+  keeps Deep Ward as its dark room; Claude's recommendation)
+- **C — On the record** (the ledger: paper/ink/oxblood; biggest rupture)
+
+- [ ] **John picks A/B/C or steers** ("none — more ___" buys one revised
+      direction, then we choose).
+- [ ] Nurse veto round before locking: share the page with Maria + 2–3 nurse
+      friends; one question — "which would you actually open after a shift?"
+- [ ] Then ONE repaint: tokens.ts (the only place color lives) + the spine
+      changes to Home/Logbook/debrief. Small commits, CI green throughout.
+- [ ] Gate 3 §8 pass on-device judges feel (type, motion, haptics, the save).
+**Rule while open: no new UI code until D6 is decided — we paint once.**
 
 ### Gate 3 — Device truth  `← READY TO RUN (needs the Mac + John's iPhone)`
 - [x] **QA script written: docs/device-qa.md** — 17 items with expected
@@ -266,15 +290,20 @@ on evidence, not slides.**
       leave the US storefront (launch US-only).
 
 ## 5. Now / Next
-**Now — all three lanes are John-side actions:**
-1. **Gate 3 run:** iPhone into the mini → paste docs/device-qa.md §A → walk
-   §B (~an hour). This is the critical path to beta.
-2. **Gate 6 deploy:** one paste to the mini's Claude (in the Gate 6 section)
-   puts the overhauled site live.
-3. **Desk items:** Gate 1 dashboard clicks + Supabase Pro · Apple Membership
+**Now — all four lanes are John-side actions:**
+1. **D6 — pick the front-end direction** (A / B / C, or steer) from the
+   design-reset artifact. Blocks all UI work; everything below runs in
+   parallel with it.
+2. **Gate 3 run:** iPhone into the mini → paste docs/device-qa.md §A → walk
+   §B (~an hour). Worth running BEFORE the repaint — it proves the pipeline
+   (auth, voice, saves, deletion) that survives any direction; the §8 visual
+   pass re-runs after the repaint.
+3. **Gate 6 deploy:** drag unwindrn-site.zip onto Netlify (per Gate 6), then
+   say "deployed" for cloud verification.
+4. **Desk items:** Gate 1 dashboard clicks + Supabase Pro · Apple Membership
    screenshot (D2) · decisions D1/D3/D4.
-**Next (cloud):** triage Gate 3 FAILs into fixes · content bank drafts
-(scripts for 20–30 short-form pieces) · store metadata/screenshot prep.
+**Next (cloud):** the D6 repaint once picked · triage Gate 3 FAILs · store
+metadata/screenshot prep (after the repaint — every capture changes).
 
 ## 6. Decisions
 | # | Decision | Status | Call |
@@ -283,12 +312,27 @@ on evidence, not slides.**
 | D2 | Apple entity path if account is Individual | Open — blocked on Membership screenshot | Reposition as journaling/lifestyle (already the metadata stance) vs convert to org |
 | D3 | Voice-out at beta (ElevenLabs key + cost) | **Recommended ON, awaiting John** | It's the soul of the product; caps bound the spend |
 | D4 | Minimal first-party events table (no 3rd-party SDKs) | **Recommended, awaiting John** | Without it, no retention read at the go/no-go |
-| D5 | Ship-now brand | **DECIDED — Deep Ward** (John, 2026-08-21) | OTR's written ideas filed in IDEAS.md as grafts |
+| D5 | Ship-now brand | **Deep Ward (2026-08-21) — superseded by D6** | v1 shipped on Deep Ward; John reopened the front end 8/22 |
+| D6 | Front-end v2: direction (color, UI/UX, structure) | **OPEN — needs John** | A (second coat) / B (day ward, night ritual — Claude rec) / C (the ledger), or one steer |
 | — | The Kept Light | **Rejected (final)** — 2026-08-20 | Never propagate |
 | — | B2C first, no hospital sales at launch | **Decided** — John | Trust architecture over check size |
 | — | Legacy carve: react-query + date-fns stay | **Decided** — whitelist formally | Load-bearing since v1; ripping out is overcoding |
 
 ## 7. Evidence log (newest first)
+- **2026-08-22 (front end reopened → D6)** — Shipped the first clickable app
+  preview as a browser artifact (all four tabs, the debrief flow, the real
+  scrubber rules running live). John's verdict on it: backend strong;
+  frontend, UI/UX, color scheme, and app structure need significant work.
+  Accepted, audited, and turned into the design-reset artifact: 10 findings
+  with file receipts (Home is a six-widget stack; the career grid renders
+  only in onboarding/welcome — no tab ever shows it; debrief.tsx:646 maps
+  the session into a scrolling transcript = chat posture; one static petrol
+  treatment at every hour, tokens.ts:67; amber holds every role; heat steps
+  1–2 at 8%/16% alpha are illegible, tokens.ts:58; no signature motion),
+  the new spine, the "call, not a thread" debrief rendering law, and three
+  complete directions (A second coat / B day-ward-night-ritual, recommended
+  / C the ledger) with palettes and phone mocks. Gate 2 reopened as D6;
+  **no new UI code until John picks — we paint once.**
 - **2026-08-22 (site v6 — the real overhaul + Maria purge)** — John's
   feedback on the first deploy: not enough of an overhaul, and "Maria"
   everywhere. Root cause: the demo account's display name was Maria, baked

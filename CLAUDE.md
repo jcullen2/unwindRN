@@ -120,6 +120,22 @@ IDEAS.md with anything cut, DESIGN-DEBT.md with anything shipped as a fallback.
 Never echo secrets. Keep §State of the build current — it exists so future
 sessions never pay to rediscover the codebase.
 
+## State of the build — 2026-08-22 (front end reopened: D6)
+
+**John reopened the front end after the first clickable review** — verdict:
+backend strong; UI/UX, color scheme, and app structure need significant work.
+Now **decision D6** (command center Gate 2 reopened): full audit with file
+receipts + a new structural spine + three complete directions (A Deep Ward
+second coat / B day ward, night ritual — recommended / C On the Record ledger)
+delivered as the design-reset artifact. **No new UI code until John picks —
+we paint once.** Law in every direction: the debrief renders as **a call, not
+a thread** — no transcript scrollback (the not-a-chatbot rule as rendering
+law; today debrief.tsx:646 maps the session into a scrolling stream). Spine
+once picked: Home = tonight surface (one action + a career-grid strip),
+Logbook = grid hero, stats demoted, real empty states; the career grid
+currently renders only in onboarding/welcome — no tab shows it. The D5 line
+below is superseded by D6.
+
 ## State of the build — 2026-08-21 (command center established; branches distilled)
 
 **docs/command-center.md is now the system of record** — gates, decisions, owners,
@@ -137,7 +153,7 @@ evidence log. Every session starts there; CLAUDE.md stays the law for HOW we bui
   flip), leaked-password toggle (John dashboard click), usage_counters INFO
   (deliberate deny-all). Older function-version/advisor notes below are
   historical. **Brand D5 DECIDED: Deep Ward ships;** "On the Record" written
-  ideas filed in IDEAS.md as grafts.
+  ideas filed in IDEAS.md as grafts. (Superseded 2026-08-22 — see D6 above.)
 - **The 2026-08-20 Mac hardening set was LOST — and REBUILT 2026-08-21.** It
   never touched disk (died with its agent sandbox; mini's full-home search
   negative). Rebuilt in the cloud from the report inventory (spec:
